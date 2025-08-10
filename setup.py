@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name="pybirdsreynolds",
     version="1.0.0",
-    description="pybirdsreynolds game in terminam",
+    description="pybirdsreynolds is a simulation of bird flocking behavior using Reynolds rules",
     long_description="The complete description/installation/use/FAQ is available at : https://github.com/thib1984/pybirdsreynolds#readme",
     url="https://github.com/thib1984/pybirdsreynolds",
     author="thib1984",

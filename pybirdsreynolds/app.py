@@ -269,13 +269,12 @@ def app():
                 text=line
             )
 
-        # Doc à droite de la ligne sélectionnée
         if selected_index < len(param_order):
             param_name = param_order[selected_index]
             doc_text = param_docs.get(param_name, "")
             if doc_text:
                 canvas.create_text(
-                    x_text + 175,  # Décalage vers la droite
+                    x_text + 175,
                     y_text + selected_index * 18,
                     anchor="nw",
                     fill="yellow",
