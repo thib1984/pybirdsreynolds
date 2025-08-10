@@ -1,2 +1,2 @@
-# pybirds
-pybirds game
+# pybirdsreynolds
+pybirdsreynolds game

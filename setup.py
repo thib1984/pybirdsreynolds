@@ -1,20 +1,21 @@
 from setuptools import setup
 
 setup(
-    name="pybirds",
+    name="pybirdsreynolds",
     version="0.1.0",
-    description="pybirds game in terminam",
-    long_description="The complete description/installation/use/FAQ is available at : https://github.com/thib1984/pybirds#readme",
-    url="https://github.com/thib1984/pybirds",
+    description="pybirdsreynolds game in terminam",
+    long_description="The complete description/installation/use/FAQ is available at : https://github.com/thib1984/pybirdsreynolds#readme",
+    url="https://github.com/thib1984/pybirdsreynolds",
     author="thib1984",
     author_email="thibault.garcon@gmail.com",
     license="MIT",
-    packages=["pybirds"],
+    license_files=[],
+    packages=["pybirdsreynolds"],
     install_requires=[],
     zip_safe=False,
     entry_points={
         "console_scripts": [
-            "pybirds=pybirds.__init__:pybirds"
+            "pybirdsreynolds=pybirdsreynolds.__init__:pybirdsreynolds"
         ],
     },
     classifiers=[

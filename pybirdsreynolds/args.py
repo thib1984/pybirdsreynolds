@@ -11,13 +11,13 @@ def compute_args():
     Parse command line arguments and return them.
     """
     my_parser = argparse.ArgumentParser(
-        description=textwrap.dedent("""pybirds - interactive simulation of bird flocking behavior using Reynolds rules
+        description=textwrap.dedent("""pybirdsreynolds - interactive simulation of bird flocking behavior using Reynolds rules
             space to pause/unpause,
             enter to iterate
         """),       
         epilog=textwrap.dedent("""
-            Full documentation at: <https://github.com/thib1984/pybirds>.
-            Report bugs to <https://github.com/thib1984/pybirds/issues>.
+            Full documentation at: <https://github.com/thib1984/pybirdsreynolds>.
+            Report bugs to <https://github.com/thib1984/pybirdsreynolds/issues>.
             MIT Licence.
             Copyright (c) 2025 thib1984.
             This is free software: you are free to change and redistribute it.

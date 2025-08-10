@@ -7,14 +7,14 @@
 
 # Installation 
 
-``pip3 install pybirds``
+``pip3 install pybirdsreynolds``
 
 # Upgrade 
 
-``pybirds -u``
+``pybirdsreynolds -u``
  
  or
 
- `` pip3 install --upgrade pybirds``
+ `` pip3 install --upgrade pybirdsreynolds``
 
 *_Install pip instead of pip3, if pip3 does not exist for your OS_

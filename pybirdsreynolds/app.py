@@ -1,11 +1,11 @@
 import tkinter as tk
 import random
 import math
-from pybirds.args import compute_args
+from pybirdsreynolds.args import compute_args
 import signal
 import sys
 """
-pybirds use case
+pybirdsreynolds use case
 """
 
 options = compute_args()
@@ -209,7 +209,7 @@ def app():
     
                
     root = tk.Tk()
-    root.title("pybirds")
+    root.title("pybirdsreynolds")
 
     canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg=canvas_bg)
     canvas.pack()

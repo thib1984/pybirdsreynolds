@@ -1,11 +1,11 @@
 # Work with Github
 
 ```
-git clone https://github.com/thib1984/pybirds.git
-cd pybirds 
+git clone https://github.com/thib1984/pybirdsreynolds.git
+cd pybirdsreynolds 
 #work!
 pip3 install . #to build
-pybirds #to retest
-pip3 uninstall pybirds #to properly uninstall the dev version
+pybirdsreynolds #to retest
+pip3 uninstall pybirdsreynolds #to properly uninstall the dev version
 ``` 
 
