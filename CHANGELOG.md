@@ -1,4 +1,4 @@
-# A VENIR 
+# 0.1.0
 
-- [ ] minimal game
+- [x] minimal game
 
