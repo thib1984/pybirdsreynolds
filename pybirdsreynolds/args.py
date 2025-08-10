@@ -32,7 +32,7 @@ def compute_args():
     my_parser.add_argument("--neighbor_radius", type=float, default=50, help="Distance to detect neighbors (default: 50)")
     my_parser.add_argument("--num_points", type=int, default=500, help="Number of agents (default: 500)")
     my_parser.add_argument("--width", type=int, default=1000, help="Width of the area (default: 1000)")
-    my_parser.add_argument("--heigth", type=int, default=500, help="Height of the area (default: 500)")
+    my_parser.add_argument("--height", type=int, default=500, help="Height of the area (default: 500)")
     my_parser.add_argument("--refresh_ms", type=int, default=1, help="Refresh time in milliseconds (default: 1)")
     my_parser.add_argument("--random_speed", type=float, default=0.1, help="Speed variation ratio (default: 0.1)")
     my_parser.add_argument("--random_angle", type=float, default=10, help="Angle variation in degrees (default: 10)")
@@ -41,6 +41,8 @@ def compute_args():
     my_parser.add_argument("--coh_weight", type=float, default=1, help="Cohesion weight (default: 1)")
     my_parser.add_argument("--no-color", action="store_true", help="Disable colors, use grayscale (default: False)")
     my_parser.add_argument("--interactive", action="store_true", help="Interactive mode (default: False)")
+    my_parser.add_argument("--points", action="store_true", help="Display boids as single pixels instead of directional triangles (default: False)")
+    my_parser.add_argument("--size", type=int, default=1, help="Visual size of birds -affects triangle or point rendering- (default: 1)")
     
     args = my_parser.parse_args()
     return args

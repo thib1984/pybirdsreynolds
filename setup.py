@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pybirdsreynolds",
-    version="0.1.0",
+    version="0.2.0",
     description="pybirdsreynolds game in terminam",
     long_description="The complete description/installation/use/FAQ is available at : https://github.com/thib1984/pybirdsreynolds#readme",
     url="https://github.com/thib1984/pybirdsreynolds",
@@ -24,6 +24,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",                
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

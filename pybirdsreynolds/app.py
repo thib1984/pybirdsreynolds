@@ -9,37 +9,30 @@ pybirdsreynolds use case
 """
 
 options = compute_args()
-if options.interactive:
-    paused = True 
+max_speed = options.max_speed
+neighbor_radius = options.neighbor_radius
+num_points = options.num_points
+width, height = options.width, options.height
+refresh_ms = options.refresh_ms
+random_speed = options.random_speed
+random_angle = options.random_angle
+sep_weight = options.sep_weight
+align_weight = options.align_weight
+coh_weight = options.coh_weight
+paused = options.interactive 
+size = options.size
+is_points=options.points
+if options.no_color:
+    canvas_bg = "black"
+    fill_color = "white"
+    outline_color = "black"
 else:
-    paused = False
+    canvas_bg = "blue"
+    fill_color = "white"
+    outline_color = "black"
 
 def app():
 
-    options = compute_args()
-
-    MAX_SPEED = options.max_speed
-    NEIGHBOR_RADIUS = options.neighbor_radius
-    NUM_POINTS = options.num_points
-    width, heigth = options.width, options.heigth
-    refresh_ms = options.refresh_ms
-    random_speed = options.random_speed
-    random_angle = options.random_angle
-    sep_weight = options.sep_weight
-    align_weight = options.align_weight
-    coh_weight = options.coh_weight
-
-    RECT_X1, RECT_Y1 = 0, 0
-    canvas_height = (heigth+RECT_Y1) 
-    canvas_width = (width+RECT_X1)
-    if options.no_color:
-        canvas_bg = "black"
-        fill_color = "white"
-        outline_color = "black"
-    else:
-        canvas_bg = "blue"
-        fill_color = "white"
-        outline_color = "black"
 
 
     def draw_points():
@@ -47,53 +40,61 @@ def app():
             canvas.delete(pid)
         point_ids.clear()
 
-        triangle_size = 8 
-        triangle_width = 5 
+        triangle_size = 6*size
+        triangle_width = 4*size
 
         for (x, y), (vx, vy) in zip(points, velocities):
-            angle = math.atan2(vy, vx)
+            if is_points:  # Mode point (pixel unique)
+                pid = canvas.create_oval(
+                    x - size, y - size,
+                    x + size, y + size,
+                    fill=fill_color, outline=outline_color)
+            else:
+                angle = math.atan2(vy, vx)
 
-            # Coordonnées du sommet (pointe vers la direction)
-            tip_x = x + math.cos(angle) * triangle_size
-            tip_y = y + math.sin(angle) * triangle_size
+                # Coordonnées du sommet (pointe vers la direction)
+                tip_x = x + math.cos(angle) * triangle_size
+                tip_y = y + math.sin(angle) * triangle_size
 
-            # Coordonnées des coins arrière (base)
-            left_angle = angle + math.radians(150)
-            right_angle = angle - math.radians(150)
+                # Coordonnées des coins arrière (base)
+                left_angle = angle + math.radians(150)
+                right_angle = angle - math.radians(150)
 
-            left_x = x + math.cos(left_angle) * triangle_width
-            left_y = y + math.sin(left_angle) * triangle_width
+                left_x = x + math.cos(left_angle) * triangle_width
+                left_y = y + math.sin(left_angle) * triangle_width
 
-            right_x = x + math.cos(right_angle) * triangle_width
-            right_y = y + math.sin(right_angle) * triangle_width
+                right_x = x + math.cos(right_angle) * triangle_width
+                right_y = y + math.sin(right_angle) * triangle_width
 
-            pid = canvas.create_polygon(
-                tip_x, tip_y,
-                left_x, left_y,
-                right_x, right_y,
-                fill=fill_color, outline=outline_color
-            )
+                pid = canvas.create_polygon(
+                    tip_x, tip_y,
+                    left_x, left_y,
+                    right_x, right_y,
+                    fill=fill_color, outline=outline_color
+                )
             point_ids.append(pid)
 
 
-    def limit_speed(vx, vy, max_speed=MAX_SPEED):
+    def limit_speed(vx, vy, max_speed=max_speed):
         speed = math.sqrt(vx*vx + vy*vy)
         if speed > max_speed:
             vx = (vx / speed) * max_speed
             vy = (vy / speed) * max_speed
         return vx, vy
 
-    def generate_points():
+    def generate_points(max_speed=max_speed):
         global velocities
 
-        if not points:  # Si vide ou []
+        if not points: 
             velocities = []
-            for _ in range(NUM_POINTS):
-                px = random.randint(RECT_X1 + 5, width - 5)
-                py = random.randint(RECT_Y1 + 5, heigth - 5)
+            for _ in range(num_points):
+                px = random.randint(5, width - 5)
+                py = random.randint(5, height - 5)
                 points.append((px, py))
-                vx = random.uniform(-1, 1)
-                vy = random.uniform(-1, 1)
+                angle = random.uniform(0, 2 * math.pi)
+                speed = random.uniform(0, max_speed)
+                vx = speed * math.cos(angle)
+                vy = speed * math.sin(angle)
                 velocities.append((vx, vy))
 
         else:
@@ -109,7 +110,7 @@ def app():
                     if i == j:
                         continue
                     dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
-                    if dist < NEIGHBOR_RADIUS and dist > 0:
+                    if dist < neighbor_radius and dist > 0:
                         # SEPARATION
                         # Si un voisin est trop proche, on ajoute un vecteur pour s’en éloigner (direction opposée au voisin).
                         move_sep_x += (x - x2) / dist
@@ -163,18 +164,18 @@ def app():
                 ny = y + vy
 
                 # Rebonds 
-                if nx < RECT_X1 + 5:
-                    nx = (RECT_X1 + 5) + ((RECT_X1 + 5) - nx)  
+                margin = 5
+                if nx < margin:
+                    nx = margin + (margin - nx)
                     vx = -vx
-                elif nx > width - 5:
-                    nx = (width - 5) - (nx - (width - 5))
+                elif nx > width - margin:
+                    nx = (width - margin) - (nx - (width - margin))
                     vx = -vx
-
-                if ny < RECT_Y1 + 5:
-                    ny = (RECT_Y1 + 5) + ((RECT_Y1 + 5) - ny)
+                if ny < margin:
+                    ny = margin + (margin - ny)
                     vy = -vy
-                elif ny > heigth - 5:
-                    ny = (heigth - 5) - (ny - (heigth - 5))
+                elif ny > height - margin:
+                    ny = (height - margin) - (ny - (height - margin))
                     vy = -vy
                 idx = points.index((x, y))
                 velocities[idx] = (vx, vy)
@@ -206,16 +207,15 @@ def app():
         else:
             print("Resumed")
 
-    
-               
+                
     root = tk.Tk()
     root.title("pybirdsreynolds")
 
-    canvas = tk.Canvas(root, width=canvas_width, height=canvas_height, bg=canvas_bg)
+    canvas = tk.Canvas(root, width=width, height=height, bg=canvas_bg)
     canvas.pack()
 
     canvas.create_rectangle(
-        RECT_X1, RECT_Y1, width, heigth,
+        0, 0, width, height,
         outline=fill_color, width=5
     )
 
