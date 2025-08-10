@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="pybirdsreynolds",
-    version="0.2.0",
+    version="1.0.0",
     description="pybirdsreynolds game in terminam",
     long_description="The complete description/installation/use/FAQ is available at : https://github.com/thib1984/pybirdsreynolds#readme",
     url="https://github.com/thib1984/pybirdsreynolds",
