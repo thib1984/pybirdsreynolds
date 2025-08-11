@@ -2,6 +2,7 @@
 
 - [ ] free mode for all parameters with warning
 - [ ] change value *10 with ctrl + arrow
+- [ ] clean code
 
 # 1.1.0
 
