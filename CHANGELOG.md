@@ -1,4 +1,9 @@
-# 1.0.5
+# 1.1 (coming)
+
+- [ ] free mode for par parameters with warning
+- [ ] change value *10 with ctrl + arrow
+
+# 1.0.6
 
 - [x] fix somme bugs
 

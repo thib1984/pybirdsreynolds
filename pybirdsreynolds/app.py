@@ -5,7 +5,9 @@ from pybirdsreynolds.args import compute_args
 import signal
 import sys
 import copy
+from importlib.metadata import version
 
+version_prog = version("pybirdsreynolds")
 options = compute_args()
 max_speed = options.max_speed
 neighbor_radius = options.neighbor_radius
@@ -21,6 +23,7 @@ paused = True
 size = options.size
 points= options.points
 no_color=options.no_color
+
 if no_color:
     canvas_bg = "black"
     fill_color = "white"
@@ -158,7 +161,7 @@ def app():
             elif param == "random_speed":
                 random_speed = min(random_speed + 1, 100) 
             elif param == "random_angle":
-                random_angle += min(random_speed + 1, 360) 
+                random_angle = min(random_angle + 1, 360) 
             elif param == "points":
                 points = not points
             elif param == "refresh_ms":
@@ -196,7 +199,7 @@ def app():
             elif param == "random_speed":
                 random_speed = max(random_speed - 1, 0) 
             elif param == "random_angle":
-                random_angle -= 1
+                random_angle = max(random_angle - 1, 0) 
             elif param == "points":
                 points = not points
             elif param == "refresh_ms":
@@ -261,7 +264,8 @@ def app():
             "[Enter]      Advance the simulation by ",
             "             one frame",
             "",
-            "The settings take effect after the next frame."
+            "The settings take effect after the next frame.",
+            f"----pybirdsreynolds {version_prog}----",
         ]
 
         x_text = 10
