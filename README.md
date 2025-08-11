@@ -1,6 +1,8 @@
 # pybirdsreynolds
 pybirdsreynolds is a simulation of bird flocking behavior using Reynolds rules
 
+<img width="1418" height="549" alt="Image" src="https://github.com/user-attachments/assets/ac49adbf-fd2f-4d3a-b205-97d67ab893c8" />
+
 # Installation/Upgrade 
 
 ## Prerequisites
