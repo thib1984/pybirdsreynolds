@@ -2,6 +2,7 @@
 
 - [ ] free mode for par parameters with warning
 - [ ] change value *10 with ctrl + arrow
+- [ ] full dynamics parameters
 
 # 1.0.6
 
