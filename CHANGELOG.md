@@ -1,8 +1,11 @@
-# 1.1 (coming)
+# 1.2 (coming)
 
-- [ ] free mode for par parameters with warning
+- [ ] free mode for all parameters with warning
 - [ ] change value *10 with ctrl + arrow
-- [ ] full dynamics parameters
+
+# 1.1.0
+
+- [x] full dynamics parameters
 
 # 1.0.6
 

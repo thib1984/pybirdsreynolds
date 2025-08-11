@@ -61,7 +61,7 @@ param_docs = {
     "sep_weight"     : "Separation weight (0–10, default: 1)",
     "align_weight"   : "Alignment weight (0–10, default: 1)",
     "coh_weight"     : "Cohesion weight (0–10, default: 1)",
-    "max_speed"      : "Maximum speed of birds (0–100, default: 10)",
+    "max_speed"      : "Maximum speed of birds (1–100, default: 10)",
     "random_speed"   : "Random speed variation ratio (%) (0–100, default: 10)",
     "random_angle"   : "Random angle variation in degrees (0–360, default: 10)",
     "refresh_ms"     : "Refresh interval in milliseconds (min 10, default: 10)",
@@ -121,13 +121,18 @@ def app():
             outline_color = "black"    
         points = copy.deepcopy(points_init)    
 
+    def draw():
+        draw_canvas()
+        draw_status()
+        draw_points()
+        draw_rectangle()
+
     def on_next_frame(event):
         global paused
         paused = True
-        draw_canvas()
-        draw_status()
-        generate_and_draw_points()
-        draw_rectangle()
+        generate_points_and_facultative_move(True)
+        draw()
+
         
     def toggle_pause(event=None):
         global paused
@@ -145,7 +150,8 @@ def app():
             param = parameters[selected_index]
             if param == "num_birds":
                 num_birds = min(num_birds + 1, 1000)
-                generate_and_draw_points()
+                generate_points_and_facultative_move(False)
+                draw_points()
             elif param == "max_speed":
                 max_speed = min(max_speed + 1, 100)
             elif param == "neighbor_radius":
@@ -158,18 +164,24 @@ def app():
                 coh_weight = min(coh_weight + 1, 10)
             elif param == "size":
                 size = min(size + 1, 3)
+                draw()
             elif param == "random_speed":
                 random_speed = min(random_speed + 1, 100) 
             elif param == "random_angle":
                 random_angle = min(random_angle + 1, 360) 
             elif param == "points":
                 points = not points
+                draw()
             elif param == "refresh_ms":
                 refresh_ms += 10
             elif param == "width":
                 width = min(width + 1, 1500)
+                generate_points_and_facultative_move(False)
+                draw()
             elif param == "height":
                 height = min(height + 1, 1000)
+                generate_points_and_facultative_move(False)
+                draw()
             elif param == "no_color":
                 no_color = not no_color 
                 if no_color:
@@ -180,12 +192,15 @@ def app():
                     canvas_bg = "blue"
                     fill_color = "white"
                     outline_color = "black" 
+                draw()    
         elif event.keysym == "Left":
             param = parameters[selected_index]
             if param == "num_birds":
                 num_birds = max(num_birds - 1, 1)
+                generate_points_and_facultative_move(False)
+                draw_points()                
             elif param == "max_speed":
-                max_speed = max(max_speed - 1, 0)
+                max_speed = max(max_speed - 1, 1)
             elif param == "neighbor_radius":
                 neighbor_radius = max(neighbor_radius - 1, 0)
             elif param == "sep_weight":
@@ -196,18 +211,24 @@ def app():
                 coh_weight = max(coh_weight - 1, 0) 
             elif param == "size":
                 size = max(size - 1, 1)
+                draw()
             elif param == "random_speed":
                 random_speed = max(random_speed - 1, 0) 
             elif param == "random_angle":
                 random_angle = max(random_angle - 1, 0) 
             elif param == "points":
                 points = not points
+                draw()
             elif param == "refresh_ms":
                 refresh_ms = max(refresh_ms - 10, 10)
             elif param == "width":
                 width = max(width - 1, 200)
+                generate_points_and_facultative_move(False)
+                draw()
             elif param == "height":
-                height = max(height - 1, 200)  
+                height = max(height - 1, 200)
+                generate_points_and_facultative_move(False)
+                draw() 
             elif param == "no_color":
                 no_color = not no_color 
                 if no_color:
@@ -218,8 +239,11 @@ def app():
                     canvas_bg = "blue"
                     fill_color = "white"
                     outline_color = "black" 
+                draw()    
         elif event.char.lower() == 'r':
             restore_options()
+            generate_points_and_facultative_move(False)
+            draw()            
         elif event.char.lower() == 'n':
             global velocities
             global birds
@@ -227,10 +251,8 @@ def app():
             pause= True
             velocities = []
             birds= [] 
-            draw_canvas()
-            draw_status()
-            generate_and_draw_points()
-            draw_rectangle()                      
+            generate_points_and_facultative_move(False)
+            draw()
         draw_status()
 
     def draw_canvas():
@@ -264,7 +286,6 @@ def app():
             "[Enter]      Advance the simulation by ",
             "             one frame",
             "",
-            "The settings take effect after the next frame.",
             f"----pybirdsreynolds {version_prog}----",
         ]
 
@@ -312,8 +333,9 @@ def app():
             tags="boundary"
         )
 
-    def generate_and_draw_points():
+    def generate_points_and_facultative_move(with_move):
         global velocities
+        global new_velocities
         if not birds: 
             velocities = []
             for _ in range(num_birds):
@@ -360,96 +382,103 @@ def app():
                 for _ in range(current_count - num_birds):
                     idx = random.randint(0, len(birds) - 1)
                     birds.pop(idx)
-                    velocities.pop(idx)            
-            for i, (x, y) in enumerate(birds):
-                move_sep_x, move_sep_y = 0, 0
-                move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = 0, 0, 0, 0
-                move_coh_x, move_coh_y, move_coh_x_tmp, move_coh_y_tmp = 0, 0, 0, 0
-                neighbors = 0
+                    velocities.pop(idx)
+            if with_move:                    
+                move()
+    def move():
+        global velocities
+        global new_velocities
+        for i, (x, y) in enumerate(birds):
+            move_sep_x, move_sep_y = 0, 0
+            move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = 0, 0, 0, 0
+            move_coh_x, move_coh_y, move_coh_x_tmp, move_coh_y_tmp = 0, 0, 0, 0
+            neighbors = 0
 
-                for j, (x2, y2) in enumerate(birds):
-                    if i == j:
-                        continue
-                    dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
-                    if dist < neighbor_radius and dist > 0:
-                        # SEPARATION
-                        # Si un voisin est trop proche, on ajoute un vecteur pour s’en éloigner (direction opposée au voisin).
-                        move_sep_x += (x - x2) / dist
-                        move_sep_y += (y - y2) / dist
-                        # ALIGNEMENT
-                        # On ajoute la vitesse du voisin pour que l’agent tende à s’aligner avec lui.
-                        # on fait la division plus bas
-                        vx2, vy2 = velocities[j]
-                        move_align_x_tmp += vx2
-                        move_align_y_tmp += vy2
-                        # COHESION
-                        # On ajoute la position du voisin pour calculer ensuite un point moyen, afin de se rapprocher du centre du groupe.
-                        # on fait la division plus bas
-                        move_coh_x_tmp += x2
-                        move_coh_y_tmp += y2
-                        neighbors += 1
+            for j, (x2, y2) in enumerate(birds):
+                if i == j:
+                    continue
+                dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
+                if dist < neighbor_radius and dist > 0:
+                    # SEPARATION
+                    # Si un voisin est trop proche, on ajoute un vecteur pour s’en éloigner (direction opposée au voisin).
+                    move_sep_x += (x - x2) / dist
+                    move_sep_y += (y - y2) / dist
+                    # ALIGNEMENT
+                    # On ajoute la vitesse du voisin pour que l’agent tende à s’aligner avec lui.
+                    # on fait la division plus bas
+                    vx2, vy2 = velocities[j]
+                    move_align_x_tmp += vx2
+                    move_align_y_tmp += vy2
+                    # COHESION
+                    # On ajoute la position du voisin pour calculer ensuite un point moyen, afin de se rapprocher du centre du groupe.
+                    # on fait la division plus bas
+                    move_coh_x_tmp += x2
+                    move_coh_y_tmp += y2
+                    neighbors += 1
 
-                if neighbors > 0:
-                    move_align_x = move_align_x_tmp/neighbors
-                    move_align_y = move_align_y_tmp/neighbors
-                    move_coh_x = move_coh_x_tmp/neighbors
-                    move_coh_y = move_coh_y_tmp/neighbors
-                    move_coh_x = move_coh_x - x
-                    move_coh_y = move_coh_y - y
+            if neighbors > 0:
+                move_align_x = move_align_x_tmp/neighbors
+                move_align_y = move_align_y_tmp/neighbors
+                move_coh_x = move_coh_x_tmp/neighbors
+                move_coh_y = move_coh_y_tmp/neighbors
+                move_coh_x = move_coh_x - x
+                move_coh_y = move_coh_y - y
 
-                vx, vy = velocities[i]
-                vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
-                vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
+            vx, vy = velocities[i]
+            vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
+            vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
 
-                
-                #ALEA
-                speed = math.sqrt(vx**2 + vy**2)
-                speed_factor = 1 + random.uniform(-random_speed / 100, random_speed / 100)
-                new_speed = speed * speed_factor
-                min_speed = 0.1 * max_speed
-                if new_speed < min_speed:
-                    new_speed = min_speed
-                if speed > 0:
-                    factor = new_speed / speed
-                    vx *= factor
-                    vy *= factor                
-                angle = math.atan2(vy, vx)
-                angle += math.radians(random.uniform(-1 * random_angle, random_angle))
-                speed = math.sqrt(vx**2 + vy**2)
-                vx = speed * math.cos(angle)
-                vy = speed * math.sin(angle)
-                
-                vx, vy = limit_speed(vx, vy)
-                
-                new_velocities.append((vx, vy))
+            
+            #ALEA
+            speed = math.sqrt(vx**2 + vy**2)
+            speed_factor = 1 + random.uniform(-random_speed / 100, random_speed / 100)
+            new_speed = speed * speed_factor
+            min_speed = 0.1 * max_speed
+            if new_speed < min_speed:
+                new_speed = min_speed
+            if speed > 0:
+                factor = new_speed / speed
+                vx *= factor
+                vy *= factor                
+            angle = math.atan2(vy, vx)
+            angle += math.radians(random.uniform(-1 * random_angle, random_angle))
+            speed = math.sqrt(vx**2 + vy**2)
+            vx = speed * math.cos(angle)
+            vy = speed * math.sin(angle)
+            
+            vx, vy = limit_speed(vx, vy)
+            
+            new_velocities.append((vx, vy))
 
-            velocities = new_velocities
+        velocities = new_velocities
 
-            # Mise à jour des positions
-            new_points = []
-            for (x, y), (vx, vy) in zip(birds, velocities):
-                nx = x + vx
-                ny = y + vy
+        # Mise à jour des positions
+        new_points = []
+        for (x, y), (vx, vy) in zip(birds, velocities):
+            nx = x + vx
+            ny = y + vy
 
-                # Rebonds 
-                if nx < margin + params:
-                    nx = margin + (margin - nx) + params + params
-                    vx = -vx
-                elif nx > width - margin + params:
-                    nx = (width - margin) - (nx - (width - margin)) + params + params
-                    vx = -vx
-                if ny < margin:
-                    ny = margin + (margin - ny)
-                    vy = -vy
-                elif ny > height - margin:
-                    ny = (height - margin) - (ny - (height - margin))
-                    vy = -vy
-                idx = birds.index((x, y))
-                velocities[idx] = (vx, vy)
-                new_points.append((nx, ny))
+            # Rebonds 
+            if nx < margin + params:
+                nx = margin + (margin - nx) + params + params
+                vx = -vx
+            elif nx > width - margin + params:
+                nx = (width - margin) - (nx - (width - margin)) + params + params
+                vx = -vx
+            if ny < margin:
+                ny = margin + (margin - ny)
+                vy = -vy
+            elif ny > height - margin:
+                ny = (height - margin) - (ny - (height - margin))
+                vy = -vy
+            idx = birds.index((x, y))
+            velocities[idx] = (vx, vy)
+            new_points.append((nx, ny))
 
-            birds[:] = new_points
+        birds[:] = new_points
 
+
+    def draw_points():
         for pid in point_ids:
             canvas.delete(pid)
         point_ids.clear()
@@ -493,10 +522,8 @@ def app():
 
     def update():
         if not paused:
-            draw_canvas()
-            draw_status()
-            generate_and_draw_points()
-            draw_rectangle()
+            generate_points_and_facultative_move(True)
+            draw()
         root.after(refresh_ms, update)
 
     def signal_handler(sig, frame):
@@ -513,10 +540,8 @@ def app():
     birds = [] 
     point_ids = []
 
-    draw_canvas()
-    draw_status()
-    generate_and_draw_points()
-    draw_rectangle()
+    generate_points_and_facultative_move(True)
+    draw()
 
     root.bind("<Return>", on_next_frame)
     root.bind("<space>", toggle_pause)

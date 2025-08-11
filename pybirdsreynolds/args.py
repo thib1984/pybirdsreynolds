@@ -24,10 +24,15 @@ def compute_args():
             pybirdsreynolds - Simulation of bird flocking behavior using Reynolds' rules.
 
             Controls:
-              Space  - Pause / Resume
-              Enter  - Advance frame-by-frame
-              r      - Reset parameters to initial values
-
+             [Up/Down]    Navigate between parameters
+             [Left/Right] Adjust selected parameter
+             [r]          Reset all parameters
+             [Space]      Toggle pause / resume
+             [r]          Reset all parameters
+                          to their initial values
+             [n]          New generation of birds
+             [Enter]      Advance the simulation by
+                          one frame
             Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://youtu.be/xuKrkOh_mzk  
             """),
         epilog=textwrap.dedent("""\
@@ -52,9 +57,9 @@ def compute_args():
     )
     my_parser.add_argument(
         "--max_speed",
-        type=restricted_int(0, 100),
+        type=restricted_int(1, 100),
         default=10,
-        help="Maximum speed of birds (integer between 0 and 100, default: 10)"
+        help="Maximum speed of birds (integer between 1 and 100, default: 10)"
     )
     my_parser.add_argument(
         "--neighbor_radius",
