@@ -46,44 +46,44 @@ size_init = copy.deepcopy(size)
 points_init = copy.deepcopy(points)
 no_color_init= copy.deepcopy(no_color)
 
-
-margin=5
+params=400
+margin=1
 selected_index=0
-parameters = ["num_birds", "max_speed", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "size", "random_speed", "random_angle", "points", "refresh_ms", "width", "height", "no_color"]
+parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "points", "no_color"]
 
 # Dictionnaire de documentation associée
 param_docs = {
     "num_birds"      : "Number of birds in the simulation (1–1000, default: 500)",
-    "max_speed"      : "Maximum speed of birds (0–100, default: 10)",
     "neighbor_radius": "Distance to detect neighbors in pixels (default: 50)",
     "sep_weight"     : "Separation weight (0–10, default: 1)",
     "align_weight"   : "Alignment weight (0–10, default: 1)",
     "coh_weight"     : "Cohesion weight (0–10, default: 1)",
+    "max_speed"      : "Maximum speed of birds (0–100, default: 10)",
     "random_speed"   : "Random speed variation ratio (%) (0–100, default: 10)",
     "random_angle"   : "Random angle variation in degrees (0–360, default: 10)",
     "refresh_ms"     : "Refresh interval in milliseconds (min 10, default: 10)",
     "width"          : "Simulation area width (200–1500, default: 1000)",
-    "height"         : "Simulation area height (300–1000, default: 500)",
-    "no_color"       : "Disable colors (monochrome display)",
+    "height"         : "Simulation area height (200-1000, default: 500)",
+    "size"           : "Visual size of birds (1–3, default: 1)",
     "points"         : "Render birds as points instead of triangles",
-    "size"           : "Visual size of birds (1–3, default: 1)"
+    "no_color"       : "Disable colors (monochrome display)"
 }
 
 # Correspondance index -> nom du paramètre
 param_order = [
     "num_birds",
-    "max_speed",
     "neighbor_radius",
     "sep_weight",
     "align_weight",
     "coh_weight",
-    "size",
+    "max_speed",
     "random_speed",
     "random_angle",
-    "points",
     "refresh_ms",
     "width",
     "height",
+    "size",
+    "points",
     "no_color"
 ]
 
@@ -116,8 +116,7 @@ def app():
             canvas_bg = "blue"
             fill_color = "white"
             outline_color = "black"    
-
-    points = copy.deepcopy(points_init)    
+        points = copy.deepcopy(points_init)    
 
     def on_next_frame(event):
         global paused
@@ -159,7 +158,7 @@ def app():
             elif param == "random_speed":
                 random_speed = min(random_speed + 1, 100) 
             elif param == "random_angle":
-                random_angle += 1
+                random_angle += min(random_speed + 1, 360) 
             elif param == "points":
                 points = not points
             elif param == "refresh_ms":
@@ -189,9 +188,9 @@ def app():
             elif param == "sep_weight":
                 sep_weight = max(sep_weight - 1, 0) 
             elif param == "align_weight":
-                sep_weight = max(sep_weight - 1, 0) 
+                align_weight = max(align_weight - 1, 0) 
             elif param == "coh_weight":
-                sep_weight = max(sep_weight - 1, 0) 
+                coh_weight = max(coh_weight - 1, 0) 
             elif param == "size":
                 size = max(size - 1, 1)
             elif param == "random_speed":
@@ -205,7 +204,7 @@ def app():
             elif param == "width":
                 width = max(width - 1, 200)
             elif param == "height":
-                height = max(height - 1, 400)  
+                height = max(height - 1, 200)  
             elif param == "no_color":
                 no_color = not no_color 
                 if no_color:
@@ -218,39 +217,54 @@ def app():
                     outline_color = "black" 
         elif event.char.lower() == 'r':
             restore_options()
+        elif event.char.lower() == 'n':
+            global velocities
+            global birds
+            global paused
+            pause= True
+            velocities = []
+            birds= [] 
+            draw_canvas()
+            draw_status()
+            generate_and_draw_points()
+            draw_rectangle()                      
         draw_status()
 
     def draw_canvas():
         global canvas_bg
-        canvas.config(width=width + 400, height=max(height,450), bg=canvas_bg)
+        canvas.config(width=width + params, height=max(height,500), bg=canvas_bg)
 
     def draw_status():
         lines = [
             f"num_birds       : {num_birds}",
-            f"max_speed       : {max_speed:.2f}",
             f"neighbor_radius : {neighbor_radius}",
-            f"sep_weight      : {sep_weight:.2f}",
-            f"align_weight    : {align_weight:.2f}",
-            f"coh_weight      : {coh_weight:.2f}",
-            f"size            : {size}",
+            f"sep_weight      : {sep_weight}",
+            f"align_weight    : {align_weight}",
+            f"coh_weight      : {coh_weight}",
+            f"max_speed       : {max_speed}",
             f"random_speed    : {random_speed}",
             f"random_angle    : {random_angle}",
-            f"points          : {points}",
             f"refresh_ms      : {refresh_ms}",
             f"width           : {width}",
             f"height          : {height}",
+            f"size            : {size}",
+            f"points          : {points}",
             f"no_color        : {no_color}",            
             "",
-            "[Space]  Toggle pause / resume",
-            "[r]      Reset all parameters",
-            "         to their initial values",
-            "[Enter]  Advance the simulation by ",
-            "         one frame",
+            "[Up/Down]    Navigate between parameters",
+            "[Left/Right] Adjust selected parameter",
+            "[r]          Reset all parameters",
+            "[Space]      Toggle pause / resume",
+            "[r]          Reset all parameters",
+            "             to their initial values",
+            "[n]          New generation of birds",
+            "[Enter]      Advance the simulation by ",
+            "             one frame",
             "",
             "The settings take effect after the next frame."
         ]
 
-        x_text = width + 10
+        x_text = 10
         y_text = 10
         canvas.delete("status")
         
@@ -289,18 +303,17 @@ def app():
     def draw_rectangle():
         canvas.delete("boundary")
         canvas.create_rectangle(
-            0, 0, width, height,
+            params, 0, params + width, height,
             outline=fill_color, width=margin,
             tags="boundary"
         )
 
     def generate_and_draw_points():
         global velocities
-
         if not birds: 
             velocities = []
             for _ in range(num_birds):
-                px = random.randint(margin, width - margin)
+                px = random.randint(margin + params, width - margin + params)
                 py = random.randint(margin, height - margin)
                 birds.append((px, py))
                 angle = random.uniform(0, 2 * math.pi)
@@ -314,7 +327,7 @@ def app():
             inside_points = []
             inside_velocities = []
             for (x, y), (vx, vy) in zip(birds, velocities):
-                if 0 + margin <= x <= width - margin and 0 + margin <= y <= height - margin:
+                if params + margin <= x <= params + width - margin and 0 + margin <= y <= height - margin:
                     inside_points.append((x, y))
                     inside_velocities.append((vx, vy))
                 # Sinon on "kill" l'oiseau en ne le gardant pas
@@ -328,7 +341,7 @@ def app():
             # Ajouter aléatoirement des oiseaux
             if num_birds > current_count:
                 for _ in range(num_birds - current_count):
-                    px = random.randint(margin, width - margin)
+                    px = random.randint(margin + params, width - margin + params)
                     py = random.randint(margin, height - margin)
                     birds.append((px, py))
 
@@ -384,17 +397,26 @@ def app():
                 vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
                 vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
 
-                vx, vy = limit_speed(vx, vy)
-
+                
                 #ALEA
-                speed_factor = 1 + random.uniform(-1 * random_speed / 100, random_speed / 100)
-                vx *= speed_factor
-                vy *= speed_factor
+                speed = math.sqrt(vx**2 + vy**2)
+                speed_factor = 1 + random.uniform(-random_speed / 100, random_speed / 100)
+                new_speed = speed * speed_factor
+                min_speed = 0.1 * max_speed
+                if new_speed < min_speed:
+                    new_speed = min_speed
+                if speed > 0:
+                    factor = new_speed / speed
+                    vx *= factor
+                    vy *= factor                
                 angle = math.atan2(vy, vx)
                 angle += math.radians(random.uniform(-1 * random_angle, random_angle))
                 speed = math.sqrt(vx**2 + vy**2)
                 vx = speed * math.cos(angle)
                 vy = speed * math.sin(angle)
+                
+                vx, vy = limit_speed(vx, vy)
+                
                 new_velocities.append((vx, vy))
 
             velocities = new_velocities
@@ -406,11 +428,11 @@ def app():
                 ny = y + vy
 
                 # Rebonds 
-                if nx < margin:
-                    nx = margin + (margin - nx)
+                if nx < margin + params:
+                    nx = margin + (margin - nx) + params + params
                     vx = -vx
-                elif nx > width - margin:
-                    nx = (width - margin) - (nx - (width - margin))
+                elif nx > width - margin + params:
+                    nx = (width - margin) - (nx - (width - margin)) + params + params
                     vx = -vx
                 if ny < margin:
                     ny = margin + (margin - ny)
@@ -481,7 +503,7 @@ def app():
     root = tk.Tk()
     root.title("pybirdsreynolds")
 
-    canvas = tk.Canvas(root, width=width+500, height=height, bg=canvas_bg)
+    canvas = tk.Canvas(root, width=width+params, height=height, bg=canvas_bg)
     canvas.pack()
 
     birds = [] 

@@ -84,7 +84,7 @@ def compute_args():
         "--random_speed",
         type=restricted_int(0, 100),
         default=10,
-        help="Random speed variation ratio (percentage of max speed, integer between 300 and 1000, default: 10)"
+        help="Random speed variation ratio (percentage of max speed, integer 0 and 100, default: 10)"
     )
     my_parser.add_argument(
         "--random_angle",
@@ -106,9 +106,9 @@ def compute_args():
     )
     my_parser.add_argument(
         "--height",
-        type=restricted_int(300, 1000),
+        type=restricted_int(200, 1000),
         default=500,
-        help="Simulation area height (integer between 300 and 1000, default: 500)"
+        help="Simulation area height (integer between 200 and 1000, default: 500)"
     )
 
 
