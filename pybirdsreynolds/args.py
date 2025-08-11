@@ -99,7 +99,7 @@ def compute_args():
     )
     my_parser.add_argument(
         "--refresh_ms",
-        type=restricted_int_min(10),
+        type=restricted_int_min(1),
         default=10,
         help="Refresh interval in milliseconds (min 10, default: 10)"
     )    

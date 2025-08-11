@@ -6,6 +6,7 @@ import signal
 import sys
 import copy
 from importlib.metadata import version
+import time
 
 version_prog = version("pybirdsreynolds")
 options = compute_args()
@@ -20,6 +21,9 @@ sep_weight = options.sep_weight
 align_weight = options.align_weight
 coh_weight = options.coh_weight
 paused = True
+frame_count = 0
+last_time = time.time()
+fps_value = 0
 size = options.size
 points= options.points
 no_color=options.no_color
@@ -64,7 +68,7 @@ param_docs = {
     "max_speed"      : "Maximum speed of birds (1–100, default: 10)",
     "random_speed"   : "Random speed variation ratio (%) (0–100, default: 10)",
     "random_angle"   : "Random angle variation in degrees (0–360, default: 10)",
-    "refresh_ms"     : "Refresh interval in milliseconds (min 10, default: 10)",
+    "refresh_ms"     : "Refresh interval in milliseconds (min 1, default: 10)",
     "width"          : "Simulation area width (200–1500, default: 1000)",
     "height"         : "Simulation area height (200-1000, default: 500)",
     "size"           : "Visual size of birds (1–3, default: 1)",
@@ -173,7 +177,7 @@ def app():
                 points = not points
                 draw()
             elif param == "refresh_ms":
-                refresh_ms += 10
+                refresh_ms += 1
             elif param == "width":
                 width = min(width + 1, 1500)
                 generate_points_and_facultative_move(False)
@@ -220,7 +224,7 @@ def app():
                 points = not points
                 draw()
             elif param == "refresh_ms":
-                refresh_ms = max(refresh_ms - 10, 10)
+                refresh_ms = max(refresh_ms - 1, 1)
             elif param == "width":
                 width = max(width - 1, 200)
                 generate_points_and_facultative_move(False)
@@ -287,6 +291,7 @@ def app():
             "             one frame",
             "",
             f"----pybirdsreynolds {version_prog}----",
+            f"FPS : {fps_value:.1f}"            
         ]
 
         x_text = 10
@@ -521,9 +526,18 @@ def app():
         return vx, vy
 
     def update():
+        global frame_count, last_time, fps_value
         if not paused:
             generate_points_and_facultative_move(True)
             draw()
+
+        frame_count += 1
+        now = time.time()
+        if now - last_time >= 1.0: 
+            fps_value = frame_count / (now - last_time)
+            frame_count = 0
+            last_time = now
+
         root.after(refresh_ms, update)
 
     def signal_handler(sig, frame):
