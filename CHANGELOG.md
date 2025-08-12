@@ -1,8 +1,18 @@
+# 2.0 (coming)
+
+- [ ] clean code
+- [ ] optimize code
+
 # 1.2 (coming)
 
+- [ ] Give initial speed if 0 to 1 for max_speed
+- [ ] FPS in surimpression and only if not paused anf f is press
 - [ ] free mode for all parameters with warning
 - [ ] change value *10 with ctrl + arrow
-- [ ] clean code
+
+# 1.1.1
+
+- [x] Add FPS
 
 # 1.1.0
 
