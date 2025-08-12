@@ -7,6 +7,7 @@ import sys
 import copy
 from importlib.metadata import version
 import time
+from tkinter import font
 
 version_prog = version("pybirdsreynolds")
 options = compute_args()
@@ -25,10 +26,12 @@ frame_count = 0
 last_time = time.time()
 fps_value = 0
 size = options.size
-points= options.points
-no_color=options.no_color
-
-if no_color:
+triangles= options.triangles
+fps= False
+free=options.free
+color=options.color
+count= not paused
+if not color:
     canvas_bg = "black"
     fill_color = "white"
     outline_color = "black"
@@ -50,13 +53,14 @@ sep_weight_init = copy.deepcopy(sep_weight)
 align_weight_init = copy.deepcopy(align_weight)
 coh_weight_init = copy.deepcopy(coh_weight)
 size_init = copy.deepcopy(size)
-points_init = copy.deepcopy(points)
-no_color_init= copy.deepcopy(no_color)
+triangles_init = copy.deepcopy(triangles)
+free_init = copy.deepcopy(free)
+color_init= copy.deepcopy(color)
 
 params=400
 margin=1
 selected_index=0
-parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "points", "no_color"]
+parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "triangles", "color" , "free"]
 
 # Dictionnaire de documentation associée
 param_docs = {
@@ -65,15 +69,16 @@ param_docs = {
     "sep_weight"     : "Separation weight (0–10, default: 1)",
     "align_weight"   : "Alignment weight (0–10, default: 1)",
     "coh_weight"     : "Cohesion weight (0–10, default: 1)",
-    "max_speed"      : "Maximum speed of birds (1–100, default: 10)",
+    "max_speed"      : "Maximum speed of birds (0–100, default: 10)",
     "random_speed"   : "Random speed variation ratio (%) (0–100, default: 10)",
     "random_angle"   : "Random angle variation in degrees (0–360, default: 10)",
     "refresh_ms"     : "Refresh interval in milliseconds (min 1, default: 10)",
     "width"          : "Simulation area width (200–1500, default: 1000)",
     "height"         : "Simulation area height (200-1000, default: 500)",
     "size"           : "Visual size of birds (1–3, default: 1)",
-    "points"         : "Render birds as points instead of triangles",
-    "no_color"       : "Disable colors (monochrome display)"
+    "triangles"      : "Render birds as triangles instead of points",
+    "free"           : "Remove parameter limits (use with caution)",  
+    "color"          : "Enable colors"
 }
 
 # Correspondance index -> nom du paramètre
@@ -90,8 +95,9 @@ param_order = [
     "width",
     "height",
     "size",
-    "points",
-    "no_color"
+    "triangles",
+    "color",
+    "free"
 ]
 
 def app():
@@ -100,7 +106,7 @@ def app():
         global max_speed, neighbor_radius, num_birds, width, height
         global refresh_ms, random_speed, random_angle
         global sep_weight, align_weight, coh_weight
-        global paused, size, points, no_color, canvas_bg, fill_color, outline_color
+        global paused, size, triangles, color, canvas_bg, fill_color, outline_color, fps, free
         
         max_speed = copy.deepcopy(max_speed_init)
         neighbor_radius = copy.deepcopy(neighbor_radius_init)
@@ -114,8 +120,10 @@ def app():
         align_weight = copy.deepcopy(align_weight_init)
         coh_weight = copy.deepcopy(coh_weight_init)
         size = copy.deepcopy(size_init)
-        no_color = copy.deepcopy(no_color_init)
-        if no_color:
+        color = copy.deepcopy(color_init)
+        free = copy.deepcopy(free_init)
+
+        if not color:
             canvas_bg = "black"
             fill_color = "white"
             outline_color = "black"
@@ -123,13 +131,34 @@ def app():
             canvas_bg = "blue"
             fill_color = "white"
             outline_color = "black"    
-        points = copy.deepcopy(points_init)    
+        triangles = copy.deepcopy(triangles_init)    
 
     def draw():
         draw_canvas()
         draw_status()
         draw_points()
         draw_rectangle()
+        draw_fps()
+
+    def draw_fps():
+        canvas.delete("fps")
+        if fps:
+            if not paused:
+                if fps_value == 0:
+                    value="..."
+                else:    
+                    value = f"{fps_value:.1f}"
+            else:
+                value = "NA"
+            canvas.create_text(
+                params + 10,
+                10,            
+                anchor="nw",  
+                fill="yellow",
+                font=("Consolas", 10, "bold"),
+                tags="fps",
+                text=f"FPS : {value}"
+        )
 
     def on_next_frame(event):
         global paused
@@ -144,8 +173,9 @@ def app():
         draw_status()
 
     def on_other_key(event):
-        global selected_index, num_birds, max_speed, neighbor_radius, sep_weight, align_weight, coh_weight, size, random_speed, random_angle, points, refresh_ms, width, height, no_color, canvas_bg, fill_color, outline_color
-
+        global selected_index, num_birds, max_speed, neighbor_radius, sep_weight, align_weight, coh_weight, size, random_speed, random_angle, triangles, free , refresh_ms, width, height, color, canvas_bg, fill_color, outline_color, fps
+        ctrl = (event.state & 0x4) != 0
+        val = 10 if ctrl else 1
         if event.keysym == "Up":
             selected_index = (selected_index - 1) % len(parameters)
         elif event.keysym == "Down":
@@ -153,42 +183,72 @@ def app():
         elif event.keysym == "Right":
             param = parameters[selected_index]
             if param == "num_birds":
-                num_birds = min(num_birds + 1, 1000)
+                if not free:
+                    num_birds = min(num_birds + val, 1000)
+                else:  
+                    num_birds = num_birds + val   
                 generate_points_and_facultative_move(False)
                 draw_points()
             elif param == "max_speed":
-                max_speed = min(max_speed + 1, 100)
+                if not free:
+                    max_speed = min(max_speed + val, 100)
+                else:
+                    max_speed = max_speed + val   
             elif param == "neighbor_radius":
                 neighbor_radius += 1
             elif param == "sep_weight":
-                sep_weight = min(sep_weight + 1, 10)  
+                if not free:
+                    sep_weight = min(sep_weight + val, 10)
+                else:
+                    sep_weight = sep_weight + val   
             elif param == "align_weight":
-                align_weight = min(align_weight + 1, 10)
+                if not free:
+                    align_weight = min(align_weight + val, 10)
+                else:
+                    align_weight = align_weight + val                   
             elif param == "coh_weight":
-                coh_weight = min(coh_weight + 1, 10)
+                if not free:
+                    coh_weight = min(coh_weight + val, 10)
+                else:
+                    coh_weight = coh_weight + val                  
             elif param == "size":
-                size = min(size + 1, 3)
+                if not free:
+                    size = min(size + val, 3)
+                else:
+                    size = size + val                     
                 draw()
             elif param == "random_speed":
-                random_speed = min(random_speed + 1, 100) 
+                if not free:
+                    random_speed = min(random_speed + val, 100)
+                else:
+                    random_speed = random_speed + val                    
             elif param == "random_angle":
-                random_angle = min(random_angle + 1, 360) 
-            elif param == "points":
-                points = not points
-                draw()
+                if not free:
+                    random_angle = min(random_angle + val, 360)
+                else:
+                    random_angle = random_angle + val                   
+            elif param == "triangles":
+                triangles = not triangles
+                draw()                                                                                                                                                                                                                                             
             elif param == "refresh_ms":
-                refresh_ms += 1
+                refresh_ms += val
             elif param == "width":
-                width = min(width + 1, 1500)
+                if not free:
+                    width = min(width + val, 1500)
+                else:
+                    width = width + val                  
                 generate_points_and_facultative_move(False)
                 draw()
             elif param == "height":
-                height = min(height + 1, 1000)
+                if not free:
+                    height = min(height + val, 1000)
+                else:
+                    height = height + val                
                 generate_points_and_facultative_move(False)
                 draw()
-            elif param == "no_color":
-                no_color = not no_color 
-                if no_color:
+            elif param == "color":
+                color = not color 
+                if not color:
                     canvas_bg = "black"
                     fill_color = "white"
                     outline_color = "black"
@@ -196,46 +256,112 @@ def app():
                     canvas_bg = "blue"
                     fill_color = "white"
                     outline_color = "black" 
-                draw()    
+                draw()
+            elif param == "free":
+                free = not free
+                if not free:
+                    if num_birds>1000:
+                        num_birds=1000
+                    if num_birds<1:
+                        num_birds=1
+                    if max_speed<0:
+                        max_speed=0
+                    if max_speed>100:
+                        max_speed=100 
+                    if sep_weight>10:
+                        sep_weight=10
+                    if sep_weight<0:
+                        sep_weight=0
+                    if align_weight>10:
+                        align_weight=10
+                    if align_weight<0:
+                        align_weight=0    
+                    if coh_weight>10:
+                        coh_weight=10
+                    if coh_weight<0:
+                        coh_weight=0 
+                    if size>3:
+                        size=3
+                    if size<1:
+                        size=1
+                    if random_speed>100:
+                        random_speed=100
+                    if random_speed<0:
+                        random_speed=0
+                    if random_angle>360:
+                        random_angle=360
+                    if random_angle<0:
+                        random_angle=0
+                    if width<200:
+                        width=200    
+                    if width>1500:
+                        width=1500
+                    if height<200:
+                        height=200    
+                    if height>1000:
+                        height=1000 
+                    generate_points_and_facultative_move(False)
+                    draw()                                         
         elif event.keysym == "Left":
             param = parameters[selected_index]
             if param == "num_birds":
-                num_birds = max(num_birds - 1, 1)
+                num_birds = max(num_birds - val, 1)
                 generate_points_and_facultative_move(False)
                 draw_points()                
             elif param == "max_speed":
-                max_speed = max(max_speed - 1, 1)
+                max_speed = max(max_speed - val, 0)
             elif param == "neighbor_radius":
-                neighbor_radius = max(neighbor_radius - 1, 0)
+                neighbor_radius = max(neighbor_radius - val, 0)
             elif param == "sep_weight":
-                sep_weight = max(sep_weight - 1, 0) 
+                if not free:
+                    sep_weight = max(sep_weight - val, 0)
+                else:
+                    sep_weight = sep_weight - val                    
             elif param == "align_weight":
-                align_weight = max(align_weight - 1, 0) 
+                if not free:
+                    align_weight = max(align_weight - val, 0)
+                else:
+                    align_weight = align_weight - val                       
             elif param == "coh_weight":
-                coh_weight = max(coh_weight - 1, 0) 
+                if not free:
+                    coh_weight = max(coh_weight - val, 0)
+                else:
+                    coh_weight = coh_weight - val                    
             elif param == "size":
-                size = max(size - 1, 1)
+                size = max(size - val, 1)
                 draw()
             elif param == "random_speed":
-                random_speed = max(random_speed - 1, 0) 
+                random_speed = max(random_speed - val, 0) 
             elif param == "random_angle":
-                random_angle = max(random_angle - 1, 0) 
-            elif param == "points":
-                points = not points
+                if not free:
+                    random_angle = max(random_angle - val, 0)
+                else:
+                    random_angle = random_angle - val     
+            elif param == "triangles":
+                triangles = not triangles
                 draw()
+            elif param == "free":
+                free = not free
+                #TODO                                     
             elif param == "refresh_ms":
-                refresh_ms = max(refresh_ms - 1, 1)
+                refresh_ms = max(refresh_ms - val, 1)
             elif param == "width":
-                width = max(width - 1, 200)
+                if not free:
+                    width = max(width - val, 200)
+                else:
+                    width = max(width - val, 3)                 
                 generate_points_and_facultative_move(False)
                 draw()
             elif param == "height":
-                height = max(height - 1, 200)
+                if not free:
+                    height = max(height - val, 200)
+                else:
+                    height = max(height - val, 3)   
                 generate_points_and_facultative_move(False)
                 draw() 
-            elif param == "no_color":
-                no_color = not no_color 
-                if no_color:
+            elif param == "color":
+                color = not color 
+                if not color:
                     canvas_bg = "black"
                     fill_color = "white"
                     outline_color = "black"
@@ -243,7 +369,52 @@ def app():
                     canvas_bg = "blue"
                     fill_color = "white"
                     outline_color = "black" 
-                draw()    
+                draw() 
+            elif param == "free":
+                free = not free
+                if not free:
+                    if num_birds>1000:
+                        num_birds=1000
+                    if num_birds<1:
+                        num_birds=1
+                    if max_speed<0:
+                        max_speed=0
+                    if max_speed>100:
+                        max_speed=100 
+                    if sep_weight>10:
+                        sep_weight=10
+                    if sep_weight<0:
+                        sep_weight=0
+                    if align_weight>10:
+                        align_weight=10
+                    if align_weight<0:
+                        align_weight=0    
+                    if coh_weight>10:
+                        coh_weight=10
+                    if coh_weight<0:
+                        coh_weight=0 
+                    if size>3:
+                        size=3
+                    if size<1:
+                        size=1
+                    if random_speed>100:
+                        random_speed=100
+                    if random_speed<0:
+                        random_speed=0
+                    if random_angle>360:
+                        random_angle=360
+                    if random_angle<0:
+                        random_angle=0
+                    if width<200:
+                        width=200    
+                    if width>1500:
+                        width=1500
+                    if height<200:
+                        height=200    
+                    if height>1000:
+                        height=1000 
+                    generate_points_and_facultative_move(False)
+                    draw()                                           
         elif event.char.lower() == 'r':
             restore_options()
             generate_points_and_facultative_move(False)
@@ -257,6 +428,9 @@ def app():
             birds= [] 
             generate_points_and_facultative_move(False)
             draw()
+        elif event.char.lower() == 'f':
+            fps = not fps
+            draw_fps()            
         draw_status()
 
     def draw_canvas():
@@ -264,34 +438,38 @@ def app():
         canvas.config(width=width + params, height=max(height,500), bg=canvas_bg)
 
     def draw_status():
+        # Polices
+        normal_font = font.Font(family="Consolas", size=8, weight="normal")
+        bold_font   = font.Font(family="Consolas", size=8, weight="bold")
+        italic_font = font.Font(family="Consolas", size=8, slant="italic")
+
         lines = [
-            f"num_birds       : {num_birds}",
-            f"neighbor_radius : {neighbor_radius}",
-            f"sep_weight      : {sep_weight}",
-            f"align_weight    : {align_weight}",
-            f"coh_weight      : {coh_weight}",
-            f"max_speed       : {max_speed}",
-            f"random_speed    : {random_speed}",
-            f"random_angle    : {random_angle}",
-            f"refresh_ms      : {refresh_ms}",
-            f"width           : {width}",
-            f"height          : {height}",
-            f"size            : {size}",
-            f"points          : {points}",
-            f"no_color        : {no_color}",            
+            f"num_birds        : {num_birds}",
+            f"neighbor_radius  : {neighbor_radius}",
+            f"sep_weight       : {sep_weight}",
+            f"align_weight     : {align_weight}",
+            f"coh_weight       : {coh_weight}",
+            f"max_speed        : {max_speed}",
+            f"random_speed     : {random_speed}",
+            f"random_angle     : {random_angle}",
+            f"refresh_ms       : {refresh_ms}",
+            f"width            : {width}",
+            f"height           : {height}",
+            f"size             : {size}",
+            f"triangles        : {triangles}",
+            f"color            : {color}",    
+            f"free             : {free}",         
             "",
-            "[Up/Down]    Navigate between parameters",
-            "[Left/Right] Adjust selected parameter",
-            "[r]          Reset all parameters",
-            "[Space]      Toggle pause / resume",
-            "[r]          Reset all parameters",
-            "             to their initial values",
-            "[n]          New generation of birds",
-            "[Enter]      Advance the simulation by ",
-            "             one frame",
+            "[Space]           : Toggle pause / resume",
+            "[Enter]           : Advance by one frame ",
+            "[Up/Down]         : Navigate between params",
+            "[Left/Right]      : Adjust selected param +1/-1 True/False",
+            "[Ctrl][Left/Right]: Adjust selected param +10/-10",
+            "[r]               : Reset all params",
+            "[n]               : New generation of birds",
+            "[f]               : Toggle FPS display",
             "",
-            f"----pybirdsreynolds {version_prog}----",
-            f"FPS : {fps_value:.1f}"            
+            f"----pybirdsreynolds {version_prog}----",        
         ]
 
         x_text = 10
@@ -299,35 +477,42 @@ def app():
         canvas.delete("status")
         
         for i, line in enumerate(lines):
+            font_to_use = normal_font
             fill = fill_color
+
             if i == selected_index:
+                font_to_use = bold_font
                 fill = "red"
-                line += " <"
+                line = "> "+line+" <"
+
+            if line.strip().startswith("["):
+                font_to_use = bold_font
+                fill = "yellow"
+
             canvas.create_text(
                 x_text,
                 y_text + i * 18,
                 anchor="nw",
                 fill=fill,
-                font=("Consolas", 8),
+                font=font_to_use,
                 tags="status",
                 text=line
             )
 
-        if selected_index < len(param_order):
-            param_name = param_order[selected_index]
-            doc_text = param_docs.get(param_name, "")
-            if doc_text:
-                canvas.create_text(
-                    x_text + 175,
-                    y_text + selected_index * 18,
-                    anchor="nw",
-                    fill="yellow",
-                    font=("Consolas", 8, "italic"),
-                    tags="status",
-                    text=doc_text,
-                    width=200
-                )
 
+        param_name = param_order[selected_index]
+        doc_text = param_docs.get(param_name, "")
+        if doc_text:
+            canvas.create_text(
+                x_text + 175,
+                y_text + selected_index * 18,
+                anchor="nw",
+                fill="yellow",
+                font=italic_font,
+                tags="status",
+                text=doc_text,
+                width=200
+            )
 
 
     def draw_rectangle():
@@ -439,12 +624,14 @@ def app():
             speed_factor = 1 + random.uniform(-random_speed / 100, random_speed / 100)
             new_speed = speed * speed_factor
             min_speed = 0.1 * max_speed
-            if new_speed < min_speed:
-                new_speed = min_speed
             if speed > 0:
                 factor = new_speed / speed
-                vx *= factor
-                vy *= factor                
+            else:
+                vx = 1
+                vy = 1                  
+                factor = random.uniform(-random_speed / 100, random_speed / 100)    
+            vx *= factor
+            vy *= factor                
             angle = math.atan2(vy, vx)
             angle += math.radians(random.uniform(-1 * random_angle, random_angle))
             speed = math.sqrt(vx**2 + vy**2)
@@ -463,19 +650,27 @@ def app():
             nx = x + vx
             ny = y + vy
 
-            # Rebonds 
-            if nx < margin + params:
-                nx = margin + (margin - nx) + params + params
-                vx = -vx
-            elif nx > width - margin + params:
-                nx = (width - margin) - (nx - (width - margin)) + params + params
-                vx = -vx
-            if ny < margin:
-                ny = margin + (margin - ny)
-                vy = -vy
-            elif ny > height - margin:
-                ny = (height - margin) - (ny - (height - margin))
-                vy = -vy
+            # Rebonds X
+            while nx < margin + params or nx > width - margin + params:
+                if nx < margin + params:
+                    overshoot = (margin + params) - nx
+                    nx = (margin + params) + overshoot
+                    vx = abs(vx)  # vers la droite
+                elif nx > width - margin + params:
+                    overshoot = nx - (width - margin + params)
+                    nx = (width - margin + params) - overshoot
+                    vx = -abs(vx)  # vers la gauche
+
+            # Rebonds Y
+            while ny < margin or ny > height - margin:
+                if ny < margin:
+                    overshoot = margin - ny
+                    ny = margin + overshoot
+                    vy = abs(vy)  # vers le bas
+                elif ny > height - margin:
+                    overshoot = ny - (height - margin)
+                    ny = (height - margin) - overshoot
+                    vy = -abs(vy)  # vers le haut
             idx = birds.index((x, y))
             velocities[idx] = (vx, vy)
             new_points.append((nx, ny))
@@ -492,7 +687,7 @@ def app():
         triangle_width = 4*size
 
         for (x, y), (vx, vy) in zip(birds, velocities):
-            if points: 
+            if not triangles: 
                 pid = canvas.create_oval(
                     x - size, y - size,
                     x + size, y + size,
@@ -526,17 +721,23 @@ def app():
         return vx, vy
 
     def update():
-        global frame_count, last_time, fps_value
+        global frame_count, last_time, fps_value, count
         if not paused:
             generate_points_and_facultative_move(True)
             draw()
-
-        frame_count += 1
-        now = time.time()
-        if now - last_time >= 1.0: 
-            fps_value = frame_count / (now - last_time)
+            frame_count += 1
+            now = time.time()
+            if not count:
+                last_time = now
+                count = True
+            if now - last_time >= 1.0: 
+                fps_value = frame_count / (now - last_time)
+                frame_count = 0
+                last_time = now 
+        else:
             frame_count = 0
-            last_time = now
+            count = False
+            fps_value = 0          
 
         root.after(refresh_ms, update)
 
