@@ -3,6 +3,12 @@
 - [ ] clean code
 - [ ] optimize code
 
+# 1.2.1 (coming)
+
+- [ ] Move FPS in other position (right bottom)
+- [ ] Move version in window title
+- [ ] Pause/Resume to start/stop
+
 # 1.2.0
 
 - [x] free mode for few parameters with warning (but >=0 for max_speed, width, height, number of birds, ...)
