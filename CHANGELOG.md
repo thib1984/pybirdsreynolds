@@ -8,6 +8,7 @@
 - [ ] Move FPS in other position (right bottom)
 - [ ] Move version in window title
 - [ ] Pause/Resume to start/stop
+- [ ] Disable Reynolds rule, if radius=0 or 3 coh = 0
 
 # 1.2.0
 
