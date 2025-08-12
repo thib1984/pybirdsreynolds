@@ -10,6 +10,7 @@
 - [ ] free mode for all parameters with warning (but >=0 for max_speed, width, height, number of birds, ...)
 - [ ] change value *10 with ctrl + arrow
 - [ ] bold for space/returns commands in documentation
+- [ ] default black and points
 
 # 1.1.1
 
