@@ -5,9 +5,9 @@
 
 # 1.2 (coming)
 
-- [ ] Give initial speed if 0 to 1 for max_speed
+- [ ] Give initial speed if speed is null and max speed not null
 - [ ] FPS in surimpression and only if not paused anf f is press
-- [ ] free mode for all parameters with warning
+- [ ] free mode for all parameters with warning (but >=0 for max_speed, width, height, number of birds, ...)
 - [ ] change value *10 with ctrl + arrow
 - [ ] bold for space/returns commands in documentation
 
