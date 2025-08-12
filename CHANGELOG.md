@@ -9,6 +9,7 @@
 - [ ] FPS in surimpression and only if not paused anf f is press
 - [ ] free mode for all parameters with warning
 - [ ] change value *10 with ctrl + arrow
+- [ ] bold for space/returns commands in documentation
 
 # 1.1.1
 
