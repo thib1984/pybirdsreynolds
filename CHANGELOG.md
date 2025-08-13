@@ -9,6 +9,7 @@
 
 - [ ] Add python3doc
 - [ ] Fix english language
+- [ ] Use constants variables 
 
 # 1.2.1
 
