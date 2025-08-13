@@ -135,6 +135,7 @@ def app():
         draw_points()
         draw_rectangle()
         draw_fps()
+        draw_paused()
 
     def draw_fps():
         canvas.delete("fps")
@@ -153,8 +154,22 @@ def app():
                 fill="yellow",
                 font=("Consolas", 10, "bold"),
                 tags="fps",
-                text=f"FPS : {value}"
+                text=f" FPS : {value}"
         )
+
+    def draw_paused():
+        global paused
+        canvas.delete("paused")
+        if paused:
+            canvas.create_text(
+                WIDTH_PARAMS_DEFAULT,
+                max(height,400),            
+                anchor="se",  
+                fill="red",
+                font=("Consolas", 10, "bold"),
+                tags="fps",
+                text=f"PAUSED -press space- "
+            )
 
     def on_next_frame(event):
         global paused
@@ -166,6 +181,7 @@ def app():
         global paused
         paused = not paused
         draw_status()
+        draw_paused()
 
     def change_value(type, val, free):
         value = globals().get(type)
@@ -285,10 +301,10 @@ def app():
             "",
             "[Space]           : Toggle start / stop",
             "[Enter]           : Advance by one frame ",
-            "[Up/Down]         : Navigate between WIDTH_PARAMS_DEFAULT",
+            "[Up/Down]         : Navigate between params",
             "[Left/Right]      : Adjust selected param +1/-1 True/False",
             "[Ctrl][Left/Right]: Adjust selected param +10/-10",
-            "[r]               : Reset all WIDTH_PARAMS_DEFAULT",
+            "[r]               : Reset all params",
             "[n]               : New generation of birds",
             "[f]               : Toggle FPS display",
             "",      
@@ -573,7 +589,7 @@ def app():
         sys.exit(0)
 
     root = tk.Tk()
-    root.title(f"pybirdsreynolds {version_prog}")
+    root.title(f"pybirdsreynolds - {version_prog}")
 
     canvas = tk.Canvas(root, width=width+WIDTH_PARAMS_DEFAULT, height=height, bg=canvas_bg)
     canvas.pack()

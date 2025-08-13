@@ -5,13 +5,13 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.2.2 (coming soon)
+# 1.2.2
 
 - [x] Add python3doc
 - [x] Fix english language
 - [x] Clean code for +/1
-- [ ] Display pause mode
-- [ ] Use constants variables 
+- [x] Display pause mode
+- [x] Use constants variables 
 
 # 1.2.1
 
