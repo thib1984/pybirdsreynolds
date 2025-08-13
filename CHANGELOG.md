@@ -5,6 +5,15 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.2.6 (coming soon)
+
+- [ ] fix speed bug
+
+# 1.2.5
+
+- [x] clean code
+- [x] Use constants variables 
+
 # 1.2.4
 
 - [x] clean code

@@ -431,32 +431,31 @@ def app():
 
                 vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
                 vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
-
-
-            
+      
             #RANDOM
             speed = math.sqrt(vx**2 + vy**2)
-            speed_factor = 1 + random.uniform(-random_speed / 100, random_speed / 100)
-            new_speed = speed * speed_factor
-            min_speed = 0.1 * max_speed
-            
-            if speed > 0:
+            if random_speed!=0:
+                target_speed = max_speed / 2
+                sigma_percent = random_speed       # écart-type maximal en % de vmax
+                adjust_strength = 0.05    # rappel vers target_speed
+                sigma_base = (sigma_percent / 100) * max_speed
+                weight = 4 * speed * (max_speed - speed) / (max_speed ** 2)
+                sigma = sigma_base * weight
+                delta_speed = random.gauss(0, sigma)
+                new_speed = speed + delta_speed
+                new_speed += (target_speed - new_speed) * adjust_strength
+                new_speed = max(0.1, min(max_speed, new_speed))
                 factor = new_speed / speed
-            # Give initial speed if the bird is stationary    
-            else:
-                vx = 1
-                vy = 1                  
-                factor = random.uniform(-random_speed / 100, random_speed / 100)    
-            
-            vx *= factor
-            vy *= factor                
-            angle = math.atan2(vy, vx)
-            angle += math.radians(random.uniform(-1 * random_angle, random_angle))
-            speed = math.sqrt(vx**2 + vy**2)
-            vx = speed * math.cos(angle)
-            vy = speed * math.sin(angle)
+                vx *= factor
+                vy *= factor
+            if random_angle!=0:
+                angle = math.atan2(vy, vx)
+                angle += math.radians(random.uniform(-1 * random_angle, random_angle))
+                speed = math.sqrt(vx**2 + vy**2)
+                vx = speed * math.cos(angle)
+                vy = speed * math.sin(angle)
             vx, vy = limit_speed(vx, vy)
-            
+                
             new_velocities.append((vx, vy))
 
         velocities = new_velocities
