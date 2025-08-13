@@ -1,7 +1,7 @@
 import argparse
 import sys
 import textwrap
-
+from pybirdsreynolds.const import *
 
 def compute_args():
     my_parser = argparse.ArgumentParser(
@@ -37,12 +37,12 @@ def compute_args():
     my_parser.add_argument(
         "--num_birds",
         default=500,
-        help="Number of birds in the simulation (integer between 1 and 1000, default: 500)"
+        help=f"Number of birds in the simulation (integer between 1 and {NUM_BIRDS_MAX}, default: 500)"
     )
     my_parser.add_argument(
         "--max_speed",
         default=10,
-        help="Maximum speed of birds (integer between 0 and 100, default: 10)"
+        help=f"Maximum speed of birds (integer between 0 and {MAX_SPEED_MAX}, default: 10)"
     )
     my_parser.add_argument(
         "--neighbor_radius",
@@ -103,10 +103,10 @@ def compute_args():
     args = my_parser.parse_args()
     
     if not args.free:
-        if args.num_birds < 1 or args.num_birds > 1000:
-            my_parser.error("num_birds must be between 1 and 1000")
-        if args.max_speed < 0 or args.max_speed > 100:
-            my_parser.error("max_speed must be between 0 and 100")  
+        if args.num_birds < 1 or args.num_birds > NUM_BIRDS_MAX:
+            my_parser.error(f"num_birds must be between 1 and {NUM_BIRDS_MAX}")
+        if args.max_speed < 0 or args.max_speed > MAX_SPEED_MAX:
+            my_parser.error(f"max_speed must be between 0 and {MAX_SPEED_MAX}")  
         if args.sep_weight < 0 or args.sep_weight > 10:
             my_parser.error("sep_weight must be between 0 and 10") 
         if args.coh_weight < 0 or args.coh_weight > 10:
