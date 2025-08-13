@@ -168,12 +168,12 @@ def app():
                     max(height, 400),
                     anchor="se",
                     fill="red",
-                    font=("Consolas", 10, "bold"),
-                    tags="paused",  # <- on met bien "paused" pour pouvoir supprimer facilement
-                    text="PAUSED - press space -"
+                    font=("Consolas", 12, "bold"),
+                    tags="paused",
+                    text="PAUSED - press Space -"
                 )
             blink_state = not blink_state
-            canvas.after(500, draw_paused)  # rappel toutes les 500 ms
+            canvas.after(500, draw_paused)
             
     def on_next_frame(event):
         global paused
