@@ -7,8 +7,8 @@
 
 # 1.2.2 (coming soon)
 
-- [ ] Add python3doc
-- [ ] Fix english language
+- [x] Add python3doc
+- [x] Fix english language
 - [ ] Use constants variables 
 
 # 1.2.1

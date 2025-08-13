@@ -9,6 +9,7 @@ from importlib.metadata import version
 import time
 from tkinter import font
 
+# variables
 version_prog = version("pybirdsreynolds")
 options = compute_args()
 max_speed = options.max_speed
@@ -39,8 +40,12 @@ else:
     canvas_bg = "blue"
     fill_color = "white"
     outline_color = "black"
+params=400
+margin=1
+selected_index=0
+parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "triangles", "color" , "free"]
 
-# Sauvegarde profonde
+# deep copy
 max_speed_init = copy.deepcopy(max_speed)
 neighbor_radius_init = copy.deepcopy(neighbor_radius)
 num_birds_init = copy.deepcopy(num_birds)
@@ -57,12 +62,7 @@ triangles_init = copy.deepcopy(triangles)
 free_init = copy.deepcopy(free)
 color_init= copy.deepcopy(color)
 
-params=400
-margin=1
-selected_index=0
-parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "triangles", "color" , "free"]
-
-# Dictionnaire de documentation associée
+# doc dict
 param_docs = {
     "num_birds"      : "Number of birds in the simulation (1–1000, default: 500)",
     "neighbor_radius": "Distance to detect neighbors in pixels (default: 50)",
@@ -77,36 +77,20 @@ param_docs = {
     "height"         : "Simulation area height (200-1000, default: 500)",
     "size"           : "Visual size of birds (1–3, default: 1)",
     "triangles"      : "Render birds as triangles instead of points",
-    "free"           : "Remove parameter limits (use with caution)",  
-    "color"          : "Enable colors"
+    "color"          : "Enable colors",
+    "free"           : "Remove parameter limits (use with caution)"  
 }
-
-# Correspondance index -> nom du paramètre
-param_order = [
-    "num_birds",
-    "neighbor_radius",
-    "sep_weight",
-    "align_weight",
-    "coh_weight",
-    "max_speed",
-    "random_speed",
-    "random_angle",
-    "refresh_ms",
-    "width",
-    "height",
-    "size",
-    "triangles",
-    "color",
-    "free"
-]
+param_order = list(param_docs.keys())
 
 def app():
 
     def restore_options():
+
         global max_speed, neighbor_radius, num_birds, width, height
         global refresh_ms, random_speed, random_angle
         global sep_weight, align_weight, coh_weight
-        global paused, size, triangles, color, canvas_bg, fill_color, outline_color, fps, free
+        global paused, size, triangles, color, canvas_bg
+        global fill_color, outline_color, fps, free
         
         max_speed = copy.deepcopy(max_speed_init)
         neighbor_radius = copy.deepcopy(neighbor_radius_init)
@@ -122,6 +106,7 @@ def app():
         size = copy.deepcopy(size_init)
         color = copy.deepcopy(color_init)
         free = copy.deepcopy(free_init)
+        triangles = copy.deepcopy(triangles_init)    
 
         if not color:
             canvas_bg = "black"
@@ -131,7 +116,6 @@ def app():
             canvas_bg = "blue"
             fill_color = "white"
             outline_color = "black"    
-        triangles = copy.deepcopy(triangles_init)    
 
     def draw():
         draw_canvas()
@@ -166,14 +150,18 @@ def app():
         generate_points_and_facultative_move(True)
         draw()
 
-        
     def toggle_pause(event=None):
         global paused
         paused = not paused
         draw_status()
 
     def on_other_key(event):
-        global selected_index, num_birds, max_speed, neighbor_radius, sep_weight, align_weight, coh_weight, size, random_speed, random_angle, triangles, free , refresh_ms, width, height, color, canvas_bg, fill_color, outline_color, fps
+        global selected_index, num_birds, max_speed
+        global neighbor_radius, sep_weight, align_weight
+        global coh_weight, size, random_speed, random_angle
+        global triangles, free , refresh_ms, width, height
+        global color, canvas_bg, fill_color, outline_color, fps
+        # test if ctrl is pressed
         ctrl = (event.state & 0x4) != 0
         val = 10 if ctrl else 1
         if event.keysym == "Up":
@@ -438,7 +426,6 @@ def app():
         canvas.config(width=width + params, height=max(height,500), bg=canvas_bg)
 
     def draw_status():
-        # Polices
         normal_font = font.Font(family="Consolas", size=8, weight="normal")
         bold_font   = font.Font(family="Consolas", size=8, weight="bold")
         italic_font = font.Font(family="Consolas", size=8, slant="italic")
@@ -498,7 +485,6 @@ def app():
                 text=line
             )
 
-
         param_name = param_order[selected_index]
         doc_text = param_docs.get(param_name, "")
         if doc_text:
@@ -512,7 +498,6 @@ def app():
                 text=doc_text,
                 width=200
             )
-
 
     def draw_rectangle():
         canvas.delete("boundary")
@@ -538,22 +523,19 @@ def app():
                 velocities.append((vx, vy))
 
         else:
-            # Supprimer les birds hors du rectangle
+            # Keep birds only if inside
             inside_points = []
             inside_velocities = []
             for (x, y), (vx, vy) in zip(birds, velocities):
                 if params + margin <= x <= params + width - margin and 0 + margin <= y <= height - margin:
                     inside_points.append((x, y))
                     inside_velocities.append((vx, vy))
-                # Sinon on "kill" l'oiseau en ne le gardant pas
-
             birds[:] = inside_points
-            velocities[:] = inside_velocities            
-            # Calcul Reynolds
+            velocities[:] = inside_velocities
             new_velocities = []
             current_count = len(birds)
             
-            # Ajouter aléatoirement des oiseaux
+            # Add birds if not enough
             if num_birds > current_count:
                 for _ in range(num_birds - current_count):
                     px = random.randint(margin + params, width - margin + params)
@@ -566,17 +548,19 @@ def app():
                     vy = speed * math.sin(angle)
                     velocities.append((vx, vy))
 
-            # Supprimer aléatoirement des oiseaux
+            # Delete birds if not enough
             elif num_birds < current_count:
                 for _ in range(current_count - num_birds):
                     idx = random.randint(0, len(birds) - 1)
                     birds.pop(idx)
                     velocities.pop(idx)
+
             if with_move:                    
                 move()
     def move():
         global velocities
         global new_velocities
+        #TODO n2 use Grid / Uniform Cell List 
         for i, (x, y) in enumerate(birds):
             move_sep_x, move_sep_y = 0, 0
             move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = 0, 0, 0, 0
@@ -590,18 +574,19 @@ def app():
                     dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
                     if dist < neighbor_radius and dist > 0:
                         # SEPARATION
-                        # Si un voisin est trop proche, on ajoute un vecteur pour s’en éloigner (direction opposée au voisin).
+                        # If a neighbor is too close, add a vector to move away from it (opposite direction of the neighbor).
                         move_sep_x += (x - x2) / dist
                         move_sep_y += (y - y2) / dist
-                        # ALIGNEMENT
-                        # On ajoute la vitesse du voisin pour que l’agent tende à s’aligner avec lui.
-                        # on fait la division plus bas
+                        # ALIGNMENT
+                        # Add the neighbor's velocity so the bird tends to align with it.
+                        # Division is done later
                         vx2, vy2 = velocities[j]
                         move_align_x_tmp += vx2
                         move_align_y_tmp += vy2
                         # COHESION
-                        # On ajoute la position du voisin pour calculer ensuite un point moyen, afin de se rapprocher du centre du groupe.
-                        # on fait la division plus bas
+                        # Add the neighbor's position to later calculate an average point, 
+                        # so the bird moves toward the group's center.
+                        # Division is done later
                         move_coh_x_tmp += x2
                         move_coh_y_tmp += y2
                         neighbors += 1
@@ -619,17 +604,20 @@ def app():
 
 
             
-            #ALEA
+            #RANDOM
             speed = math.sqrt(vx**2 + vy**2)
             speed_factor = 1 + random.uniform(-random_speed / 100, random_speed / 100)
             new_speed = speed * speed_factor
             min_speed = 0.1 * max_speed
+            
             if speed > 0:
                 factor = new_speed / speed
+            # Give initial speed if the bird is stationary    
             else:
                 vx = 1
                 vy = 1                  
                 factor = random.uniform(-random_speed / 100, random_speed / 100)    
+            
             vx *= factor
             vy *= factor                
             angle = math.atan2(vy, vx)
@@ -637,44 +625,39 @@ def app():
             speed = math.sqrt(vx**2 + vy**2)
             vx = speed * math.cos(angle)
             vy = speed * math.sin(angle)
-            
             vx, vy = limit_speed(vx, vy)
             
             new_velocities.append((vx, vy))
 
         velocities = new_velocities
 
-        # Mise à jour des positions
+        # Update positions
         new_points = []
         for (x, y), (vx, vy) in zip(birds, velocities):
             nx = x + vx
             ny = y + vy
-
-            # Rebonds X
+            # Bounces
             while nx < margin + params or nx > width - margin + params:
                 if nx < margin + params:
                     overshoot = (margin + params) - nx
                     nx = (margin + params) + overshoot
-                    vx = abs(vx)  # vers la droite
+                    vx = abs(vx)
                 elif nx > width - margin + params:
                     overshoot = nx - (width - margin + params)
                     nx = (width - margin + params) - overshoot
-                    vx = -abs(vx)  # vers la gauche
-
-            # Rebonds Y
+                    vx = -abs(vx)
             while ny < margin or ny > height - margin:
                 if ny < margin:
                     overshoot = margin - ny
                     ny = margin + overshoot
-                    vy = abs(vy)  # vers le bas
+                    vy = abs(vy)
                 elif ny > height - margin:
                     overshoot = ny - (height - margin)
                     ny = (height - margin) - overshoot
-                    vy = -abs(vy)  # vers le haut
+                    vy = -abs(vy)
             idx = birds.index((x, y))
             velocities[idx] = (vx, vy)
             new_points.append((nx, ny))
-
         birds[:] = new_points
 
 
@@ -730,10 +713,12 @@ def app():
             if not count:
                 last_time = now
                 count = True
+            #add demay to stabilize fps    
             if now - last_time >= 1.0: 
                 fps_value = frame_count / (now - last_time)
                 frame_count = 0
                 last_time = now 
+        #reset fps        
         else:
             frame_count = 0
             count = False
