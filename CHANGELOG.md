@@ -10,6 +10,7 @@
 - [x] Add python3doc
 - [x] Fix english language
 - [ ] Use constants variables 
+- [ ] Clean code for +/1
 
 # 1.2.1
 
