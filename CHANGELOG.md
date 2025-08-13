@@ -5,6 +5,10 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.2.3
+
+- [x] Blink paused
+
 # 1.2.2
 
 - [x] Add python3doc
