@@ -24,6 +24,7 @@ sep_weight = options.sep_weight
 align_weight = options.align_weight
 coh_weight = options.coh_weight
 paused = True
+blink_state = True
 frame_count = 0
 last_time = time.time()
 fps_value = 0
@@ -158,19 +159,22 @@ def app():
         )
 
     def draw_paused():
-        global paused
+        global blink_state
         canvas.delete("paused")
         if paused:
-            canvas.create_text(
-                WIDTH_PARAMS_DEFAULT,
-                max(height,400),            
-                anchor="se",  
-                fill="red",
-                font=("Consolas", 10, "bold"),
-                tags="fps",
-                text=f"PAUSED -press space- "
-            )
-
+            if blink_state:
+                canvas.create_text(
+                    WIDTH_PARAMS_DEFAULT,
+                    max(height, 400),
+                    anchor="se",
+                    fill="red",
+                    font=("Consolas", 10, "bold"),
+                    tags="paused",  # <- on met bien "paused" pour pouvoir supprimer facilement
+                    text="PAUSED - press space -"
+                )
+            blink_state = not blink_state
+            canvas.after(500, draw_paused)  # rappel toutes les 500 ms
+            
     def on_next_frame(event):
         global paused
         paused = True
