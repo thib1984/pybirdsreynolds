@@ -151,9 +151,9 @@ def app():
             else:
                 value = "NA"
             canvas.create_text(
-                params + 10,
-                10,            
-                anchor="nw",  
+                0,
+                max(height,500),            
+                anchor="sw",  
                 fill="yellow",
                 font=("Consolas", 10, "bold"),
                 tags="fps",
@@ -460,7 +460,7 @@ def app():
             f"color            : {color}",    
             f"free             : {free}",         
             "",
-            "[Space]           : Toggle pause / resume",
+            "[Space]           : Toggle start / stop",
             "[Enter]           : Advance by one frame ",
             "[Up/Down]         : Navigate between params",
             "[Left/Right]      : Adjust selected param +1/-1 True/False",
@@ -468,8 +468,7 @@ def app():
             "[r]               : Reset all params",
             "[n]               : New generation of birds",
             "[f]               : Toggle FPS display",
-            "",
-            f"----pybirdsreynolds {version_prog}----",        
+            "",      
         ]
 
         x_text = 10
@@ -583,40 +582,41 @@ def app():
             move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = 0, 0, 0, 0
             move_coh_x, move_coh_y, move_coh_x_tmp, move_coh_y_tmp = 0, 0, 0, 0
             neighbors = 0
-
-            for j, (x2, y2) in enumerate(birds):
-                if i == j:
-                    continue
-                dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
-                if dist < neighbor_radius and dist > 0:
-                    # SEPARATION
-                    # Si un voisin est trop proche, on ajoute un vecteur pour s’en éloigner (direction opposée au voisin).
-                    move_sep_x += (x - x2) / dist
-                    move_sep_y += (y - y2) / dist
-                    # ALIGNEMENT
-                    # On ajoute la vitesse du voisin pour que l’agent tende à s’aligner avec lui.
-                    # on fait la division plus bas
-                    vx2, vy2 = velocities[j]
-                    move_align_x_tmp += vx2
-                    move_align_y_tmp += vy2
-                    # COHESION
-                    # On ajoute la position du voisin pour calculer ensuite un point moyen, afin de se rapprocher du centre du groupe.
-                    # on fait la division plus bas
-                    move_coh_x_tmp += x2
-                    move_coh_y_tmp += y2
-                    neighbors += 1
-
-            if neighbors > 0:
-                move_align_x = move_align_x_tmp/neighbors
-                move_align_y = move_align_y_tmp/neighbors
-                move_coh_x = move_coh_x_tmp/neighbors
-                move_coh_y = move_coh_y_tmp/neighbors
-                move_coh_x = move_coh_x - x
-                move_coh_y = move_coh_y - y
-
             vx, vy = velocities[i]
-            vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
-            vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
+            if neighbor_radius > 0 and not (sep_weight == 0 and align_weight == 0 and coh_weight == 0):
+                for j, (x2, y2) in enumerate(birds):
+                    if i == j:
+                        continue
+                    dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
+                    if dist < neighbor_radius and dist > 0:
+                        # SEPARATION
+                        # Si un voisin est trop proche, on ajoute un vecteur pour s’en éloigner (direction opposée au voisin).
+                        move_sep_x += (x - x2) / dist
+                        move_sep_y += (y - y2) / dist
+                        # ALIGNEMENT
+                        # On ajoute la vitesse du voisin pour que l’agent tende à s’aligner avec lui.
+                        # on fait la division plus bas
+                        vx2, vy2 = velocities[j]
+                        move_align_x_tmp += vx2
+                        move_align_y_tmp += vy2
+                        # COHESION
+                        # On ajoute la position du voisin pour calculer ensuite un point moyen, afin de se rapprocher du centre du groupe.
+                        # on fait la division plus bas
+                        move_coh_x_tmp += x2
+                        move_coh_y_tmp += y2
+                        neighbors += 1
+                
+                if neighbors > 0:
+                    move_align_x = move_align_x_tmp/neighbors
+                    move_align_y = move_align_y_tmp/neighbors
+                    move_coh_x = move_coh_x_tmp/neighbors
+                    move_coh_y = move_coh_y_tmp/neighbors
+                    move_coh_x = move_coh_x - x
+                    move_coh_y = move_coh_y - y
+
+                vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
+                vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
+
 
             
             #ALEA
@@ -747,7 +747,7 @@ def app():
         sys.exit(0)
 
     root = tk.Tk()
-    root.title("pybirdsreynolds")
+    root.title(f"pybirdsreynolds {version_prog}")
 
     canvas = tk.Canvas(root, width=width+params, height=height, bg=canvas_bg)
     canvas.pack()

@@ -3,12 +3,12 @@
 - [ ] clean code
 - [ ] optimize code
 
-# 1.2.1 (coming)
+# 1.2.1
 
-- [ ] Move FPS in other position (right bottom)
-- [ ] Move version in window title
-- [ ] Pause/Resume to start/stop
-- [ ] Disable Reynolds rule, if radius=0 or 3 coh = 0
+- [x] Move FPS in other position
+- [x] Move version in window title
+- [x] Pause/Resume to start/stop
+- [x] Disable Reynolds rule, if radius=0 or 3 coh = 0
 
 # 1.2.0
 

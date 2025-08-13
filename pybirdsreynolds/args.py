@@ -9,7 +9,7 @@ def compute_args():
             pybirdsreynolds - Simulation of bird flocking behavior using Reynolds' rules.
 
             Controls:
-             [Space]           : Toggle pause / resume
+             [Space]           : Toggle start / stop
              [Enter]           : Advance by one frame
              [Up/Down]         : Navigate between parameters
              [Left/Right]      : Adjust selected parameter +1/-1 True/False
