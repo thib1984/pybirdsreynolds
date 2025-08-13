@@ -5,6 +5,11 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.2.4
+
+- [x] clean code
+- [x] Use constants variables 
+
 # 1.2.3
 
 - [x] Blink paused
