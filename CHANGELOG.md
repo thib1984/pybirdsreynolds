@@ -1,7 +1,14 @@
 # 2.0 (coming)
 
 - [ ] clean code
-- [ ] optimize code
+- [ ] optimize code -> use Grid / Uniform Cell List 
+- [ ] optimize code -> refresh tk
+- [ ] optimize code -> remove uncessary deepcopy 
+
+# 1.2.2 (coming soon)
+
+- [ ] Add python3doc
+- [ ] Fix english language
 
 # 1.2.1
 
