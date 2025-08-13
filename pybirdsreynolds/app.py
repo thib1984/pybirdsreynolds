@@ -45,7 +45,6 @@ else:
 WIDTH_PARAMS_DEFAULT=400
 margin=1
 selected_index=0
-parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "triangles", "color" , "free"]
 
 # deep copy
 max_speed_init = copy.deepcopy(max_speed)
@@ -64,6 +63,15 @@ triangles_init = copy.deepcopy(triangles)
 free_init = copy.deepcopy(free)
 color_init= copy.deepcopy(color)
 
+
+# doc dict
+param_docs = {
+    name.lower().removesuffix("_doc"): value
+    for name, value in globals().items()
+    if name.endswith("_DOC")
+}
+param_order = list(param_docs.keys())
+
 def display_range(value_default=None, value_min=None, value_max=None):
     parts = [f"(default: {value_default}"]
     
@@ -74,26 +82,6 @@ def display_range(value_default=None, value_min=None, value_max=None):
         parts.append(f"max: {value_max}")
     
     return " - ".join(parts)+")"
-
-# doc dict
-param_docs = {
-    "num_birds"      : "Number of birds in the simulation ",
-    "neighbor_radius": f"Distance to detect neighbors ",
-    "sep_weight"     : f"Separation weight ",
-    "align_weight"   : f"Alignment weight ",
-    "coh_weight"     : f"Cohesion weight ",
-    "max_speed"      : f"Maximum speed of birds ",
-    "random_speed"   : f"Random speed variation ratio (%) ",
-    "random_angle"   : f"Random angle variation in degrees ",
-    "refresh_ms"     : "Refresh interval in milliseconds ",
-    "width"          : "Simulation area width ",
-    "height"         : "Simulation area height ",
-    "size"           : "Visual size of birds ",
-    "triangles"      : "Render birds as triangles instead of points",
-    "color"          : "Enable colors",
-    "free"           : "Remove parameter limits (use with caution)"  
-}
-param_order = list(param_docs.keys())
 
 def app():
 
@@ -219,11 +207,11 @@ def app():
         ctrl = (event.state & 0x4) != 0
         mult = 10 if ctrl else 1
         val = mult if event.keysym == "Right" else 1*-mult
-        param = parameters[selected_index]
+        param = param_order[selected_index]
         if event.keysym == "Up":
-            selected_index = (selected_index - 1) % len(parameters)
+            selected_index = (selected_index - 1) % len(param_order)
         elif event.keysym == "Down":
-            selected_index = (selected_index + 1) % len(parameters)
+            selected_index = (selected_index + 1) % len(param_order)
         elif event.keysym == "Right"  or event.keysym == "Left":
             if param == "triangles":
                 triangles = not triangles
@@ -241,7 +229,7 @@ def app():
                 draw()
             elif param == "free":
                 free = not free
-                for paramm in parameters:
+                for paramm in param_order:
                     if paramm not in ["free", "color" , "triangles"]:
                         globals()[paramm] = change_value(paramm, 0, free)                                                      
             else:  
@@ -290,32 +278,10 @@ def app():
         italic_font = font.Font(family="Consolas", size=8, slant="italic", weight="bold")
 
         lines = [
-            f"num_birds        : {num_birds}",
-            f"neighbor_radius  : {neighbor_radius}",
-            f"sep_weight       : {sep_weight}",
-            f"align_weight     : {align_weight}",
-            f"coh_weight       : {coh_weight}",
-            f"max_speed        : {max_speed}",
-            f"random_speed     : {random_speed}",
-            f"random_angle     : {random_angle}",
-            f"refresh_ms       : {refresh_ms}",
-            f"width            : {width}",
-            f"height           : {height}",
-            f"size             : {size}",
-            f"triangles        : {triangles}",
-            f"color            : {color}",    
-            f"free             : {free}",         
-            "",
-            "[Space]           : Toggle start / stop",
-            "[Enter]           : Advance by one frame ",
-            "[Up/Down]         : Navigate between params",
-            "[Left/Right]      : Adjust selected param +1/-1 True/False",
-            "[Ctrl][Left/Right]: Adjust selected param +10/-10",
-            "[r]               : Reset all params",
-            "[n]               : New generation of birds",
-            "[f]               : Toggle FPS display",
-            "",      
-        ]
+            f"{name.lower().removesuffix('_doc'):15} : {globals()[name.lower().removesuffix('_doc')]}"
+            for name in globals()
+            if name.endswith("_DOC")
+        ] + [""] + COMMON_CONTROLS + [""]
 
         x_text = 10
         y_text = 10
