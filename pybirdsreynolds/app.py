@@ -41,7 +41,7 @@ else:
     canvas_bg = "blue"
     fill_color = "white"
     outline_color = "black"
-params=400
+WIDTH_PARAMS_DEFAULT=400
 margin=1
 selected_index=0
 parameters = ["num_birds", "neighbor_radius", "sep_weight", "align_weight", "coh_weight" , "max_speed" , "random_speed", "random_angle", "refresh_ms", "width", "height", "size", "triangles", "color" , "free"]
@@ -259,7 +259,7 @@ def app():
 
     def draw_canvas():
         global canvas_bg
-        canvas.config(width=width + params, height=max(height,CANVAS_WIDTH_DEFAULT), bg=canvas_bg)
+        canvas.config(width=width + WIDTH_PARAMS_DEFAULT, height=max(height,CANVAS_WIDTH_DEFAULT), bg=canvas_bg)
 
     def draw_status():
         normal_font = font.Font(family="Consolas", size=8, weight="normal")
@@ -285,10 +285,10 @@ def app():
             "",
             "[Space]           : Toggle start / stop",
             "[Enter]           : Advance by one frame ",
-            "[Up/Down]         : Navigate between params",
+            "[Up/Down]         : Navigate between WIDTH_PARAMS_DEFAULT",
             "[Left/Right]      : Adjust selected param +1/-1 True/False",
             "[Ctrl][Left/Right]: Adjust selected param +10/-10",
-            "[r]               : Reset all params",
+            "[r]               : Reset all WIDTH_PARAMS_DEFAULT",
             "[n]               : New generation of birds",
             "[f]               : Toggle FPS display",
             "",      
@@ -343,7 +343,7 @@ def app():
     def draw_rectangle():
         canvas.delete("boundary")
         canvas.create_rectangle(
-            params, 0, params + width, height,
+            WIDTH_PARAMS_DEFAULT, 0, WIDTH_PARAMS_DEFAULT + width, height,
             outline=fill_color, width=margin,
             tags="boundary"
         )
@@ -354,7 +354,7 @@ def app():
         if not birds: 
             velocities = []
             for _ in range(num_birds):
-                px = random.randint(margin + params, width - margin + params)
+                px = random.randint(margin + WIDTH_PARAMS_DEFAULT, width - margin + WIDTH_PARAMS_DEFAULT)
                 py = random.randint(margin, height - margin)
                 birds.append((px, py))
                 angle = random.uniform(0, 2 * math.pi)
@@ -368,7 +368,7 @@ def app():
             inside_points = []
             inside_velocities = []
             for (x, y), (vx, vy) in zip(birds, velocities):
-                if params + margin <= x <= params + width - margin and 0 + margin <= y <= height - margin:
+                if WIDTH_PARAMS_DEFAULT + margin <= x <= WIDTH_PARAMS_DEFAULT + width - margin and 0 + margin <= y <= height - margin:
                     inside_points.append((x, y))
                     inside_velocities.append((vx, vy))
             birds[:] = inside_points
@@ -379,7 +379,7 @@ def app():
             # Add birds if not enough
             if num_birds > current_count:
                 for _ in range(num_birds - current_count):
-                    px = random.randint(margin + params, width - margin + params)
+                    px = random.randint(margin + WIDTH_PARAMS_DEFAULT, width - margin + WIDTH_PARAMS_DEFAULT)
                     py = random.randint(margin, height - margin)
                     birds.append((px, py))
 
@@ -478,14 +478,14 @@ def app():
             nx = x + vx
             ny = y + vy
             # Bounces
-            while nx < margin + params or nx > width - margin + params:
-                if nx < margin + params:
-                    overshoot = (margin + params) - nx
-                    nx = (margin + params) + overshoot
+            while nx < margin + WIDTH_PARAMS_DEFAULT or nx > width - margin + WIDTH_PARAMS_DEFAULT:
+                if nx < margin + WIDTH_PARAMS_DEFAULT:
+                    overshoot = (margin + WIDTH_PARAMS_DEFAULT) - nx
+                    nx = (margin + WIDTH_PARAMS_DEFAULT) + overshoot
                     vx = abs(vx)
-                elif nx > width - margin + params:
-                    overshoot = nx - (width - margin + params)
-                    nx = (width - margin + params) - overshoot
+                elif nx > width - margin + WIDTH_PARAMS_DEFAULT:
+                    overshoot = nx - (width - margin + WIDTH_PARAMS_DEFAULT)
+                    nx = (width - margin + WIDTH_PARAMS_DEFAULT) - overshoot
                     vx = -abs(vx)
             while ny < margin or ny > height - margin:
                 if ny < margin:
@@ -575,7 +575,7 @@ def app():
     root = tk.Tk()
     root.title(f"pybirdsreynolds {version_prog}")
 
-    canvas = tk.Canvas(root, width=width+params, height=height, bg=canvas_bg)
+    canvas = tk.Canvas(root, width=width+WIDTH_PARAMS_DEFAULT, height=height, bg=canvas_bg)
     canvas.pack()
 
     birds = [] 
