@@ -86,73 +86,73 @@ def compute_args():
     my_parser.add_argument(
         "--num_birds",
         type=int,
-        default=500,
+        default=NUM_BIRDS_DEFAULT,
         help="Number of birds in the simulation " + display_range(prefix="NUM_BIRDS")
     )
     my_parser.add_argument(
         "--max_speed",
         type=int,
-        default=10,
+        default=MAX_SPEED_DEFAULT,
         help="Maximum speed of birds " + display_range(prefix="MAX_SPEED")
     )
     my_parser.add_argument(    
         "--neighbor_radius",
-        default=50,
         type=int,
+        default=NEIGHBOR_RADIUS_DEFAULT,
         help="Distance to detect neighbors " + display_range(prefix="NEIGHBOR_RADIUS")
     )
     my_parser.add_argument(
         "--sep_weight",
         type=int,
-        default=1,
+        default=SEP_WEIGHT_DEFAULT,
         help="Separation weight " + display_range(prefix="SEP_WEIGHT")
     )
     my_parser.add_argument(
         "--align_weight",
         type=int,
-        default=1,
+        default=ALIGN_WEIGHT_DEFAULT,
         help="Alignment weight " + display_range(prefix="ALIGN_WEIGHT")
     )
     my_parser.add_argument(
         "--coh_weight",
         type=int,
-        default=1,
+        default=COH_WEIGHT_DEFAULT,
         help="Cohesion weight " + display_range(prefix="COH_WEIGHT")
     ) 
     my_parser.add_argument(
         "--random_speed",
         type=int,
-        default=10,
+        default=RANDOM_SPEED_DEFAULT,
         help="Random speed variation ratio (percentage of max speed) " + display_range(prefix="RANDOM_SPEED")
     )
     my_parser.add_argument(
         "--random_angle",
         type=int,
-        default=10,
+        default=RANDOM_ANGLE_DEFAULT,
         help="Random angle variation in degrees " + display_range(prefix="RANDOM_ANGLE")
     )
     my_parser.add_argument(        
         "--refresh_ms",
         type=int,
-        default=10,
+        default=REFRESH_MS_DEFAULT,
         help="Refresh interval in milliseconds " + display_range(prefix="REFRESH_MS")
     )    
     my_parser.add_argument(
         "--width",
         type=int,
-        default=1000,
+        default=WIDTH_DEFAULT,
         help="Simulation area width " + display_range(prefix="WIDTH")
     )
     my_parser.add_argument(
         "--height",
         type=int,
-        default=500,
+        default=HEIGHT_DEFAULT,
         help="Simulation area height " + display_range(prefix="HEIGHT")
     )
     my_parser.add_argument(
         "--size",
         type=int,
-        default=1,
+        default=SIZE_DEFAULT,
         help="Visual size of birds " + display_range(prefix="SIZE")
     )
     my_parser.add_argument("--color", action="store_true", help="Enable colors")

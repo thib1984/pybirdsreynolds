@@ -1,5 +1,5 @@
 # 2.0 (coming)
-
+  
 - [ ] clean code
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> refresh tk
@@ -8,6 +8,8 @@
 # 1.2.3
 
 - [x] Blink paused
+- [x] Incorrect size refresh
+- [x] Use constants variables 
 
 # 1.2.2
 

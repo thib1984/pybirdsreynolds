@@ -136,7 +136,6 @@ def app():
         draw_points()
         draw_rectangle()
         draw_fps()
-        draw_paused()
 
     def draw_fps():
         canvas.delete("fps")
@@ -165,12 +164,12 @@ def app():
             if blink_state:
                 canvas.create_text(
                     WIDTH_PARAMS_DEFAULT,
-                    max(height, 400),
+                    max(height, CANVAS_WIDTH_DEFAULT),
                     anchor="se",
                     fill="red",
                     font=("Consolas", 12, "bold"),
                     tags="paused",
-                    text="PAUSED - press Space -"
+                    text="PAUSED - press Space - "
                 )
             blink_state = not blink_state
             canvas.after(500, draw_paused)
@@ -183,6 +182,8 @@ def app():
 
     def toggle_pause(event=None):
         global paused
+        global blink_state
+        blink_state = True
         paused = not paused
         draw_status()
         draw_paused()
@@ -258,7 +259,9 @@ def app():
             elif param == "free":
                 generate_points_and_facultative_move(False)
                 draw()                       
-
+            elif param == "size":
+                generate_points_and_facultative_move(False)
+                draw()  
         elif event.char.lower() == 'r':
             restore_options()
             generate_points_and_facultative_move(False)
@@ -284,7 +287,7 @@ def app():
     def draw_status():
         normal_font = font.Font(family="Consolas", size=8, weight="normal")
         bold_font   = font.Font(family="Consolas", size=8, weight="bold")
-        italic_font = font.Font(family="Consolas", size=8, slant="italic")
+        italic_font = font.Font(family="Consolas", size=8, slant="italic", weight="bold")
 
         lines = [
             f"num_birds        : {num_birds}",
@@ -603,7 +606,7 @@ def app():
 
     generate_points_and_facultative_move(True)
     draw()
-
+    draw_paused()
     root.bind("<Return>", on_next_frame)
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)
