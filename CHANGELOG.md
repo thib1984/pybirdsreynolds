@@ -10,10 +10,11 @@
 - [x] choice in size font
 - [x] help message for parameter instead of yellow in same line
 - [x] dynamic size of canvas
-- [ ] choice font
-- [ ] bouton +/-
-- [ ] bouton pause/unpause
-- [ ] args = my_parser.parse_args() varibilizze
+- [x] args = my_parser.parse_args() varibilizze
+- [x] choice font
+- [x] move fps and pause unpause
+- [x] bouton +/-
+- [x] bouton pause/unpause
 
 # 1.2.9
 

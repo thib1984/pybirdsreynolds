@@ -9,15 +9,21 @@ from importlib.metadata import version
 import time
 from tkinter import font
 from pybirdsreynolds.const import *
+import types
 
 # variables
+refresh_ms = REFRESH_MS_DEFAULT
+color= COLOR_DEFAULT
+triangles= TRIANGLES_DEFAULT
+size = SIZE_DEFAULT
+font_size = FONT_SIZE_DEFAULT
+font_type = FONT_TYPE_DEFAULT
 version_prog = version("pybirdsreynolds")
 options = compute_args()
 max_speed = options.max_speed
 neighbor_radius = options.neighbor_radius
 num_birds = options.num_birds
 width, height = options.width, options.height
-refresh_ms = 10
 random_speed = options.random_speed
 random_angle = options.random_angle
 sep_weight = options.sep_weight
@@ -28,12 +34,9 @@ blink_state = True
 frame_count = 0
 last_time = time.time()
 fps_value = 0
-size = 2
-font_size = options.font_size
-triangles= False
+fonts=[]
 fps= False
 free=options.free
-color= False
 count= not paused
 resizing = False  # flag global
 if not color:
@@ -44,7 +47,6 @@ else:
     canvas_bg = "blue"
     fill_color = "white"
     outline_color = "black"
-WIDTH_PARAMS_DEFAULT=400
 margin=1
 selected_index=0
 
@@ -62,6 +64,7 @@ align_weight_init = copy.deepcopy(align_weight)
 coh_weight_init = copy.deepcopy(coh_weight)
 size_init = copy.deepcopy(size)
 font_size_init = copy.deepcopy(font_size)
+font_type_init = copy.deepcopy(font_type)
 triangles_init = copy.deepcopy(triangles)
 free_init = copy.deepcopy(free)
 color_init= copy.deepcopy(color)
@@ -83,7 +86,7 @@ def app():
         global max_speed, neighbor_radius, num_birds, width, height
         global refresh_ms, random_speed, random_angle
         global sep_weight, align_weight, coh_weight
-        global paused, size, triangles, color, canvas_bg, font_size
+        global paused, size, triangles, color, canvas_bg, font_size, font_type, fonts
         global fill_color, outline_color, fps, free
         
         max_speed = copy.deepcopy(max_speed_init)
@@ -100,7 +103,8 @@ def app():
         size = copy.deepcopy(size_init)
         color = copy.deepcopy(color_init)
         free = copy.deepcopy(free_init)
-        triangles = copy.deepcopy(triangles_init)    
+        triangles = copy.deepcopy(triangles_init)
+        font_type = copy.deepcopy(font_type)   
 
         if not color:
             canvas_bg = "black"
@@ -119,7 +123,7 @@ def app():
         draw_fps()
 
     def draw_fps():
-        global font_name
+        global font_type
         canvas.delete("fps")
         if fps:
             if not paused:
@@ -130,17 +134,17 @@ def app():
             else:
                 value = "NA"
             canvas.create_text(
-                0,
-                max(height,HEIGHT_PARAMS_DEFAULT),            
-                anchor="sw",  
+                WIDTH_PARAMS_DEFAULT,
+                0,            
+                anchor="nw",  
                 fill="yellow",
-                font=(font_name, font_size, "bold"),
+                font=(font_type, font_size, "bold"),
                 tags="fps",
                 text=f" FPS : {value}"
         )
 
     def draw_paused():
-        global font_name
+        global font_type
         global blink_state
         canvas.delete("paused")
         if paused:
@@ -148,19 +152,14 @@ def app():
                 canvas.create_text(
                     WIDTH_PARAMS_DEFAULT,
                     max(height, HEIGHT_PARAMS_DEFAULT),
-                    anchor="se",
+                    anchor="sw",
                     fill="red",
-                    font=(font_name, font_size, "bold"),
+                    font=(font_type, font_size, "bold"),
                     tags="paused",
-                    text="PAUSED - press Space - "
+                    text=" PAUSED - press Space - "
                 )
             blink_state = not blink_state
             canvas.after(500, draw_paused)
-            
-    def on_next_frame(event):
-        global paused
-        paused = True
-        generate_points_and_facultative_move(True)
 
     def toggle_pause(event=None):
         global paused
@@ -195,10 +194,10 @@ def app():
         global selected_index, num_birds, max_speed
         global neighbor_radius, sep_weight, align_weight
         global coh_weight, size, random_speed, random_angle
-        global triangles, free , refresh_ms, width, height
-        global color, canvas_bg, fill_color, outline_color, fps
+        global triangles, free , refresh_ms, width, height, fonts
+        global color, canvas_bg, fill_color, outline_color, fps, font_type
         # test if shift is pressed
-        shift = (event.state & 0x1) != 0
+        shift = (getattr(event, "state", 0) & 0x1) != 0
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
@@ -210,6 +209,10 @@ def app():
             if param == "triangles":
                 triangles = not triangles
                 draw()
+            elif param == "font_type":
+                current_index = fonts.index(font_type)
+                font_type = fonts[(current_index + val) % len(fonts)]
+                draw()               
             elif param == "color":
                 color = not color 
                 if not color:
@@ -224,7 +227,7 @@ def app():
             elif param == "free":
                 free = not free
                 for paramm in param_order:
-                    if paramm not in ["free", "color" , "triangles"]:
+                    if paramm not in ["free", "color" , "triangles", "font_type"]:
                         globals()[paramm] = change_value(paramm, 0, free)                                                      
             else:  
                 globals()[param] = change_value(param, val, free)
@@ -244,7 +247,7 @@ def app():
             elif param == "size":
                 generate_points_and_facultative_move(False)
                 draw()  
-        elif event.char.lower() == 'r':
+        elif getattr(event, "keysym", "").lower() == "r":
             restore_options()
             generate_points_and_facultative_move(False)
             root.geometry(f"{WIDTH_PARAMS_DEFAULT+width}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")
@@ -253,7 +256,7 @@ def app():
             root.state('withdrawn')
             root.state('normal')
             root.geometry(f"{WIDTH_PARAMS_DEFAULT+width}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")            
-        elif event.char.lower() == 'n':
+        elif getattr(event, "keysym", "").lower() == "n":
             global velocities
             global birds
             global paused
@@ -262,7 +265,7 @@ def app():
             birds= [] 
             generate_points_and_facultative_move(False)
             draw_points()
-        elif event.char.lower() == 'f':
+        elif getattr(event, "keysym", "").lower() == "f":
             fps = not fps
             draw_fps()            
         draw_status()
@@ -286,37 +289,51 @@ def app():
         root.geometry(f"{WIDTH_PARAMS_DEFAULT+width}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")
         canvas.config(width=width + WIDTH_PARAMS_DEFAULT, height=max(height,HEIGHT_PARAMS_DEFAULT), bg=canvas_bg)
 
+    def on_click(l, sens):
+        global selected_index
+        first_word = l.split()[0] if l.split() else None
+        lines = [
+            f"{name.lower().removesuffix('_doc'):15} :     {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
+            for name in globals()
+            if name.endswith("_DOC")
+        ] + COMMON_CONTROLS
+        selected_index = next(
+            (i for i, line in enumerate(lines) if line.split(":")[0].strip() == first_word),
+            0
+        )
+        on_other_key(types.SimpleNamespace(keysym=sens))
+
     def draw_status():
-        global font_name
-        normal_font = font.Font(family=font_name, size=font_size, weight="normal")
-        bold_font   = font.Font(family=font_name, size=font_size, weight="bold")
-        italic_font = font.Font(family=font_name, size=font_size, slant="italic", weight="bold")
+        global font_type
+        normal_font = font.Font(family=font_type, size=font_size, weight="normal")
+        bold_font   = font.Font(family=font_type, size=font_size, weight="bold")
+        italic_font = font.Font(family=font_type, size=font_size, slant="italic", weight="bold")
 
         lines = [
-            f"{name.lower().removesuffix('_doc'):15} : {globals()[name.lower().removesuffix('_doc')]}"
+            f"{name.lower().removesuffix('_doc'):15} :     {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
             for name in globals()
             if name.endswith("_DOC")
         ] + COMMON_CONTROLS
         x_text = 10
         y_text = 10
         canvas.delete("status")
-        
+        for item in canvas.find_all():
+            if canvas.type(item) == "window":
+                canvas.delete(item)
         for i, line in enumerate(lines):
             font_to_use = normal_font
             fill = fill_color
 
             if i == selected_index:
-                font_to_use = normal_font
                 fill = "red"
-                line = ""+line+" <<< "
 
-            if line.strip().startswith("["):
-                font_to_use = normal_font
+            if "[" in line:
                 fill = "yellow"
 
-            canvas.create_text(
+            # Affichage du texte
+            text_id = canvas.create_text(
                 x_text,
-                y_text + i * 1.7 * font_size,
+                y_text + i * 2.1 * font_size,
                 anchor="nw",
                 fill=fill,
                 font=font_to_use,
@@ -324,12 +341,67 @@ def app():
                 text=line,
             )
 
+            y_pos = y_text + i * 2.1 * font_size
+            first_colon_index = line.find(":") + 1 
+            f = font.Font(font=font_to_use)
+            x_offset = f.measure(line[:first_colon_index])
+            if "[" not in line: 
+                lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=("Arial", 8))
+                lbl_left.bind("<Button-1>", lambda e, l=line: on_click(l, "Left"))
+                canvas.create_window(x_text + x_offset + 2, y_pos, anchor="nw", window=lbl_left, tags=("line_left",))
+                lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=("Arial", 8))
+                lbl_right.bind("<Button-1>", lambda e, l=line: on_click(l, "Right"))
+                canvas.create_window(x_text + x_offset + 15, y_pos, anchor="nw", window=lbl_right, tags=("line_right",))
+            else:
+
+                btn_font = ("Courier", 9)
+                btn_width = 2
+                btn_height = 1
+                highlight_color = "yellow"
+                highlight_thickness = 2
+
+                if "[Space]" in line:
+                    lbl_btn = tk.Label(
+                        canvas, text="⏯", fg="green", bg="white",
+                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                    )
+                    lbl_btn.bind("<Button-1>", lambda e: toggle_pause())
+                elif "[r]" in line:
+                    lbl_btn = tk.Label(
+                        canvas, text="🔄", fg="orange", bg="white",
+                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                    )
+                    lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='r')))
+                elif "[n]" in line:
+                    lbl_btn = tk.Label(
+                        canvas, text="🪶", fg="purple", bg="white",
+                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                    )
+                    lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='n')))
+                elif "[f]" in line:
+                    lbl_btn = tk.Label(
+                        canvas, text="⏱", fg="brown", bg="white",
+                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                    )
+                    lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='f')))
+                else:
+                    lbl_btn = None
+
+                if lbl_btn:
+                    canvas.create_window(x_text + x_offset + 2, y_pos, anchor="nw",
+                         window=lbl_btn, tags=("line_btn",))
+
+
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " - " + display_range(param_name.upper() )
         if doc_text:
             canvas.create_text(
                 x_text,
-                y_text + (len(lines) * 1.7 * font_size),
+                y_text + (len(lines) * 2.1 * font_size),
                 anchor="nw",
                 fill="green",
                 font=italic_font,
@@ -573,13 +645,18 @@ def app():
     root.title(f"pybirdsreynolds - {version_prog}")
     root.minsize(WIDTH_PARAMS_DEFAULT + WIDTH_MIN, max(height,HEIGHT_PARAMS_DEFAULT))
 
-    global font_name
-    preferred_fonts = ["Noto Mono", "Consolas", "Menlo", "Monaco", "Courier New" , "Courier"]
-    polices_disponibles = font.families()
-    font_name = next((f for f in preferred_fonts if f in polices_disponibles), None)
-    if font_name is None:
-        mono_fonts = [p for p in polices_disponibles if "Mono" in p]
-        font_name = mono_fonts[0] if mono_fonts else "TkFixedFont"
+    global font_type, font_type, fonts
+    default_fonts = [f for f in FONT_TYPE_LIST if f in font.families()]  # ne garder que les polices disponibles
+    available_fonts = font.families()
+    mono_fonts = [f for f in available_fonts if "mono" in f.lower()]
+
+    fonts = []
+    for f in default_fonts + mono_fonts:
+        if f not in fonts:
+            fonts.append(f)
+
+    if font_type not in fonts:
+        font_type = fonts[0]  
 
     canvas = tk.Canvas(root, width=width+WIDTH_PARAMS_DEFAULT, height=height, bg=canvas_bg)
     canvas.pack(fill="both", expand=True)
@@ -590,7 +667,6 @@ def app():
     generate_points_and_facultative_move(True)
     draw()
     draw_paused()
-    root.bind("<Return>", on_next_frame)
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)
     canvas.bind("<Configure>", on_resize)

@@ -6,7 +6,7 @@ from pybirdsreynolds.const import *
 def display_range(prefix):
     g = globals()
     value_default   = g[f"{prefix}_DEFAULT"]
-    if not isinstance(value_default, bool):
+    if type(value_default) is int:
         value_min       = g[f"{prefix}_MIN"]
         value_max       = g[f"{prefix}_MAX"]
         value_free_min  = g[f"{prefix}_FREE_MIN"]
@@ -35,8 +35,10 @@ def display_range(prefix):
             parts.append(f"default: {value_default}")
         
         return f"{' , '.join(parts)}" if parts else ""
-    else:
+    elif isinstance(value_default, bool):
         return "boolean value"
+    else:
+        return "string value"
 
 
 def check_values(prefix , free , value , my_parser):
@@ -101,7 +103,6 @@ Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://you
 
         default_value = g[default_name]
         arg_name = "--" + prefix.lower()
-
         if isinstance(default_value, bool):
             my_parser.add_argument(
                 arg_name,
@@ -109,27 +110,39 @@ Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://you
                 default=default_value,
                 help=g[name] + " - " +display_range(prefix)
             )
-        else:
+        elif isinstance(default_value, int):
             my_parser.add_argument(
                 arg_name,
                 type=int,
                 default=default_value,
                 help=g[name] + " - " +display_range(prefix)
             )
-
+        elif isinstance(default_value, str):
+            my_parser.add_argument(
+                arg_name,
+                type=str,
+                default=default_value,
+                help=g[name]
+            )
     args = my_parser.parse_args()
-    check_values("NUM_BIRDS" , args.free , args.num_birds , my_parser)
-    check_values("MAX_SPEED" , args.free , args.max_speed , my_parser)
-    check_values("NEIGHBOR_RADIUS" , args.free , args.neighbor_radius , my_parser)
-    check_values("SEP_WEIGHT" , args.free , args.sep_weight , my_parser)
-    check_values("ALIGN_WEIGHT" , args.free , args.align_weight , my_parser)
-    check_values("COH_WEIGHT" , args.free , args.coh_weight , my_parser)
-    check_values("RANDOM_SPEED" , args.free , args.random_speed , my_parser)
-    check_values("RANDOM_ANGLE" , args.free , args.random_angle , my_parser)
-    check_values("WIDTH" , args.free , args.width , my_parser)
-    check_values("HEIGHT" , args.free , args.height , my_parser)
-    #check_values("SIZE" , args.free , args.size , my_parser)
-    #check_values("REFRESH_MS" , args.free , args.refresh_ms , my_parser)
+
+    for name, doc in g.items():
+        if not name.endswith("_DOC"):
+            continue
+
+        prefix = name[:-4]
+        default_name = f"{prefix}_DEFAULT"
+        if default_name not in g:
+            continue
+
+        default_value = g[default_name]
+        if not isinstance(default_value, int) or isinstance(default_value, bool):
+            continue  # on saute les booléens
+        
+        # Ici on suppose que les noms d'arguments sont en minuscules
+        arg_value = getattr(args, prefix.lower(), None)
+        check_values(prefix, args.free, arg_value, my_parser )   
+
     
     return args
 

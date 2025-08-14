@@ -61,36 +61,35 @@ RANDOM_ANGLE_MAX=10
 RANDOM_ANGLE_FREE_MIN=None
 RANDOM_ANGLE_FREE_MAX=None
 # REFRESH_MS_DOC="Refresh interval in milliseconds"
-# REFRESH_MS_DEFAULT=10
+REFRESH_MS_DEFAULT=10
 # REFRESH_MS_MIN=10
 # REFRESH_MS_MAX=100
 # REFRESH_MS_FREE_MIN=None
 # REFRESH_MS_FREE_MAX=None
 # SIZE_DOC="Visual size of birds"
-# SIZE_DEFAULT=2
+SIZE_DEFAULT=2
 # SIZE_MIN=1
 # SIZE_MAX=3
 # SIZE_FREE_MIN=1
 # SIZE_FREE_MAX=None
-FONT_SIZE_DOC="Font Size"
-FONT_SIZE_DEFAULT=10
+#FONT_SIZE_DOC="Font Size"
+FONT_SIZE_DEFAULT=12
 FONT_SIZE_MIN=6
 FONT_SIZE_MAX=12
 FONT_SIZE_FREE_MIN=6
 FONT_SIZE_FREE_MAX=12
 # TRIANGLES_DOC="Render birds as triangles instead of points"
-# TRIANGLES_DEFAULT=False
+TRIANGLES_DEFAULT=False
 # COLOR_DOC="Enable colors"
-# COLOR_DEFAULT=False
+COLOR_DEFAULT=False
+FONT_TYPE_DEFAULT="Nota Sans Mono"
+#FONT_TYPE_DOC="Font"
+FONT_TYPE_LIST=["Nota Sans Mono", "Consolas", "Courier"]
 FREE_DOC="Remove parameter limits"
 FREE_DEFAULT=False
 COMMON_CONTROLS = [
-    "[Space] Toggle start / stop",
-    "[Enter] Advance by one frame",
-    "[↑/↓] Navigate between params",
-    "[←/→] Adjust param +1/-1",
-    "[Shift][←/→] Adjust param +10/-10",
-    "[r] Reset all params",
-    "[n] New generation of birds",
-    "[f] Toggle FPS display",
+    "   Toggle start / stop [Space] ",
+    "   Reset all params [r] ",
+    "   New generation of birds [n] ",
+    "   Toggle FPS display [f] "
 ]
