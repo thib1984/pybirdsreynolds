@@ -5,9 +5,18 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.2.6 (coming soon)
+# 1.2.9
 
-- [ ] fix speed bug
+- [x] ctrl to shift
+- [x] search mono font 
+
+# 1.2.8
+
+- [x] clean code and improve help
+
+# 1.2.6
+
+- [x] fix speed bug
 
 # 1.2.5
 

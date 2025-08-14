@@ -64,6 +64,7 @@ free_init = copy.deepcopy(free)
 color_init= copy.deepcopy(color)
 
 
+
 # doc dict
 param_docs = {
     name.lower().removesuffix("_doc"): value
@@ -115,6 +116,7 @@ def app():
         draw_fps()
 
     def draw_fps():
+        global font_name
         canvas.delete("fps")
         if fps:
             if not paused:
@@ -129,12 +131,13 @@ def app():
                 max(height,CANVAS_WIDTH_DEFAULT),            
                 anchor="sw",  
                 fill="yellow",
-                font=("Consolas", 10, "bold"),
+                font=(font_name, 10, "bold"),
                 tags="fps",
                 text=f" FPS : {value}"
         )
 
     def draw_paused():
+        global font_name
         global blink_state
         canvas.delete("paused")
         if paused:
@@ -144,7 +147,7 @@ def app():
                     max(height, CANVAS_WIDTH_DEFAULT),
                     anchor="se",
                     fill="red",
-                    font=("Consolas", 12, "bold"),
+                    font=(font_name, 12, "bold"),
                     tags="paused",
                     text="PAUSED - press Space - "
                 )
@@ -192,9 +195,9 @@ def app():
         global coh_weight, size, random_speed, random_angle
         global triangles, free , refresh_ms, width, height
         global color, canvas_bg, fill_color, outline_color, fps
-        # test if ctrl is pressed
-        ctrl = (event.state & 0x4) != 0
-        mult = 10 if ctrl else 1
+        # test if shift is pressed
+        shift = (event.state & 0x1) != 0
+        mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
         if event.keysym == "Up":
@@ -262,9 +265,10 @@ def app():
         canvas.config(width=width + WIDTH_PARAMS_DEFAULT, height=max(height,CANVAS_WIDTH_DEFAULT), bg=canvas_bg)
 
     def draw_status():
-        normal_font = font.Font(family="Consolas", size=8, weight="normal")
-        bold_font   = font.Font(family="Consolas", size=8, weight="bold")
-        italic_font = font.Font(family="Consolas", size=8, slant="italic", weight="bold")
+        global font_name
+        normal_font = font.Font(family=font_name, size=8, weight="normal")
+        bold_font   = font.Font(family=font_name, size=8, weight="bold")
+        italic_font = font.Font(family=font_name, size=8, slant="italic", weight="bold")
 
         lines = [
             f"{name.lower().removesuffix('_doc'):15} : {globals()[name.lower().removesuffix('_doc')]}"
@@ -283,7 +287,7 @@ def app():
             if i == selected_index:
                 font_to_use = bold_font
                 fill = "red"
-                line = "> "+line+" <"
+                line = ""+line+" <<< "
 
             if line.strip().startswith("["):
                 font_to_use = bold_font
@@ -300,7 +304,7 @@ def app():
             )
 
         param_name = param_order[selected_index]   
-        doc_text = param_docs.get(param_name, "") + ":" + display_range(param_name.upper() )
+        doc_text = param_docs.get(param_name, "") + " - " + display_range(param_name.upper() )
         if doc_text:
             canvas.create_text(
                 x_text + 175,
@@ -543,9 +547,17 @@ def app():
         print("Interrupted! Closing application...")
         root.destroy() 
         sys.exit(0)
-
     root = tk.Tk()
     root.title(f"pybirdsreynolds - {version_prog}")
+
+
+    global font_name
+    preferred_fonts = ["Noto Mono", "Consolas", "Menlo", "Monaco", "Courier New" , "Courier"]
+    polices_disponibles = font.families()
+    font_name = next((f for f in preferred_fonts if f in polices_disponibles), None)
+    if font_name is None:
+        mono_fonts = [p for p in polices_disponibles if "Mono" in p]
+        font_name = mono_fonts[0] if mono_fonts else "TkFixedFont"
 
     canvas = tk.Canvas(root, width=width+WIDTH_PARAMS_DEFAULT, height=height, bg=canvas_bg)
     canvas.pack()
