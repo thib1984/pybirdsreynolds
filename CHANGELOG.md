@@ -5,7 +5,7 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.3.0
+# 1.99.0
 
 - [x] choice in size font
 - [x] help message for parameter instead of yellow in same line
