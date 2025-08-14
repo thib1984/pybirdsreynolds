@@ -1,7 +1,7 @@
 import tkinter as tk
 import random
 import math
-from pybirdsreynolds.args import compute_args
+from pybirdsreynolds.args import compute_args, display_range
 import signal
 import sys
 import copy
@@ -71,17 +71,6 @@ param_docs = {
     if name.endswith("_DOC")
 }
 param_order = list(param_docs.keys())
-
-def display_range(value_default=None, value_min=None, value_max=None):
-    parts = [f"(default: {value_default}"]
-    
-    if value_min is not None:
-        parts.append(f"min: {value_min}")
-    
-    if value_max is not None:
-        parts.append(f"max: {value_max}")
-    
-    return " - ".join(parts)+")"
 
 def app():
 
@@ -310,13 +299,8 @@ def app():
                 text=line
             )
 
-        param_name = param_order[selected_index]
-        # Accéder dynamiquement aux constantes
-        prefix = param_name.upper()
-        default = globals().get(f"{prefix}_DEFAULT")
-        min_val = globals().get(f"{prefix}_MIN")
-        max_val = globals().get(f"{prefix}_MAX")        
-        doc_text = param_docs.get(param_name, "") + display_range(default, min_val, max_val)
+        param_name = param_order[selected_index]   
+        doc_text = param_docs.get(param_name, "") + ":" + display_range(param_name.upper() )
         if doc_text:
             canvas.create_text(
                 x_text + 175,

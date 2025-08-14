@@ -3,6 +3,44 @@ import sys
 import textwrap
 from pybirdsreynolds.const import *
 
+def display_range(prefix):
+    g = globals()
+    value_default   = g[f"{prefix}_DEFAULT"]
+    print(value_default)
+    if not isinstance(value_default, bool):
+        print("je suis un int")
+        value_min       = g[f"{prefix}_MIN"]
+        value_max       = g[f"{prefix}_MAX"]
+        value_free_min  = g[f"{prefix}_FREE_MIN"]
+        value_free_max  = g[f"{prefix}_FREE_MAX"]
+        parts = []
+        
+        if value_min is not None and value_max is not None:
+            parts.append(f"integer between {value_min} and {value_max}")
+        elif value_min is not None:
+            parts.append(f"integer >= {value_min}")
+        elif value_max is not None:
+            parts.append(f"integer <= {value_max}")
+        else:   
+            parts.append(f"integer with no limit")
+
+        if value_free_min is not None and value_free_max is not None:
+            parts.append(f"if --free: integer between {value_free_min} and {value_free_max}")
+        elif value_free_min is not None:
+            parts.append(f"if --free: integer >= {value_free_min}")
+        elif value_free_max is not None:
+            parts.append(f"if --free: integer <= {value_free_max}")
+        else:   
+            parts.append(f"if --free: integer with no limit")
+
+        if value_default is not None:
+            parts.append(f"default: {value_default}")
+        
+        return f"({' , '.join(parts)})" if parts else ""
+    else:
+        return "boolean value"
+
+
 def check_values(prefix , free , value , my_parser):
     g = globals()
     value_default   = g[f"{prefix}_DEFAULT"]
@@ -24,33 +62,6 @@ def check_values(prefix , free , value , my_parser):
             my_parser.error(f"{prefix.lower()} must <= {value_free_max}")
         elif (value_free_min is not None and value_free_max is None) and (value < value_free_min):
             my_parser.error(f"{prefix.lower()} must >= {value_free_min}")
-
-def display_range(prefix):
-    g = globals()
-    value_default   = g[f"{prefix}_DEFAULT"]
-    value_min       = g[f"{prefix}_MIN"]
-    value_max       = g[f"{prefix}_MAX"]
-    value_free_min  = g[f"{prefix}_FREE_MIN"]
-    value_free_max  = g[f"{prefix}_FREE_MAX"]
-    parts = []
-    
-    if value_min is not None and value_max is not None:
-        parts.append(f"integer between {value_min} and {value_max}")
-    elif value_min is not None:
-        parts.append(f"integer >= {value_min}")
-    elif value_max is not None:
-        parts.append(f"integer <= {value_max}")
-
-    if value_free_min is not None and value_free_max is not None:
-        parts.append(f"if --free: integer between {value_free_min} and {value_free_max}")
-    elif value_free_min is not None:
-        parts.append(f"if --free: integer >= {value_free_min}")
-    elif value_free_max is not None:
-        parts.append(f"if --free: integer <= {value_free_max}")
-    if value_default is not None:
-        parts.append(f"default: {value_default}")
-    
-    return f"({' , '.join(parts)})" if parts else ""
 
 def compute_args():
     controls_text = "\n".join(f"  {line}" for line in COMMON_CONTROLS)
@@ -97,8 +108,8 @@ Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://you
             my_parser.add_argument(
                 arg_name,
                 action="store_true",
-                help=g[name],
-                default=default_value
+                default=default_value,
+                help=g[name] + display_range(prefix)
             )
         else:
             my_parser.add_argument(
