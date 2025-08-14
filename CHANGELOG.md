@@ -5,6 +5,16 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.3.0
+
+- [x] choice in size font
+- [x] help message for parameter instead of yellow in same line
+- [x] dynamic size of canvas
+- [ ] choice font
+- [ ] bouton +/-
+- [ ] bouton pause/unpause
+- [ ] args = my_parser.parse_args() varibilizze
+
 # 1.2.9
 
 - [x] ctrl to shift

@@ -17,7 +17,7 @@ max_speed = options.max_speed
 neighbor_radius = options.neighbor_radius
 num_birds = options.num_birds
 width, height = options.width, options.height
-refresh_ms = options.refresh_ms
+refresh_ms = 10
 random_speed = options.random_speed
 random_angle = options.random_angle
 sep_weight = options.sep_weight
@@ -28,12 +28,14 @@ blink_state = True
 frame_count = 0
 last_time = time.time()
 fps_value = 0
-size = options.size
-triangles= options.triangles
+size = 2
+font_size = options.font_size
+triangles= False
 fps= False
 free=options.free
-color=options.color
+color= False
 count= not paused
+resizing = False  # flag global
 if not color:
     canvas_bg = "black"
     fill_color = "white"
@@ -59,6 +61,7 @@ sep_weight_init = copy.deepcopy(sep_weight)
 align_weight_init = copy.deepcopy(align_weight)
 coh_weight_init = copy.deepcopy(coh_weight)
 size_init = copy.deepcopy(size)
+font_size_init = copy.deepcopy(font_size)
 triangles_init = copy.deepcopy(triangles)
 free_init = copy.deepcopy(free)
 color_init= copy.deepcopy(color)
@@ -80,7 +83,7 @@ def app():
         global max_speed, neighbor_radius, num_birds, width, height
         global refresh_ms, random_speed, random_angle
         global sep_weight, align_weight, coh_weight
-        global paused, size, triangles, color, canvas_bg
+        global paused, size, triangles, color, canvas_bg, font_size
         global fill_color, outline_color, fps, free
         
         max_speed = copy.deepcopy(max_speed_init)
@@ -128,10 +131,10 @@ def app():
                 value = "NA"
             canvas.create_text(
                 0,
-                max(height,CANVAS_WIDTH_DEFAULT),            
+                max(height,HEIGHT_PARAMS_DEFAULT),            
                 anchor="sw",  
                 fill="yellow",
-                font=(font_name, 10, "bold"),
+                font=(font_name, font_size, "bold"),
                 tags="fps",
                 text=f" FPS : {value}"
         )
@@ -144,10 +147,10 @@ def app():
             if blink_state:
                 canvas.create_text(
                     WIDTH_PARAMS_DEFAULT,
-                    max(height, CANVAS_WIDTH_DEFAULT),
+                    max(height, HEIGHT_PARAMS_DEFAULT),
                     anchor="se",
                     fill="red",
-                    font=(font_name, 12, "bold"),
+                    font=(font_name, font_size, "bold"),
                     tags="paused",
                     text="PAUSED - press Space - "
                 )
@@ -158,7 +161,6 @@ def app():
         global paused
         paused = True
         generate_points_and_facultative_move(True)
-        draw()
 
     def toggle_pause(event=None):
         global paused
@@ -245,7 +247,12 @@ def app():
         elif event.char.lower() == 'r':
             restore_options()
             generate_points_and_facultative_move(False)
-            draw()            
+            root.geometry(f"{WIDTH_PARAMS_DEFAULT+width}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")
+            draw()
+            draw_canvas()
+            root.state('withdrawn')
+            root.state('normal')
+            root.geometry(f"{WIDTH_PARAMS_DEFAULT+width}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")            
         elif event.char.lower() == 'n':
             global velocities
             global birds
@@ -254,28 +261,42 @@ def app():
             velocities = []
             birds= [] 
             generate_points_and_facultative_move(False)
-            draw()
+            draw_points()
         elif event.char.lower() == 'f':
             fps = not fps
             draw_fps()            
         draw_status()
 
+
+    def on_resize(event):
+        global width, height
+
+        width = event.width - WIDTH_PARAMS_DEFAULT
+        height = event.height
+
+        generate_points_and_facultative_move(False)
+        draw_status()
+        draw_points()
+        draw_rectangle()
+        draw_fps()
+
+
     def draw_canvas():
-        global canvas_bg
-        canvas.config(width=width + WIDTH_PARAMS_DEFAULT, height=max(height,CANVAS_WIDTH_DEFAULT), bg=canvas_bg)
+        global canvas_bg, height, width
+        root.geometry(f"{WIDTH_PARAMS_DEFAULT+width}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")
+        canvas.config(width=width + WIDTH_PARAMS_DEFAULT, height=max(height,HEIGHT_PARAMS_DEFAULT), bg=canvas_bg)
 
     def draw_status():
         global font_name
-        normal_font = font.Font(family=font_name, size=8, weight="normal")
-        bold_font   = font.Font(family=font_name, size=8, weight="bold")
-        italic_font = font.Font(family=font_name, size=8, slant="italic", weight="bold")
+        normal_font = font.Font(family=font_name, size=font_size, weight="normal")
+        bold_font   = font.Font(family=font_name, size=font_size, weight="bold")
+        italic_font = font.Font(family=font_name, size=font_size, slant="italic", weight="bold")
 
         lines = [
             f"{name.lower().removesuffix('_doc'):15} : {globals()[name.lower().removesuffix('_doc')]}"
             for name in globals()
             if name.endswith("_DOC")
-        ] + [""] + COMMON_CONTROLS + [""]
-
+        ] + COMMON_CONTROLS
         x_text = 10
         y_text = 10
         canvas.delete("status")
@@ -285,36 +306,36 @@ def app():
             fill = fill_color
 
             if i == selected_index:
-                font_to_use = bold_font
+                font_to_use = normal_font
                 fill = "red"
                 line = ""+line+" <<< "
 
             if line.strip().startswith("["):
-                font_to_use = bold_font
+                font_to_use = normal_font
                 fill = "yellow"
 
             canvas.create_text(
                 x_text,
-                y_text + i * 18,
+                y_text + i * 1.7 * font_size,
                 anchor="nw",
                 fill=fill,
                 font=font_to_use,
                 tags="status",
-                text=line
+                text=line,
             )
 
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " - " + display_range(param_name.upper() )
         if doc_text:
             canvas.create_text(
-                x_text + 175,
-                y_text + selected_index * 18,
+                x_text,
+                y_text + (len(lines) * 1.7 * font_size),
                 anchor="nw",
-                fill="yellow",
+                fill="green",
                 font=italic_font,
                 tags="status",
-                text=doc_text,
-                width=200
+                text=param_name + " : " + doc_text,
+                width=WIDTH_PARAMS_DEFAULT - 2 * x_text
             )
 
     def draw_rectangle():
@@ -524,7 +545,8 @@ def app():
         global frame_count, last_time, fps_value, count
         if not paused:
             generate_points_and_facultative_move(True)
-            draw()
+            draw_points()
+            draw_fps()
             frame_count += 1
             now = time.time()
             if not count:
@@ -549,7 +571,7 @@ def app():
         sys.exit(0)
     root = tk.Tk()
     root.title(f"pybirdsreynolds - {version_prog}")
-
+    root.minsize(WIDTH_PARAMS_DEFAULT + WIDTH_MIN, max(height,HEIGHT_PARAMS_DEFAULT))
 
     global font_name
     preferred_fonts = ["Noto Mono", "Consolas", "Menlo", "Monaco", "Courier New" , "Courier"]
@@ -560,7 +582,7 @@ def app():
         font_name = mono_fonts[0] if mono_fonts else "TkFixedFont"
 
     canvas = tk.Canvas(root, width=width+WIDTH_PARAMS_DEFAULT, height=height, bg=canvas_bg)
-    canvas.pack()
+    canvas.pack(fill="both", expand=True)
 
     birds = [] 
     point_ids = []
@@ -571,7 +593,8 @@ def app():
     root.bind("<Return>", on_next_frame)
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)
-
+    canvas.bind("<Configure>", on_resize)
+    
     signal.signal(signal.SIGINT, signal_handler)
     update()
     root.mainloop()             

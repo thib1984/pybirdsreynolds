@@ -128,8 +128,8 @@ Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://you
     check_values("RANDOM_ANGLE" , args.free , args.random_angle , my_parser)
     check_values("WIDTH" , args.free , args.width , my_parser)
     check_values("HEIGHT" , args.free , args.height , my_parser)
-    check_values("SIZE" , args.free , args.size , my_parser)
-    check_values("REFRESH_MS" , args.free , args.refresh_ms , my_parser)
+    #check_values("SIZE" , args.free , args.size , my_parser)
+    #check_values("REFRESH_MS" , args.free , args.refresh_ms , my_parser)
     
     return args
 
