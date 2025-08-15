@@ -5,12 +5,15 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.3
+# 1.99.4 (coming)
 
-- [ ] Use two canvas_params to restore cached parameters
 - [ ] Fix: focus is lost if R in maximized mode
 - [ ] Replace "step by step" with "Enter"
 - [ ] Parameterize option removal
+
+# 1.99.3 (coming)
+
+- [ ] Use two canvas_params to restore cached parameters
 
 # 1.99.2
 
