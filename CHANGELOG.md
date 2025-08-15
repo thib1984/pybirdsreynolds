@@ -5,11 +5,14 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.5 (coming)
+# 1.99.7 (coming)
 
 - [ ] Fix: focus is lost if R in maximized mode
 - [ ] Replace "step by step" with "Enter"
-- [ ] Fix blinking for params
+
+# 1.99.6
+
+- [x] Fix blinking for params
 
 # 1.99.4
 

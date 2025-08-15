@@ -20,6 +20,8 @@ for var_name, default_value in list(globals().items()):
         option_name = var_name[:-8].lower()
         value = getattr(options, option_name, default_value)
         globals()[option_name] = value
+        globals()[option_name+"_button_up"] = None
+        globals()[option_name+"_button_down"] = None
 
 last_time = time.time()
 paused = True
@@ -85,7 +87,7 @@ def app():
         global sep_weight, align_weight, coh_weight
         global paused, size, triangles, color, canvas_bg, font_size, font_type, fonts
         global fill_color, outline_color, fps, free
-        
+ 
         max_speed = copy.deepcopy(max_speed_init)
         neighbor_radius = copy.deepcopy(neighbor_radius_init)
         num_birds = copy.deepcopy(num_birds_init)
@@ -332,6 +334,17 @@ def app():
 
     def draw_status(fullRefreshParams, fullRefreshControls):
         global font_type, start_button, fps_button, refresh_button, generation_button
+        base_globals = [
+            var_name[:-8].lower()
+            for var_name in globals()
+            if var_name.endswith("_DEFAULT")
+        ]
+        globals_button_down = "global " + ", ".join(name + "_button_down" for name in base_globals)
+        exec(globals_button_down)       
+        globals_button_up = "global " + ", ".join(name + "_button_up" for name in base_globals)
+        exec(globals_button_up)  
+
+        
         normal_font = font.Font(family=font_type, size=font_size, weight="normal")
         bold_font   = font.Font(family=font_type, size=font_size, weight="bold")
         italic_font = font.Font(family=font_type, size=font_size, slant="italic")
@@ -465,25 +478,30 @@ def app():
                     else:
                         lbl_btn = None
            
-            if fullRefreshParams:
-                if first_time_refresh_params:
-                    for item in canvas.find_all():
-                        if canvas.type(item) == "window" and "params_button" in canvas.gettags(item):
-                            canvas.delete(item)
-                    first_time_refresh_params=False                        
+            if fullRefreshParams:                    
                 first_colon_index = line.find(":") + 1 
                 f = font.Font(font=font_to_use)
                 x_offset = f.measure(line[:first_colon_index])
                 if "[" not in line:
+                    key = line.split()[0]
+                    name_button_up=key+"_button_up"
+                    name_button_down=key+"_button_down"
+                    globals()[name_button_up]
+                    globals()[name_button_down]
                     lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=font_to_use)
                     lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
                     lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                     
-                    canvas.create_window(x_text + x_offset + 1 , y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
+                    if globals()[name_button_down] is None: 
+                        globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 , y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
+                    else:
+                        canvas.coords(globals()[name_button_down], x_text + x_offset + 1 , y_pos_param)
                     lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=font_to_use)
                     lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
                     lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
-                    canvas.create_window(x_text + x_offset + 18 , y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
-
+                    if globals()[name_button_up] is None: 
+                        globals()[name_button_up] = canvas.create_window(x_text + x_offset + 18 , y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
+                    else:
+                        canvas.coords(globals()[name_button_up], x_text + x_offset + 18 , y_pos_param)
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " ("+display_range(param_name.upper())+")"
         if doc_text:
