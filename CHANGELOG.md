@@ -5,6 +5,10 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.99.8 (coming)
+
+- [ ] Add buttons for maximize and frame by frame
+
 # 1.99.7
 
 - [x] Fix: focus is lost if R in maximized mode
