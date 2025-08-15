@@ -14,22 +14,22 @@ def display_range(prefix):
         parts = []
         
         if value_min is not None and value_max is not None:
-            parts.append(f"integer between {value_min} and {value_max}")
+            parts.append(f"between {value_min} and {value_max}")
         elif value_min is not None:
-            parts.append(f"integer >= {value_min}")
+            parts.append(f">= {value_min}")
         elif value_max is not None:
-            parts.append(f"integer <= {value_max}")
+            parts.append(f"<= {value_max}")
         else:   
-            parts.append(f"integer with no limit")
+            parts.append(f"with no limit")
 
         if value_free_min is not None and value_free_max is not None:
-            parts.append(f"if --free integer between {value_free_min} and {value_free_max}")
+            parts.append(f"if --free between {value_free_min} and {value_free_max}")
         elif value_free_min is not None:
-            parts.append(f"if --free integer >= {value_free_min}")
+            parts.append(f"if --free >= {value_free_min}")
         elif value_free_max is not None:
-            parts.append(f"if --free integer <= {value_free_max}")
+            parts.append(f"if --free <= {value_free_max}")
         else:   
-            parts.append(f"if --free integer with no limit")
+            parts.append(f"if --free with no limit")
 
         if value_default is not None:
             parts.append(f"default: {value_default}")
@@ -108,14 +108,14 @@ Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://you
                 arg_name,
                 action="store_true",
                 default=default_value,
-                help=g[name] + " - " +display_range(prefix)
+                help=g[name] + " (" +display_range(prefix) + ")"
             )
         elif isinstance(default_value, int):
             my_parser.add_argument(
                 arg_name,
                 type=int,
                 default=default_value,
-                help=g[name] + " - " +display_range(prefix)
+                help=g[name] + " (" +display_range(prefix) + ")"
             )
         elif isinstance(default_value, str):
             my_parser.add_argument(

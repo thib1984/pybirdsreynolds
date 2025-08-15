@@ -38,7 +38,7 @@ fonts=[]
 fps= False
 free=options.free
 count= not paused
-resizing = False  # flag global
+resizing = False
 if not color:
     canvas_bg = "black"
     fill_color = "white"
@@ -49,6 +49,8 @@ else:
     outline_color = "black"
 margin=1
 selected_index=0
+shift_pressed = False
+
 
 # deep copy
 max_speed_init = copy.deepcopy(max_speed)
@@ -113,7 +115,15 @@ def app():
         else:
             canvas_bg = "blue"
             fill_color = "white"
-            outline_color = "black"    
+            outline_color = "black"  
+
+    def on_shift_press(event):
+        global shift_pressed
+        shift_pressed = True
+
+    def on_shift_release(event):
+        global shift_pressed
+        shift_pressed = False
 
     def draw():
         draw_canvas()
@@ -196,8 +206,12 @@ def app():
         global coh_weight, size, random_speed, random_angle
         global triangles, free , refresh_ms, width, height, fonts
         global color, canvas_bg, fill_color, outline_color, fps, font_type
-        # test if shift is pressed
-        shift = (getattr(event, "state", 0) & 0x1) != 0
+        global shift_pressed
+        shift = getattr(event, "state", None)        
+        if shift is not None:
+            shift = (shift & 0x1) != 0
+        else:
+            shift = shift_pressed
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
@@ -397,7 +411,7 @@ def app():
 
 
         param_name = param_order[selected_index]   
-        doc_text = param_docs.get(param_name, "") + " - " + display_range(param_name.upper() )
+        doc_text = param_docs.get(param_name, "") + " ("+display_range(param_name.upper())+")"
         if doc_text:
             canvas.create_text(
                 x_text,
@@ -669,6 +683,11 @@ def app():
     draw_paused()
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)
+    root.bind_all("<Shift_L>", on_shift_press)
+    root.bind_all("<Shift_R>", on_shift_press)
+    root.bind_all("<KeyRelease-Shift_L>", on_shift_release)
+    root.bind_all("<KeyRelease-Shift_R>", on_shift_release)
+
     canvas.bind("<Configure>", on_resize)
     
     signal.signal(signal.SIGINT, signal_handler)
