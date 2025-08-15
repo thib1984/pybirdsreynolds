@@ -286,6 +286,8 @@ def app():
             root.state('withdrawn')
             root.state('normal')
             root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")            
+            root.focus_force()
+            root.focus_set()
         elif getattr(event, "keysym", "").lower() == "n":
             global velocities
             global birds
@@ -712,12 +714,18 @@ def app():
                 )
             point_ids.append(pid)
 
+
     def limit_speed(vx, vy):
         speed = math.sqrt(vx*vx + vy*vy)
         if speed > max_speed:
             vx = (vx / speed) * max_speed
             vy = (vy / speed) * max_speed
         return vx, vy
+
+    def frame(event):
+        if paused:
+            generate_points_and_facultative_move(True)
+            draw_points()
 
     def update():
         global frame_count, last_time, fps_value, count
@@ -776,6 +784,7 @@ def app():
     draw_paused()
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)
+    root.bind("<Return>", frame)
     root.bind_all("<Shift_L>", on_shift_press)
     root.bind_all("<Shift_R>", on_shift_press)
     root.bind_all("<KeyRelease-Shift_L>", on_shift_release)

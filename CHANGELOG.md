@@ -5,10 +5,10 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.7 (coming)
+# 1.99.7
 
-- [ ] Fix: focus is lost if R in maximized mode
-- [ ] Replace "step by step" with "Enter"
+- [x] Fix: focus is lost if R in maximized mode
+- [x] Replace "step by step" with "Enter"
 
 # 1.99.6
 
