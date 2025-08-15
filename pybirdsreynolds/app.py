@@ -142,7 +142,6 @@ def app():
         shift_pressed = False
 
     def draw():
-        draw_canvas()
         draw_status(False, False)
         draw_points()
         draw_rectangle()
@@ -182,7 +181,7 @@ def app():
                     fill="red",
                     font=(font_type, font_size, "bold"),
                     tags="paused",
-                    text=" PAUSED - press Space - "
+                    text=" PAUSED "
                 )
             blink_state = not blink_state
             canvas.after(500, draw_paused)
@@ -270,12 +269,12 @@ def app():
                 draw_points()                 
             elif param == "width":  
                 generate_points_and_facultative_move(False)
-                draw()
                 draw_status(False, True)  
+                draw()
             elif param == "height":  
                 generate_points_and_facultative_move(False)
-                draw()
                 draw_status(False, True)
+                draw()
             elif param == "free":
                 generate_points_and_facultative_move(False)
                 draw()                       
@@ -284,18 +283,15 @@ def app():
                 draw()
             elif param =="font_size" or param =="font_type":
                 draw_status(True, True)     
-        elif getattr(event, "keysym", "").lower() == "r":
+        elif getattr(event, "keysym", "").lower() == str(RESET_COMMAND):
             restore_options()
             generate_points_and_facultative_move(False)
-            root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")
             draw()
             draw_canvas()
-            root.state('withdrawn')
             root.state('normal')
-            root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")            
             root.focus_force()
             root.focus_set()
-        elif getattr(event, "keysym", "").lower() == "b":
+        elif getattr(event, "keysym", "").lower() == str(REGENERATION_COMMAND):
             global velocities
             global birds
             global paused
@@ -304,14 +300,14 @@ def app():
             birds= [] 
             generate_points_and_facultative_move(False)
             draw_points()
-        elif getattr(event, "keysym", "").lower() == "f":
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_FPS_COMMAND):
             fps = not fps
             draw_fps()
-        elif getattr(event, "keysym", "").lower() == "p":
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_START_PAUSE_COMMAND):
             toggle_pause()
-        elif getattr(event, "keysym", "").lower() == "n":
+        elif getattr(event, "keysym", "").lower() == str(NEXT_FRAME_COMMAND):
             frame()
-        elif getattr(event, "keysym", "").lower() == "m":
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND):
             maximize_minimize()                                                 
         draw_status(False, False)
 
@@ -342,7 +338,6 @@ def app():
                 pass
             width=width_before_maximized
             height=heigth_before_maximized
-            root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height, HEIGHT_PARAMS_DEFAULT)}+0+0")
         else:
             width_before_maximized=width 
             heigth_before_maximized=height          
@@ -375,7 +370,9 @@ def app():
 
     def draw_canvas():
         global canvas_bg, height, width
-        root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")
+        x = root.winfo_x()
+        y = root.winfo_y()
+        root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height, HEIGHT_PARAMS_DEFAULT)}+{x}+{y}")
         canvas.config(width=width + WIDTH_CONTROLS_DEFAULT+WIDTH_PARAMS_DEFAULT, height=max(height,HEIGHT_PARAMS_DEFAULT), bg=canvas_bg)
 
     def on_click(l, sens):
@@ -386,7 +383,7 @@ def app():
             for name in globals()
             if name.endswith("_DOC")
         ] + [
-            f"{name.lower().removesuffix('_text'):15} :    {str(globals()[name.lower().removesuffix('_text')])}"
+            f"{name.lower().removesuffix('_text'):15} :    {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
             for name in globals()
             if name.endswith("_TEXT")
         ]
@@ -417,7 +414,7 @@ def app():
             for name in globals()
             if name.endswith("_DOC")
         ] + [
-            f"{name.lower().removesuffix('_text'):15} :    {str(globals()[name.lower().removesuffix('_text')])}"
+            f"{name.lower().removesuffix('_text'):15} :    {globals()[name]} [{globals().get(name.replace('_TEXT', '_COMMAND'), '')}]"
             for name in globals()
             if name.endswith("_TEXT")
         ]
@@ -430,8 +427,6 @@ def app():
         i_param=-1
         i_control=-1 
         y_pos_control=0 
-        first_time_refresh_params=True
-        first_time_refresh_controls=True          
         for i, line in enumerate(lines):
             font_to_use = normal_font
             fill = fill_color
@@ -827,6 +822,9 @@ def app():
     
     signal.signal(signal.SIGINT, signal_handler)
     update()
+    global last_x, last_y
+    last_x = root.winfo_x()
+    last_y = root.winfo_y()
     root.mainloop()             
 
 

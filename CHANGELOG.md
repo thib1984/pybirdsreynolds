@@ -2,10 +2,22 @@
   
 - [ ] clean code
 - [ ] optimize code -> use Grid / Uniform Cell List 
-- [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.8 (coming)
+# 1.99.10 (coming soon)
+
+- [ ] optimize button and text positions
+
+# 1.99.9
+
+- [x] optimize code -> refresh tk
+- [x] Fix incorrect "Press Space"
+- [x] fix bug when restore options , windows seems minimize before
+- [x] variabilize shortcut key and display
+- [x] fix bug when windows move after a first move and a change setting
+- [x] fix bug minimize maximize when width go to max
+
+# 1.99.8
 
 - [x] Add buttons for maximize and frame by frame
 - [x] Variablize controls

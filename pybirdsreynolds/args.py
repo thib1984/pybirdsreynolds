@@ -65,8 +65,8 @@ def check_values(prefix , free , value , my_parser):
 
 def compute_args():
     controls_text = "\n".join(
-        f"  {globals()[name]}" 
-        for name in globals() 
+        f"  {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
+        for name in globals()
         if name.endswith("_TEXT")
     )
 
