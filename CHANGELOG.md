@@ -11,9 +11,9 @@
 - [ ] Replace "step by step" with "Enter"
 - [ ] Parameterize option removal
 
-# 1.99.3 (coming)
+# 1.99.3
 
-- [ ] Use two canvas_params to restore cached parameters
+- [x] Use two canvas_params to restore cached parameters
 
 # 1.99.2
 
