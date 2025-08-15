@@ -12,33 +12,27 @@ from pybirdsreynolds.const import *
 import types
 
 # variables
-refresh_ms = REFRESH_MS_DEFAULT
-color= COLOR_DEFAULT
-triangles= TRIANGLES_DEFAULT
-size = SIZE_DEFAULT
-font_size = FONT_SIZE_DEFAULT
-font_type = FONT_TYPE_DEFAULT
 version_prog = version("pybirdsreynolds")
 options = compute_args()
-max_speed = options.max_speed
-neighbor_radius = options.neighbor_radius
-num_birds = options.num_birds
-width, height = options.width, options.height
-random_speed = options.random_speed
-random_angle = options.random_angle
-sep_weight = options.sep_weight
-align_weight = options.align_weight
-coh_weight = options.coh_weight
+
+for var_name, default_value in list(globals().items()):
+    if var_name.endswith("_DEFAULT"):
+        option_name = var_name[:-8].lower()
+        value = getattr(options, option_name, default_value)
+        globals()[option_name] = value
+
+last_time = time.time()
 paused = True
 blink_state = True
 frame_count = 0
-last_time = time.time()
 fps_value = 0
 fonts=[]
 fps= False
-free=options.free
 count= not paused
 resizing = False
+margin=1
+selected_index=0
+shift_pressed = False
 if not color:
     canvas_bg = "black"
     fill_color = "white"
@@ -47,10 +41,11 @@ else:
     canvas_bg = "blue"
     fill_color = "white"
     outline_color = "black"
-margin=1
-selected_index=0
-shift_pressed = False
 
+start_button = None
+refresh_button = None
+generation_button = None
+fps_button = None
 
 # deep copy
 max_speed_init = copy.deepcopy(max_speed)
@@ -141,7 +136,7 @@ def app():
 
     def draw():
         draw_canvas()
-        draw_status(False)
+        draw_status(False, False)
         draw_points()
         draw_rectangle()
         draw_fps()
@@ -190,7 +185,7 @@ def app():
         global blink_state
         blink_state = True
         paused = not paused
-        draw_status(False)
+        draw_status(False, False)
         draw_paused()
 
     def change_value(type, val, free):
@@ -241,7 +236,7 @@ def app():
                 current_index = fonts.index(font_type)
                 font_type = fonts[(current_index + val) % len(fonts)]
                 draw()
-                draw_status(True)               
+                draw_status(True, True)               
             elif param == "color":
                 color = not color 
                 if not color:
@@ -267,17 +262,19 @@ def app():
             elif param == "width":  
                 generate_points_and_facultative_move(False)
                 draw()
-                draw_status(True)  
+                draw_status(False, True)  
             elif param == "height":  
                 generate_points_and_facultative_move(False)
                 draw()
-                draw_status(True)
+                draw_status(False, True)
             elif param == "free":
                 generate_points_and_facultative_move(False)
                 draw()                       
             elif param == "size":
                 generate_points_and_facultative_move(False)
-                draw()  
+                draw()
+            elif param =="font_size" or param =="font_type":
+                draw_status(True, True)     
         elif getattr(event, "keysym", "").lower() == "r":
             restore_options()
             generate_points_and_facultative_move(False)
@@ -299,8 +296,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == "f":
             fps = not fps
             draw_fps()            
-        draw_status(False)
-
+        draw_status(False, False)
 
     def on_resize(event):
         global width, height
@@ -309,7 +305,7 @@ def app():
         height = event.height
 
         generate_points_and_facultative_move(False)
-        draw_status(True)
+        draw_status(False, True)
         draw_points()
         draw_rectangle()
         draw_fps()
@@ -334,8 +330,8 @@ def app():
         )
         on_other_key(types.SimpleNamespace(keysym=sens))
 
-    def draw_status(fullRefresh):
-        global font_type
+    def draw_status(fullRefreshParams, fullRefreshControls):
+        global font_type, start_button, fps_button, refresh_button, generation_button
         normal_font = font.Font(family=font_type, size=font_size, weight="normal")
         bold_font   = font.Font(family=font_type, size=font_size, weight="bold")
         italic_font = font.Font(family=font_type, size=font_size, slant="italic")
@@ -349,12 +345,13 @@ def app():
         y_text = 10
         canvas.delete("controls")
         canvas.delete("params")
-        if fullRefresh:
-            for item in canvas.find_all():
-                if canvas.type(item) == "window":
-                    canvas.delete(item)
+
+
         i_param=-1
-        i_control=-1            
+        i_control=-1 
+        y_pos_control=0 
+        first_time_refresh_params=True
+        first_time_refresh_controls=True          
         for i, line in enumerate(lines):
             font_to_use = normal_font
             fill = fill_color
@@ -363,7 +360,7 @@ def app():
                 i_param=i_param+1
                 fill = "red"
                 canvas.create_text(
-                    x_text + WIDTH_CONTROLS_DEFAULT + width,
+                    x_text,
                     y_text + i_param * 2.1 * font_size,
                     anchor="nw",
                     fill=fill,
@@ -375,8 +372,8 @@ def app():
                 i_control=i_control+1
                 fill = "yellow"
                 canvas.create_text(
-                    x_text,
-                    y_text + i_control * 2.1 * font_size,
+                    4 * x_text + WIDTH_PARAMS_DEFAULT + width,
+                    2 * y_text + i_control * 2.1 * 2 * font_size,
                     anchor="nw",
                     fill=fill,
                     font=font_to_use,
@@ -386,7 +383,7 @@ def app():
             else:    
                 i_param=i_param+1               
                 canvas.create_text(
-                    x_text + WIDTH_CONTROLS_DEFAULT + width,
+                    x_text,
                     y_text + i_param * 2.1 * font_size,
                     anchor="nw",
                     fill=fill_color,
@@ -394,25 +391,21 @@ def app():
                     tags="params",
                     text=line,
                 ) 
-            if fullRefresh:
-                y_pos_control = y_text + i_control * 2.1 * font_size
-                y_pos_param = y_text + i_param * 2.1 * font_size
-
+            y_pos_control = y_text + i_control * 2.1 * 2 * font_size
+            y_pos_param = y_text + i_param * 2.1 * font_size
+            
+            
+            if fullRefreshControls:
+                if first_time_refresh_controls:
+                    for item in canvas.find_all():
+                        if canvas.type(item) == "window" and "controls_button" in canvas.gettags(item):
+                            canvas.delete(item)
+                    first_time_refresh_controls=False              
                 first_colon_index = line.find(":") + 1 
                 f = font.Font(font=font_to_use)
                 x_offset = f.measure(line[:first_colon_index])
-                if "[" not in line:
-                    lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=font_to_use)
-                    lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
-                    lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                     
-                    canvas.create_window(x_text + x_offset + 1 + WIDTH_CONTROLS_DEFAULT + width, y_pos_param, anchor="nw", window=lbl_left, tags=("line_left",))
-                    lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=font_to_use)
-                    lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
-                    lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
-                    canvas.create_window(x_text + x_offset + 18 + WIDTH_CONTROLS_DEFAULT + width, y_pos_param, anchor="nw", window=lbl_right, tags=("line_right",))
-                else:
-
-                    btn_font = ("Courier", 9)
+                if "[" in line:
+                    btn_font = (font_type, font_size*2)
                     btn_width = 2
                     btn_height = 1
                     highlight_color = "yellow"
@@ -425,13 +418,24 @@ def app():
                             highlightbackground=highlight_color, highlightthickness=highlight_thickness
                         )
                         lbl_btn.bind("<Button-1>", lambda e: toggle_pause())
+                        if start_button == None:
+                            start_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
+                                window=lbl_btn, tags=("start_button",))                            
+                        else:
+                            canvas.coords(start_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
                     elif "[r]" in line:
                         lbl_btn = tk.Label(
                             canvas, text="🔄", fg="orange", bg="white",
-                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                            font=btn_font, width=btn_width , height=btn_height, anchor="center",
                             highlightbackground=highlight_color, highlightthickness=highlight_thickness
                         )
                         lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='r')))
+                        if refresh_button == None:
+                            refresh_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
+                                window=lbl_btn, tags=("refresh_button",))                            
+                        else:
+                            canvas.coords(refresh_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
+
                     elif "[n]" in line:
                         lbl_btn = tk.Label(
                             canvas, text="🪶", fg="purple", bg="white",
@@ -439,6 +443,12 @@ def app():
                             highlightbackground=highlight_color, highlightthickness=highlight_thickness
                         )
                         lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='n')))
+                        if generation_button == None:
+                            generation_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
+                                window=lbl_btn, tags=("generation_button",))                            
+                        else:
+                            canvas.coords(generation_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
+
                     elif "[f]" in line:
                         lbl_btn = tk.Label(
                             canvas, text="⏱", fg="brown", bg="white",
@@ -446,24 +456,44 @@ def app():
                             highlightbackground=highlight_color, highlightthickness=highlight_thickness
                         )
                         lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='f')))
+                        if fps_button == None:
+                            fps_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
+                                window=lbl_btn, tags=("fps_button",))                            
+                        else:
+                            canvas.coords(fps_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
+
                     else:
                         lbl_btn = None
-
-                    if lbl_btn:
-                        canvas.create_window(x_text + x_offset + 2, y_pos_control, anchor="nw",
-                            window=lbl_btn, tags=("line_btn",))
-
+           
+            if fullRefreshParams:
+                if first_time_refresh_params:
+                    for item in canvas.find_all():
+                        if canvas.type(item) == "window" and "params_button" in canvas.gettags(item):
+                            canvas.delete(item)
+                    first_time_refresh_params=False                        
+                first_colon_index = line.find(":") + 1 
+                f = font.Font(font=font_to_use)
+                x_offset = f.measure(line[:first_colon_index])
+                if "[" not in line:
+                    lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=font_to_use)
+                    lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
+                    lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                     
+                    canvas.create_window(x_text + x_offset + 1 , y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
+                    lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=font_to_use)
+                    lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
+                    lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
+                    canvas.create_window(x_text + x_offset + 18 , y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
 
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " ("+display_range(param_name.upper())+")"
         if doc_text:
             canvas.create_text(
                 x_text,
-                y_text + (len(lines) * 2.1 * font_size),
-                anchor="nw",
+                height,
+                anchor="sw",
                 fill="green",
                 font=italic_font,
-                tags="controls",
+                tags="params",
                 text=param_name + " : " + doc_text,
                 width=WIDTH_CONTROLS_DEFAULT - 2 * x_text
             )
@@ -724,7 +754,7 @@ def app():
 
     generate_points_and_facultative_move(True)
     draw()
-    draw_status(True)
+    draw_status(True, True)
     draw_paused()
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)
