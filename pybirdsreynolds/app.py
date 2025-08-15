@@ -70,7 +70,7 @@ font_type_init = copy.deepcopy(font_type)
 triangles_init = copy.deepcopy(triangles)
 free_init = copy.deepcopy(free)
 color_init= copy.deepcopy(color)
-
+repeating = {"active": False, "job": None}
 
 
 # doc dict
@@ -117,6 +117,20 @@ def app():
             fill_color = "white"
             outline_color = "black"  
 
+    def start_repeat(ligne, direction):
+        def repeat():
+            on_click(ligne, direction)
+            if repeating["active"]:
+                repeating["job"] = canvas.after(100, repeat)  # répète toutes les 100ms
+        repeating["active"] = True
+        repeat()
+
+    def stop_repeat():
+        repeating["active"] = False
+        if repeating["job"]:
+            canvas.after_cancel(repeating["job"])
+            repeating["job"] = None
+
     def on_shift_press(event):
         global shift_pressed
         shift_pressed = True
@@ -127,7 +141,7 @@ def app():
 
     def draw():
         draw_canvas()
-        draw_status()
+        draw_status(False)
         draw_points()
         draw_rectangle()
         draw_fps()
@@ -176,7 +190,7 @@ def app():
         global blink_state
         blink_state = True
         paused = not paused
-        draw_status()
+        draw_status(False)
         draw_paused()
 
     def change_value(type, val, free):
@@ -226,7 +240,8 @@ def app():
             elif param == "font_type":
                 current_index = fonts.index(font_type)
                 font_type = fonts[(current_index + val) % len(fonts)]
-                draw()               
+                draw()
+                draw_status(True)               
             elif param == "color":
                 color = not color 
                 if not color:
@@ -282,7 +297,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == "f":
             fps = not fps
             draw_fps()            
-        draw_status()
+        draw_status(False)
 
 
     def on_resize(event):
@@ -292,7 +307,7 @@ def app():
         height = event.height
 
         generate_points_and_facultative_move(False)
-        draw_status()
+        draw_status(False)
         draw_points()
         draw_rectangle()
         draw_fps()
@@ -317,23 +332,24 @@ def app():
         )
         on_other_key(types.SimpleNamespace(keysym=sens))
 
-    def draw_status():
+    def draw_status(fullRefresh):
         global font_type
         normal_font = font.Font(family=font_type, size=font_size, weight="normal")
         bold_font   = font.Font(family=font_type, size=font_size, weight="bold")
         italic_font = font.Font(family=font_type, size=font_size, slant="italic", weight="bold")
 
         lines = [
-            f"{name.lower().removesuffix('_doc'):15} :     {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
+            f"{name.lower().removesuffix('_doc'):15} :    {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
             for name in globals()
             if name.endswith("_DOC")
         ] + COMMON_CONTROLS
         x_text = 10
         y_text = 10
         canvas.delete("status")
-        for item in canvas.find_all():
-            if canvas.type(item) == "window":
-                canvas.delete(item)
+        if fullRefresh:
+            for item in canvas.find_all():
+                if canvas.type(item) == "window":
+                    canvas.delete(item)
         for i, line in enumerate(lines):
             font_to_use = normal_font
             fill = fill_color
@@ -344,8 +360,7 @@ def app():
             if "[" in line:
                 fill = "yellow"
 
-            # Affichage du texte
-            text_id = canvas.create_text(
+            canvas.create_text(
                 x_text,
                 y_text + i * 2.1 * font_size,
                 anchor="nw",
@@ -354,60 +369,63 @@ def app():
                 tags="status",
                 text=line,
             )
-
-            y_pos = y_text + i * 2.1 * font_size
-            first_colon_index = line.find(":") + 1 
-            f = font.Font(font=font_to_use)
-            x_offset = f.measure(line[:first_colon_index])
-            if "[" not in line: 
-                lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=("Arial", 8))
-                lbl_left.bind("<Button-1>", lambda e, l=line: on_click(l, "Left"))
-                canvas.create_window(x_text + x_offset + 2, y_pos, anchor="nw", window=lbl_left, tags=("line_left",))
-                lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=("Arial", 8))
-                lbl_right.bind("<Button-1>", lambda e, l=line: on_click(l, "Right"))
-                canvas.create_window(x_text + x_offset + 15, y_pos, anchor="nw", window=lbl_right, tags=("line_right",))
-            else:
-
-                btn_font = ("Courier", 9)
-                btn_width = 2
-                btn_height = 1
-                highlight_color = "yellow"
-                highlight_thickness = 2
-
-                if "[Space]" in line:
-                    lbl_btn = tk.Label(
-                        canvas, text="⏯", fg="green", bg="white",
-                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                    )
-                    lbl_btn.bind("<Button-1>", lambda e: toggle_pause())
-                elif "[r]" in line:
-                    lbl_btn = tk.Label(
-                        canvas, text="🔄", fg="orange", bg="white",
-                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                    )
-                    lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='r')))
-                elif "[n]" in line:
-                    lbl_btn = tk.Label(
-                        canvas, text="🪶", fg="purple", bg="white",
-                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                    )
-                    lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='n')))
-                elif "[f]" in line:
-                    lbl_btn = tk.Label(
-                        canvas, text="⏱", fg="brown", bg="white",
-                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                    )
-                    lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='f')))
+            if fullRefresh:
+                y_pos = y_text + i * 2.1 * font_size
+                first_colon_index = line.find(":") + 1 
+                f = font.Font(font=font_to_use)
+                x_offset = f.measure(line[:first_colon_index])
+                if "[" not in line:
+                    lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=font_to_use)
+                    lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
+                    lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                     
+                    #lbl_left.bind("<Button-1>", lambda e, l=line: on_click(l, "Left"))
+                    canvas.create_window(x_text + x_offset + 1, y_pos, anchor="nw", window=lbl_left, tags=("line_left",))
+                    lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=font_to_use)
+                    lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
+                    lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
+                    canvas.create_window(x_text + x_offset + 18, y_pos, anchor="nw", window=lbl_right, tags=("line_right",))
                 else:
-                    lbl_btn = None
 
-                if lbl_btn:
-                    canvas.create_window(x_text + x_offset + 2, y_pos, anchor="nw",
-                         window=lbl_btn, tags=("line_btn",))
+                    btn_font = ("Courier", 9)
+                    btn_width = 2
+                    btn_height = 1
+                    highlight_color = "yellow"
+                    highlight_thickness = 2
+
+                    if "[Space]" in line:
+                        lbl_btn = tk.Label(
+                            canvas, text="⏯", fg="green", bg="white",
+                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                        )
+                        lbl_btn.bind("<Button-1>", lambda e: toggle_pause())
+                    elif "[r]" in line:
+                        lbl_btn = tk.Label(
+                            canvas, text="🔄", fg="orange", bg="white",
+                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                        )
+                        lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='r')))
+                    elif "[n]" in line:
+                        lbl_btn = tk.Label(
+                            canvas, text="🪶", fg="purple", bg="white",
+                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                        )
+                        lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='n')))
+                    elif "[f]" in line:
+                        lbl_btn = tk.Label(
+                            canvas, text="⏱", fg="brown", bg="white",
+                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                        )
+                        lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='f')))
+                    else:
+                        lbl_btn = None
+
+                    if lbl_btn:
+                        canvas.create_window(x_text + x_offset + 2, y_pos, anchor="nw",
+                            window=lbl_btn, tags=("line_btn",))
 
 
         param_name = param_order[selected_index]   
@@ -680,6 +698,7 @@ def app():
 
     generate_points_and_facultative_move(True)
     draw()
+    draw_status(True)
     draw_paused()
     root.bind("<space>", toggle_pause)
     root.bind("<Key>", on_other_key)

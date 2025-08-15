@@ -5,14 +5,17 @@
 - [ ] optimize code -> refresh tk
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.2
+# 1.99.3
 
-- [ ] re_click if cliks is hold
 - [ ] Use two canvas_params to restore cached parameters
-- [ ] Remove button blinking
 - [ ] Fix: focus is lost if R in maximized mode
 - [ ] Replace "step by step" with "Enter"
 - [ ] Parameterize option removal
+
+# 1.99.2
+
+- [x] Remove button blinking
+- [x] re_click if cliks is hold
 
 # 1.99.1
 
