@@ -159,7 +159,7 @@ def app():
             else:
                 value = "NA"
             canvas.create_text(
-                WIDTH_CONTROLS_DEFAULT,
+                width_params,
                 0,            
                 anchor="nw",  
                 fill="yellow",
@@ -175,8 +175,8 @@ def app():
         if paused:
             if blink_state:
                 canvas.create_text(
-                    WIDTH_CONTROLS_DEFAULT,
-                    max(height, HEIGHT_PARAMS_DEFAULT),
+                    width_params,
+                    max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT),
                     anchor="sw",
                     fill="red",
                     font=(font_type, font_size, "bold"),
@@ -269,11 +269,13 @@ def app():
                 draw_points()                 
             elif param == "width":  
                 generate_points_and_facultative_move(False)
-                draw_status(False, True)  
+                draw_status(False, True)
+                draw_canvas()  
                 draw()
             elif param == "height":  
                 generate_points_and_facultative_move(False)
                 draw_status(False, True)
+                draw_canvas()
                 draw()
             elif param == "free":
                 generate_points_and_facultative_move(False)
@@ -288,6 +290,7 @@ def app():
             generate_points_and_facultative_move(False)
             draw()
             draw_canvas()
+            draw_status(False, True)
             root.state('normal')
             root.focus_force()
             root.focus_set()
@@ -308,9 +311,17 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(NEXT_FRAME_COMMAND):
             frame()
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND):
-            maximize_minimize()                                                 
+            maximize_minimize()
+        # elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND):
+        #     global width_params, width_controls,width
+        #     width_params=-1
+        #     width_controls=-1
+        #     width_tmp=width                                                                  
+        #     draw_canvas()
+        #     draw()
+        #     draw_status(False, True)
+        #     generate_points_and_facultative_move(False)
         draw_status(False, False)
-
     def is_maximized():
         if root.tk.call('tk', 'windowingsystem') == 'aqua':
             return bool(root.attributes("-fullscreen"))
@@ -338,6 +349,7 @@ def app():
                 pass
             width=width_before_maximized
             height=heigth_before_maximized
+            #draw_canvas()
         else:
             width_before_maximized=width 
             heigth_before_maximized=height          
@@ -356,11 +368,9 @@ def app():
         root.focus_set()
         
     def on_resize(event):
-        global width, height
-
-        width = event.width - WIDTH_CONTROLS_DEFAULT - WIDTH_PARAMS_DEFAULT
-        height = event.height
-
+        global width, height,width_params, width_controls 
+        width = max(event.width - width_params - width_controls -2,WIDTH_MIN)
+        height = max(event.height -2,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         generate_points_and_facultative_move(False)
         draw_status(False, True)
         draw_points()
@@ -368,12 +378,14 @@ def app():
         draw_fps()
 
 
+
     def draw_canvas():
         global canvas_bg, height, width
+        
         x = root.winfo_x()
         y = root.winfo_y()
-        root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height, HEIGHT_PARAMS_DEFAULT)}+{x}+{y}")
-        canvas.config(width=width + WIDTH_CONTROLS_DEFAULT+WIDTH_PARAMS_DEFAULT, height=max(height,HEIGHT_PARAMS_DEFAULT), bg=canvas_bg)
+        root.geometry(f"{width_params+width+width_controls+2}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        canvas.config(width=width_params+width+width_controls+2, height=max(height,HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=canvas_bg)
 
     def on_click(l, sens):
         global selected_index
@@ -447,7 +459,7 @@ def app():
                 i_control=i_control+1
                 fill = "yellow"
                 canvas.create_text(
-                    8 * x_text + WIDTH_PARAMS_DEFAULT + width,
+                    8 * x_text + width_params + width,
                     2 * y_text + i_control * 2.1 * 2 * font_size,
                     anchor="nw",
                     fill=fill,
@@ -495,13 +507,13 @@ def app():
                     lbl_btn_tmp.bind("<Button-1>", lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)))
                     if globals()[name_button] is None:
                         globals()[name_button] = canvas.create_window(
-                            x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width,
+                            x_text + x_offset + 2 + width_params + width,
                             y_pos_control, anchor="nw", window=lbl_btn_tmp
                         )
                     else:
                         canvas.coords(
                             globals()[name_button],
-                            x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width,
+                            x_text + x_offset + 2 + width_params + width,
                             y_pos_control
                         )
 
@@ -539,7 +551,7 @@ def app():
                 font=italic_font,
                 tags="params",
                 text=param_name + " : " + doc_text,
-                width=WIDTH_CONTROLS_DEFAULT - 2 * x_text
+                width=width_controls - 2 * x_text
             )
 
     def draw_rectangle():
@@ -550,7 +562,7 @@ def app():
             heigth_before_maximized=height         
         canvas.delete("boundary")
         canvas.create_rectangle(
-            WIDTH_CONTROLS_DEFAULT, 0, WIDTH_CONTROLS_DEFAULT + width, height,
+            width_params, 0, width_params + width, height,
             outline=fill_color, width=margin,
             tags="boundary"
         )
@@ -561,7 +573,7 @@ def app():
         if not birds: 
             velocities = []
             for _ in range(num_birds):
-                px = random.randint(margin + WIDTH_CONTROLS_DEFAULT, width - margin + WIDTH_CONTROLS_DEFAULT)
+                px = random.randint(margin + width_params, width - margin + width_params)
                 py = random.randint(margin, height - margin)
                 birds.append((px, py))
                 angle = random.uniform(0, 2 * math.pi)
@@ -575,7 +587,7 @@ def app():
             inside_points = []
             inside_velocities = []
             for (x, y), (vx, vy) in zip(birds, velocities):
-                if WIDTH_CONTROLS_DEFAULT + margin <= x <= WIDTH_CONTROLS_DEFAULT + width - margin and 0 + margin <= y <= height - margin:
+                if width_params + margin <= x <= width_params + width - margin and 0 + margin <= y <= height - margin:
                     inside_points.append((x, y))
                     inside_velocities.append((vx, vy))
             birds[:] = inside_points
@@ -586,7 +598,7 @@ def app():
             # Add birds if not enough
             if num_birds > current_count:
                 for _ in range(num_birds - current_count):
-                    px = random.randint(margin + WIDTH_CONTROLS_DEFAULT, width - margin + WIDTH_CONTROLS_DEFAULT)
+                    px = random.randint(margin + width_params, width - margin + width_params)
                     py = random.randint(margin, height - margin)
                     birds.append((px, py))
 
@@ -684,14 +696,14 @@ def app():
             nx = x + vx
             ny = y + vy
             # Bounces
-            while nx < margin + WIDTH_CONTROLS_DEFAULT or nx > width - margin + WIDTH_CONTROLS_DEFAULT:
-                if nx < margin + WIDTH_CONTROLS_DEFAULT:
-                    overshoot = (margin + WIDTH_CONTROLS_DEFAULT) - nx
-                    nx = (margin + WIDTH_CONTROLS_DEFAULT) + overshoot
+            while nx < margin + width_params or nx > width - margin + width_params:
+                if nx < margin + width_params:
+                    overshoot = (margin + width_params) - nx
+                    nx = (margin + width_params) + overshoot
                     vx = abs(vx)
-                elif nx > width - margin + WIDTH_CONTROLS_DEFAULT:
-                    overshoot = nx - (width - margin + WIDTH_CONTROLS_DEFAULT)
-                    nx = (width - margin + WIDTH_CONTROLS_DEFAULT) - overshoot
+                elif nx > width - margin + width_params:
+                    overshoot = nx - (width - margin + width_params)
+                    nx = (width - margin + width_params) - overshoot
                     vx = -abs(vx)
             while ny < margin or ny > height - margin:
                 if ny < margin:
@@ -784,9 +796,16 @@ def app():
         print("Interrupted! Closing application...")
         root.destroy() 
         sys.exit(0)
+
+    def rustine_1():
+        root.geometry(f"{width_params + width +1+ width_controls}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    def rustine_2():
+        root.geometry(f"{width_params + width +3+ width_controls}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+
+
     root = tk.Tk()
     root.title(f"pybirdsreynolds - {version_prog}")
-    root.minsize(WIDTH_CONTROLS_DEFAULT + WIDTH_MIN+WIDTH_PARAMS_DEFAULT, max(height,HEIGHT_PARAMS_DEFAULT))
+    root.minsize(width_params+ WIDTH_MIN+width_controls, max(height,HEIGHT_PARAMS_CONTROLS_DEFAULT))
 
     global font_type, font_type, fonts
     default_fonts = [f for f in FONT_TYPE_LIST if f in font.families()]  # ne garder que les polices disponibles
@@ -801,7 +820,7 @@ def app():
     if font_type not in fonts:
         font_type = fonts[0]  
 
-    canvas = tk.Canvas(root, width=width+WIDTH_CONTROLS_DEFAULT+WIDTH_PARAMS_DEFAULT, height=height, bg=canvas_bg)
+    canvas = tk.Canvas(root, width=width_params+width+width_controls, height=height, bg=canvas_bg)
     canvas.pack(fill="both", expand=True)
 
     birds = [] 
@@ -825,6 +844,13 @@ def app():
     global last_x, last_y
     last_x = root.winfo_x()
     last_y = root.winfo_y()
-    root.mainloop()             
+    # Générer un vrai événement flèche droite
+
+    root.after(100, rustine_1)
+    root.after(200, rustine_2)
+    root.update()
+
+    #draw_canvas()
+    root.mainloop()           
 
 

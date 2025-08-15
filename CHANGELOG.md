@@ -4,9 +4,13 @@
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.10 (coming soon)
+# 1.99.11
 
-- [ ] optimize button and text positions
+- [x] reorder parameter
+
+# 1.99.10
+
+- [x] optimize button and window position
 
 # 1.99.9
 
