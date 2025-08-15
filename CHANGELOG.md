@@ -7,7 +7,8 @@
 
 # 1.99.8 (coming)
 
-- [ ] Add buttons for maximize and frame by frame
+- [x] Add buttons for maximize and frame by frame
+- [x] Variablize controls
 
 # 1.99.7
 

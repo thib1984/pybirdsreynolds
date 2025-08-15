@@ -88,9 +88,21 @@ FONT_SIZE_MAX=12
 FONT_SIZE_FREE_MIN=6
 FONT_SIZE_FREE_MAX=12
 FREE_DEFAULT=False
-COMMON_CONTROLS = [
-    "   Toggle start / stop [Space] ",
-    "   Reset all params [r] ",
-    "   New generation of birds [n] ",
-    "   Toggle FPS display [f] "
-]
+TOOGLE_START_PAUSE_ICON="⏯"
+TOOGLE_START_PAUSE_TEXT="Toggle start / stop [p]"
+TOOGLE_START_PAUSE_COMMAND='p'
+RESET_ICON="🔄"
+RESET_TEXT="Reset all params [r]"
+RESET_COMMAND='r'
+REGENERATION_ICON="🪶"
+REGENERATION_TEXT="New generation of birds [b]"
+REGENERATION_COMMAND='b'
+TOOGLE_FPS_ICON="⏱"
+TOOGLE_FPS_TEXT="Toggle FPS display [f]"
+TOOGLE_FPS_COMMAND='f'
+NEXT_FRAME_ICON = "⏭"
+NEXT_FRAME_TEXT="Next frame [n]"
+NEXT_FRAME_COMMAND='n'
+TOOGLE_MAXIMIZE_ICON = "🗖"
+TOOGLE_MAXIMIZE_TEXT="Maximize/Minimize [m]"
+TOOGLE_MAXIMIZE_COMMAND='m'

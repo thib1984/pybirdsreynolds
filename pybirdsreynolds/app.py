@@ -22,7 +22,11 @@ for var_name, default_value in list(globals().items()):
         globals()[option_name] = value
         globals()[option_name+"_button_up"] = None
         globals()[option_name+"_button_down"] = None
-
+    if var_name.endswith("_TEXT"):
+        option_name = var_name[:-5].lower()
+        value = getattr(options, option_name, default_value)
+        globals()[option_name] = value
+        globals()[option_name+"_button"] = None
 last_time = time.time()
 paused = True
 blink_state = True
@@ -35,6 +39,8 @@ resizing = False
 margin=1
 selected_index=0
 shift_pressed = False
+width_before_maximized=width
+heigth_before_maximized=height
 if not color:
     canvas_bg = "black"
     fill_color = "white"
@@ -47,7 +53,6 @@ else:
 start_button = None
 refresh_button = None
 generation_button = None
-fps_button = None
 
 # deep copy
 max_speed_init = copy.deepcopy(max_speed)
@@ -226,6 +231,8 @@ def app():
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
+        if (param == "width" or param == "height") and is_maximized():
+            val=0
         if event.keysym == "Up":
             selected_index = (selected_index - 1) % len(param_order)
         elif event.keysym == "Down":
@@ -288,7 +295,7 @@ def app():
             root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height,HEIGHT_PARAMS_DEFAULT)}+0+0")            
             root.focus_force()
             root.focus_set()
-        elif getattr(event, "keysym", "").lower() == "n":
+        elif getattr(event, "keysym", "").lower() == "b":
             global velocities
             global birds
             global paused
@@ -299,9 +306,60 @@ def app():
             draw_points()
         elif getattr(event, "keysym", "").lower() == "f":
             fps = not fps
-            draw_fps()            
+            draw_fps()
+        elif getattr(event, "keysym", "").lower() == "p":
+            toggle_pause()
+        elif getattr(event, "keysym", "").lower() == "n":
+            frame()
+        elif getattr(event, "keysym", "").lower() == "m":
+            maximize_minimize()                                                 
         draw_status(False, False)
 
+    def is_maximized():
+        if root.tk.call('tk', 'windowingsystem') == 'aqua':
+            return bool(root.attributes("-fullscreen"))
+        if root.state() == "zoomed":
+            return True
+        try:
+            if root.attributes('-zoomed'):
+                return True
+        except tk.TclError:
+            pass
+        return (
+            root.winfo_width() >= root.winfo_screenwidth() and
+            root.winfo_height() >= root.winfo_screenheight()
+        )
+
+    def maximize_minimize():
+        global width_before_maximized
+        global heigth_before_maximized
+        global width, height  
+        if is_maximized():
+            root.state("normal")
+            try:
+                root.attributes('-zoomed', False)
+            except tk.TclError:
+                pass
+            width=width_before_maximized
+            height=heigth_before_maximized
+            root.geometry(f"{WIDTH_CONTROLS_DEFAULT+width+WIDTH_PARAMS_DEFAULT}x{max(height, HEIGHT_PARAMS_DEFAULT)}+0+0")
+        else:
+            width_before_maximized=width 
+            heigth_before_maximized=height          
+
+            wm = root.tk.call('tk', 'windowingsystem')
+            if wm == 'aqua':  # macOS
+                root.attributes("-fullscreen", True)
+            elif wm == 'win32':  # Windows
+                root.state("zoomed")
+            else:  # Linux
+                try:
+                    root.attributes('-zoomed', True)
+                except tk.TclError:
+                    root.attributes("-fullscreen", True)
+        root.focus_force()
+        root.focus_set()
+        
     def on_resize(event):
         global width, height
 
@@ -324,10 +382,14 @@ def app():
         global selected_index
         first_word = l.split()[0] if l.split() else None
         lines = [
-            f"{name.lower().removesuffix('_doc'):15} :     {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
+            f"{name.lower().removesuffix('_doc'):15} :    {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
             for name in globals()
             if name.endswith("_DOC")
-        ] + COMMON_CONTROLS
+        ] + [
+            f"{name.lower().removesuffix('_text'):15} :    {str(globals()[name.lower().removesuffix('_text')])}"
+            for name in globals()
+            if name.endswith("_TEXT")
+        ]
         selected_index = next(
             (i for i, line in enumerate(lines) if line.split(":")[0].strip() == first_word),
             0
@@ -335,18 +397,17 @@ def app():
         on_other_key(types.SimpleNamespace(keysym=sens))
 
     def draw_status(fullRefreshParams, fullRefreshControls):
-        global font_type, start_button, fps_button, refresh_button, generation_button
+        global font_type, start_button, refresh_button, generation_button
         base_globals = [
             var_name[:-8].lower()
             for var_name in globals()
             if var_name.endswith("_DEFAULT")
         ]
         globals_button_down = "global " + ", ".join(name + "_button_down" for name in base_globals)
-        exec(globals_button_down)       
+        exec(globals_button_down)
         globals_button_up = "global " + ", ".join(name + "_button_up" for name in base_globals)
-        exec(globals_button_up)  
+        exec(globals_button_up) 
 
-        
         normal_font = font.Font(family=font_type, size=font_size, weight="normal")
         bold_font   = font.Font(family=font_type, size=font_size, weight="bold")
         italic_font = font.Font(family=font_type, size=font_size, slant="italic")
@@ -355,7 +416,11 @@ def app():
             f"{name.lower().removesuffix('_doc'):15} :    {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
             for name in globals()
             if name.endswith("_DOC")
-        ] + COMMON_CONTROLS
+        ] + [
+            f"{name.lower().removesuffix('_text'):15} :    {str(globals()[name.lower().removesuffix('_text')])}"
+            for name in globals()
+            if name.endswith("_TEXT")
+        ]
         x_text = 10
         y_text = 10
         canvas.delete("controls")
@@ -387,13 +452,13 @@ def app():
                 i_control=i_control+1
                 fill = "yellow"
                 canvas.create_text(
-                    4 * x_text + WIDTH_PARAMS_DEFAULT + width,
+                    8 * x_text + WIDTH_PARAMS_DEFAULT + width,
                     2 * y_text + i_control * 2.1 * 2 * font_size,
                     anchor="nw",
                     fill=fill,
                     font=font_to_use,
                     tags="controls",
-                    text=line,
+                    text=line.split(":", 1)[1].strip(),
                 )
             else:    
                 i_param=i_param+1               
@@ -410,77 +475,41 @@ def app():
             y_pos_param = y_text + i_param * 2.1 * font_size
             
             
-            if fullRefreshControls:
-                if first_time_refresh_controls:
-                    for item in canvas.find_all():
-                        if canvas.type(item) == "window" and "controls_button" in canvas.gettags(item):
-                            canvas.delete(item)
-                    first_time_refresh_controls=False              
+            if fullRefreshControls:         
                 first_colon_index = line.find(":") + 1 
                 f = font.Font(font=font_to_use)
-                x_offset = f.measure(line[:first_colon_index])
+                x_offset = 0
                 if "[" in line:
+                    key = line.split()[0]
                     btn_font = (font_type, font_size*2)
                     btn_width = 2
                     btn_height = 1
                     highlight_color = "yellow"
                     highlight_thickness = 2
 
-                    if "[Space]" in line:
-                        lbl_btn = tk.Label(
-                            canvas, text="⏯", fg="green", bg="white",
-                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                    name_button=key+"_button"
+                    globals()[name_button]
+                    key = line.split()[0]
+                    icon = globals()[key.upper()+"_ICON"]
+                    cmd = globals()[key.upper()+"_COMMAND"]
+                    lbl_btn_tmp = tk.Label(
+                        canvas, text=icon, fg="brown", bg="white",
+                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
+                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
+                    )
+                    lbl_btn_tmp.bind("<Button-1>", lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)))
+                    if globals()[name_button] is None:
+                        globals()[name_button] = canvas.create_window(
+                            x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width,
+                            y_pos_control, anchor="nw", window=lbl_btn_tmp
                         )
-                        lbl_btn.bind("<Button-1>", lambda e: toggle_pause())
-                        if start_button == None:
-                            start_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
-                                window=lbl_btn, tags=("start_button",))                            
-                        else:
-                            canvas.coords(start_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
-                    elif "[r]" in line:
-                        lbl_btn = tk.Label(
-                            canvas, text="🔄", fg="orange", bg="white",
-                            font=btn_font, width=btn_width , height=btn_height, anchor="center",
-                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                        )
-                        lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='r')))
-                        if refresh_button == None:
-                            refresh_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
-                                window=lbl_btn, tags=("refresh_button",))                            
-                        else:
-                            canvas.coords(refresh_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
-
-                    elif "[n]" in line:
-                        lbl_btn = tk.Label(
-                            canvas, text="🪶", fg="purple", bg="white",
-                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                        )
-                        lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='n')))
-                        if generation_button == None:
-                            generation_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
-                                window=lbl_btn, tags=("generation_button",))                            
-                        else:
-                            canvas.coords(generation_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
-
-                    elif "[f]" in line:
-                        lbl_btn = tk.Label(
-                            canvas, text="⏱", fg="brown", bg="white",
-                            font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                            highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                        )
-                        lbl_btn.bind("<Button-1>", lambda e: on_other_key(types.SimpleNamespace(keysym='f')))
-                        if fps_button == None:
-                            fps_button = canvas.create_window(x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control, anchor="nw",
-                                window=lbl_btn, tags=("fps_button",))                            
-                        else:
-                            canvas.coords(fps_button, x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width, y_pos_control)                       
-
                     else:
-                        lbl_btn = None
-           
-            if fullRefreshParams:                    
+                        canvas.coords(
+                            globals()[name_button],
+                            x_text + x_offset + 2 + WIDTH_PARAMS_DEFAULT + width,
+                            y_pos_control
+                        )
+
                 first_colon_index = line.find(":") + 1 
                 f = font.Font(font=font_to_use)
                 x_offset = f.measure(line[:first_colon_index])
@@ -519,6 +548,11 @@ def app():
             )
 
     def draw_rectangle():
+        if not is_maximized():
+            global width_before_maximized
+            global heigth_before_maximized  
+            width_before_maximized=width 
+            heigth_before_maximized=height         
         canvas.delete("boundary")
         canvas.create_rectangle(
             WIDTH_CONTROLS_DEFAULT, 0, WIDTH_CONTROLS_DEFAULT + width, height,
@@ -722,7 +756,7 @@ def app():
             vy = (vy / speed) * max_speed
         return vx, vy
 
-    def frame(event):
+    def frame():
         if paused:
             generate_points_and_facultative_move(True)
             draw_points()
@@ -782,9 +816,8 @@ def app():
     draw()
     draw_status(True, True)
     draw_paused()
-    root.bind("<space>", toggle_pause)
+    root.bind('p', toggle_pause)
     root.bind("<Key>", on_other_key)
-    root.bind("<Return>", frame)
     root.bind_all("<Shift_L>", on_shift_press)
     root.bind_all("<Shift_R>", on_shift_press)
     root.bind_all("<KeyRelease-Shift_L>", on_shift_release)

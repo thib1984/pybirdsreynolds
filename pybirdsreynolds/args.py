@@ -64,7 +64,11 @@ def check_values(prefix , free , value , my_parser):
             my_parser.error(f"{prefix.lower()} must >= {value_free_min}")
 
 def compute_args():
-    controls_text = "\n".join(f"  {line}" for line in COMMON_CONTROLS)
+    controls_text = "\n".join(
+        f"  {globals()[name]}" 
+        for name in globals() 
+        if name.endswith("_TEXT")
+    )
 
     my_parser = argparse.ArgumentParser(
         description=textwrap.dedent(f"""\
