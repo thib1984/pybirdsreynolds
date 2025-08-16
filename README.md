@@ -1,5 +1,6 @@
 # pybirdsreynolds
-pybirdsreynolds is a simulation of bird flocking behavior using Reynolds rules
+
+This project is an interactive simulation of the Reynolds Boids model, implemented in Python with Tkinter. It allows you to visualize and experiment with the collective behavior of a flock of virtual birds by adjusting parameters such as cohesion, alignment, separation, speed, and neighborhood radius in real time. The interface also provides several controls (pause, reset, new generation, FPS display, etc.) to easily explore the dynamics of the system.
 
 <img width="1400" height="566" alt="image" src="https://github.com/user-attachments/assets/ea32ff8e-842e-4c91-bd91-8a6e1d08c536" />
 
