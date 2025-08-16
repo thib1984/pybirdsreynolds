@@ -9,6 +9,7 @@
 - [ ] optimize code -> remove uncessary deepcopy 
 - [ ] separates classes for main app, interface, reynolds rules....
 - [ ] clean code
+- [ ] very discreet text to issue the "h" command on the canvas
 
 # 1.99.18
 
