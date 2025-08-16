@@ -4,6 +4,10 @@
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.99.15
+
+- [x] clean UI/UX
+
 # 1.99.14
 
 - [x] invert params and controls

@@ -52,9 +52,9 @@ if not color:
     fill_color = "white"
     outline_color = "black"
 else:
-    canvas_bg = "blue"
-    fill_color = "white"
-    outline_color = "black"
+    canvas_bg = "#87CEEB"
+    fill_color = "black"
+    outline_color = "white" 
 
 start_button = None
 refresh_button = None
@@ -121,9 +121,9 @@ def app():
             fill_color = "white"
             outline_color = "black"
         else:
-            canvas_bg = "blue"
-            fill_color = "white"
-            outline_color = "black"  
+            canvas_bg = "#87CEEB"
+            fill_color = "black"
+            outline_color = "white" 
 
     def start_repeat(ligne, direction):
         def repeat():
@@ -258,9 +258,10 @@ def app():
                     fill_color = "white"
                     outline_color = "black"
                 else:
-                    canvas_bg = "blue"
-                    fill_color = "white"
-                    outline_color = "black" 
+                    canvas_bg = "#87CEEB"
+                    fill_color = "black"
+                    outline_color = "white" 
+                draw_canvas()
                 draw()
             elif param == "free":
                 free = not free
@@ -343,7 +344,7 @@ def app():
                 draw_canvas()
                 draw()
                 root.title(f"pybirdsreynolds - {version_prog}")
-                hidden=False                      
+                hidden=False
         draw_status(False, False)
     def is_maximized():
         if root.tk.call('tk', 'windowingsystem') == 'aqua':
@@ -488,21 +489,23 @@ def app():
         i_control=-1 
         y_pos_control=0 
         for i, line in enumerate(lines):
+            key = line.split()[0]
             font_to_use = normal_font
             fill = fill_color
 
             if i == selected_index:
                 i_param=i_param+1
                 fill = "red"
-                canvas.create_text(
+                item= canvas.create_text(
                     x_text +  width_controls + width,
-                    y_text + i_param * 2.1 * font_size,
+                    y_text + i_param * 2.3 * font_size,
                     anchor="nw",
                     fill=fill,
                     font=font_to_use,
                     tags="params",
                     text=line,
                 )
+                create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"])
             elif "[" in line:
                 i_control=i_control+1
                 # fill = "yellow"
@@ -517,17 +520,18 @@ def app():
                 # )
             elif not "[" in line:    
                 i_param=i_param+1               
-                canvas.create_text(
+                item = canvas.create_text(
                     x_text  +  width_controls + width,
-                    y_text + i_param * 2.1 * font_size,
+                    y_text + i_param * 2.3 * font_size,
                     anchor="nw",
                     fill=fill_color,
                     font=font_to_use,
                     tags="params",
                     text=line,
-                ) 
+                )
+                create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"])
             y_pos_control = y_text + i_control * 2.1 * 2 * font_size
-            y_pos_param = y_text + i_param * 2.1 * font_size
+            y_pos_param = y_text + i_param * 2.3 * font_size
             
             
             if fullRefreshControls:         
@@ -539,7 +543,7 @@ def app():
                     btn_font = (font_type, font_size*2)
                     btn_width = 2
                     btn_height = 1
-                    highlight_color = "yellow"
+                    highlight_color = "black"
                     highlight_thickness = 2
 
                     name_button = key + "_button"
@@ -549,12 +553,11 @@ def app():
                     cmd = globals()[key.upper() + "_COMMAND"]
 
                     lbl_btn_tmp = tk.Label(
-                        canvas, text=icon, fg="brown", bg="white",
+                        canvas, text=icon, fg="black", bg="white",
                         font=btn_font, width=btn_width, height=btn_height, anchor="center",
                         highlightbackground=highlight_color, highlightthickness=highlight_thickness
                     )
 
-                    # Ajouter le tooltip ici
                     lbl_btn_tmp.bind("<Enter>", lambda e, w=lbl_btn_tmp, t=f"{globals()[key.upper() + "_TEXT"]}": show_tip(w, t, e))
                     lbl_btn_tmp.bind("<Leave>", hide_tip)
 
@@ -576,19 +579,20 @@ def app():
                 f = font.Font(font=font_to_use)
                 x_offset = f.measure(line[:first_colon_index])
                 if "[" not in line:
-                    key = line.split()[0]
+                    highlight_color = "black"
+                    highlight_thickness = 1                    
                     name_button_up=key+"_button_up"
                     name_button_down=key+"_button_down"
                     globals()[name_button_up]
                     globals()[name_button_down]
-                    lbl_left = tk.Label(canvas, text="<", fg="blue", bg="white", font=font_to_use)
-                    lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
-                    lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                     
+                    lbl_left = tk.Label(canvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
+                    lbl_left.bind("<Enter>", lambda e, w=lbl_left, t=f"{globals()[key.upper() + "_DOC"]}": show_tip(w, t, e))
+                    lbl_left.bind("<Leave>", hide_tip)                                    
                     if globals()[name_button_down] is None: 
                         globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 + width_controls + width, y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
                     else:
                         canvas.coords(globals()[name_button_down], x_text + x_offset + 1 + width_controls + width, y_pos_param)
-                    lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=font_to_use)
+                    lbl_right = tk.Label(canvas, text=">", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
                     lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
                     lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
                     if globals()[name_button_up] is None: 
@@ -598,11 +602,12 @@ def app():
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " ("+display_range(param_name.upper())+")"
         if doc_text:
+            return
             canvas.create_text(
                 x_text + width_controls + width,
                 height,
                 anchor="sw",
-                fill="green",
+                fill=fill_color,
                 font=italic_font,
                 tags="params",
                 text=param_name + " : " + doc_text,
@@ -843,7 +848,7 @@ def app():
             if not count:
                 last_time = now
                 count = True
-            #add demay to stabilize fps    
+            #add delay to stabilize fps    
             if now - last_time >= 1.0: 
                 fps_value = frame_count / (now - last_time)
                 frame_count = 0
@@ -861,7 +866,35 @@ def app():
         root.destroy() 
         sys.exit(0)
 
+    def create_canvas_tooltip(canvas, item, text):
+        tip_window = None
 
+        def show_tip(event):
+            nonlocal tip_window
+            if tip_window:
+                return
+            x = canvas.winfo_rootx() + event.x + 10
+            y = canvas.winfo_rooty() + event.y + 10
+            tip_window = tw = tk.Toplevel(canvas)
+            tw.wm_overrideredirect(True)
+            tw.wm_geometry(f"+{x}+{y}")
+            label = tk.Label(
+                tw, text=text,
+                background="yellow",
+                relief="solid",
+                borderwidth=1,
+                font=(font_type, font_size)
+            )
+            label.pack(ipadx=4, ipady=2)
+
+        def hide_tip(event):
+            nonlocal tip_window
+            if tip_window:
+                tip_window.destroy()
+                tip_window = None
+
+        canvas.tag_bind(item, "<Enter>", show_tip)
+        canvas.tag_bind(item, "<Leave>", hide_tip)
 
     def show_tip(widget, text, event=None):
         global tip_window
@@ -872,9 +905,16 @@ def app():
         x = widget.winfo_rootx() + 20
         y = widget.winfo_rooty() + widget.winfo_height() + 10
         tip_window = tw = tk.Toplevel(widget)
-        tw.wm_overrideredirect(True)  # pas de bordure
+        tw.wm_overrideredirect(True)
         tw.wm_geometry(f"+{x}+{y}")
-        label = tk.Label(tw, text=text, background="yellow", relief="solid", borderwidth=1)
+        label = tk.Label(
+            tw,
+            text=text,
+            background="yellow",
+            relief="solid",
+            borderwidth=1,
+            font=(font_type, font_size) 
+        )
         label.pack()
 
     def hide_tip(event=None):
@@ -899,7 +939,7 @@ def app():
     canvas.pack(fill="both", expand=True)
 
     global font_type, font_type, fonts
-    default_fonts = [f for f in FONT_TYPE_LIST if f in font.families()]  # ne garder que les polices disponibles
+    default_fonts = [f for f in FONT_TYPE_LIST if f in font.families()] 
     available_fonts = font.families()
     mono_fonts = [f for f in available_fonts if "mono" in f.lower()]
 
@@ -932,13 +972,11 @@ def app():
     global last_x, last_y
     last_x = root.winfo_x()
     last_y = root.winfo_y()
-    # Générer un vrai événement flèche droite
 
     root.after(100, rustine_1)
     root.after(200, rustine_2)
     root.update()
 
-    #draw_canvas()
     root.mainloop()           
 
 
