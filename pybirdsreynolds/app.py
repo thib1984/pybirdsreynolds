@@ -27,6 +27,11 @@ for var_name, default_value in list(globals().items()):
         value = getattr(options, option_name, default_value)
         globals()[option_name] = value
         globals()[option_name+"_button"] = None
+
+hidden=False
+root=None
+canvas=None
+trans_hiden=False
 last_time = time.time()
 paused = True
 blink_state = True
@@ -265,29 +270,29 @@ def app():
                 globals()[param] = change_value(param, val, free)
 
             if param == "num_birds":
-                generate_points_and_facultative_move(False)
+                generate_points_and_facultative_move(False, False)
                 draw_points()                 
             elif param == "width":  
-                generate_points_and_facultative_move(False)
+                generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
                 draw_canvas()  
                 draw()
             elif param == "height":  
-                generate_points_and_facultative_move(False)
+                generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
                 draw_canvas()
                 draw()
             elif param == "free":
-                generate_points_and_facultative_move(False)
+                generate_points_and_facultative_move(False, False)
                 draw()                       
             elif param == "size":
-                generate_points_and_facultative_move(False)
+                generate_points_and_facultative_move(False, False)
                 draw()
             elif param =="font_size" or param =="font_type":
                 draw_status(True, True)     
         elif getattr(event, "keysym", "").lower() == str(RESET_COMMAND):
             restore_options()
-            generate_points_and_facultative_move(False)
+            generate_points_and_facultative_move(False, False)
             draw()
             draw_canvas()
             draw_status(False, True)
@@ -301,7 +306,7 @@ def app():
             pause= True
             velocities = []
             birds= [] 
-            generate_points_and_facultative_move(False)
+            generate_points_and_facultative_move(False, False)
             draw_points()
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_FPS_COMMAND):
             fps = not fps
@@ -312,15 +317,28 @@ def app():
             frame()
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND):
             maximize_minimize()
-        # elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND):
-        #     global width_params, width_controls,width
-        #     width_params=-1
-        #     width_controls=-1
-        #     width_tmp=width                                                                  
-        #     draw_canvas()
-        #     draw()
-        #     draw_status(False, True)
-        #     generate_points_and_facultative_move(False)
+        elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND):
+            global width_params, width_controls,width, hidden
+            if not hidden:
+                global trans_hiden
+                trans_hiden=True
+                width_params=0
+                width_controls=0
+                draw_status(True, True)
+                generate_points_and_facultative_move(False, True)
+                draw_canvas_hiden()
+                draw()
+                root.title(f"pybirdsreynolds - "+HIDE_COMMAND+" to display commands")
+                hidden=True
+            else:
+                width_params=WIDTH_PARAMS_DEFAULT
+                width_controls=WIDTH_CONTROLS_DEFAULT
+                draw_status(True, True)
+                generate_points_and_facultative_move(False, True)
+                draw_canvas()
+                draw()
+                root.title(f"pybirdsreynolds - {version_prog}")
+                hidden=False                      
         draw_status(False, False)
     def is_maximized():
         if root.tk.call('tk', 'windowingsystem') == 'aqua':
@@ -366,24 +384,42 @@ def app():
                     root.attributes("-fullscreen", True)
         root.focus_force()
         root.focus_set()
-        
+
+
     def on_resize(event):
+        global trans_hiden
         global width, height,width_params, width_controls 
+        if trans_hiden:
+            width = max(event.width - width_params - width_controls,WIDTH_MIN)
+            height = max(event.height,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+            generate_points_and_facultative_move(False, False)
+            draw_points()
+            draw_rectangle()
+            draw_fps()
+            trans_hiden=False
+            return
         width = max(event.width - width_params - width_controls -2,WIDTH_MIN)
         height = max(event.height -2,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-        generate_points_and_facultative_move(False)
+        generate_points_and_facultative_move(False, False)
         draw_status(False, True)
         draw_points()
         draw_rectangle()
         draw_fps()
 
-
+    def draw_canvas_hiden():
+        global root, canvas_bg, canvas, height, width
+        root.geometry(f"{width+2}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        root.minsize(width+2, height)
+        root.maxsize(width+2, height)
+        root.update()
+        root.minsize(WIDTH_MIN, HEIGHT_MIN)
+        root.maxsize(10000, 10000)
+        root.update()
+        return
 
     def draw_canvas():
         global canvas_bg, height, width
         
-        x = root.winfo_x()
-        y = root.winfo_y()
         root.geometry(f"{width_params+width+width_controls+2}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
         canvas.config(width=width_params+width+width_controls+2, height=max(height,HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=canvas_bg)
 
@@ -406,7 +442,7 @@ def app():
         on_other_key(types.SimpleNamespace(keysym=sens))
 
     def draw_status(fullRefreshParams, fullRefreshControls):
-        global font_type, start_button, refresh_button, generation_button
+        global font_type, start_button, refresh_button, generation_button, width_controls, width_params
         base_globals = [
             var_name[:-8].lower()
             for var_name in globals()
@@ -434,7 +470,13 @@ def app():
         y_text = 10
         canvas.delete("controls")
         canvas.delete("params")
-
+        if width_params==0 and width_controls==0:
+            canvas.delete("params_button")
+            canvas.delete("controls_button")
+            for name, value in globals().items():
+                if name.endswith(("_button", "_button_up", "_button_down")):
+                    globals()[name] = None
+            return 
 
         i_param=-1
         i_control=-1 
@@ -508,7 +550,7 @@ def app():
                     if globals()[name_button] is None:
                         globals()[name_button] = canvas.create_window(
                             x_text + x_offset + 2 + width_params + width,
-                            y_pos_control, anchor="nw", window=lbl_btn_tmp
+                            y_pos_control, anchor="nw", window=lbl_btn_tmp, tags=("controls_button",)
                         )
                     else:
                         canvas.coords(
@@ -555,6 +597,7 @@ def app():
             )
 
     def draw_rectangle():
+        global width_params, width_controls
         if not is_maximized():
             global width_before_maximized
             global heigth_before_maximized  
@@ -567,9 +610,10 @@ def app():
             tags="boundary"
         )
 
-    def generate_points_and_facultative_move(with_move):
+    def generate_points_and_facultative_move(with_move, translate):
         global velocities
         global new_velocities
+        global hidden
         if not birds: 
             velocities = []
             for _ in range(num_birds):
@@ -583,6 +627,13 @@ def app():
                 velocities.append((vx, vy))
 
         else:
+            if translate:
+                for i in range(len(birds)):
+                    x, y = birds[i]
+                    if hidden:
+                        birds[i] = (x + WIDTH_PARAMS_DEFAULT, y)
+                    else:
+                        birds[i] = (x - WIDTH_PARAMS_DEFAULT, y)                               
             # Keep birds only if inside
             inside_points = []
             inside_velocities = []
@@ -765,13 +816,13 @@ def app():
 
     def frame():
         if paused:
-            generate_points_and_facultative_move(True)
+            generate_points_and_facultative_move(True, False)
             draw_points()
 
     def update():
         global frame_count, last_time, fps_value, count
         if not paused:
-            generate_points_and_facultative_move(True)
+            generate_points_and_facultative_move(True, False)
             draw_points()
             draw_fps()
             frame_count += 1
@@ -802,10 +853,14 @@ def app():
     def rustine_2():
         root.geometry(f"{width_params + width +3+ width_controls}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
+    global root, canvas
+
 
     root = tk.Tk()
     root.title(f"pybirdsreynolds - {version_prog}")
     root.minsize(width_params+ WIDTH_MIN+width_controls, max(height,HEIGHT_PARAMS_CONTROLS_DEFAULT))
+    canvas = tk.Canvas(root, width=width_params+width+width_controls, height=height, bg=canvas_bg)
+    canvas.pack(fill="both", expand=True)
 
     global font_type, font_type, fonts
     default_fonts = [f for f in FONT_TYPE_LIST if f in font.families()]  # ne garder que les polices disponibles
@@ -819,14 +874,11 @@ def app():
 
     if font_type not in fonts:
         font_type = fonts[0]  
-
-    canvas = tk.Canvas(root, width=width_params+width+width_controls, height=height, bg=canvas_bg)
-    canvas.pack(fill="both", expand=True)
-
+        
     birds = [] 
     point_ids = []
 
-    generate_points_and_facultative_move(True)
+    generate_points_and_facultative_move(True, False)
     draw()
     draw_status(True, True)
     draw_paused()

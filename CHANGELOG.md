@@ -4,6 +4,15 @@
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.99.13
+
+- [ ] fix bug hide, maximize, unhide
+- [ ] try to use tooltips to buttons
+
+# 1.99.12
+
+- [x] hide control
+
 # 1.99.11
 
 - [x] reorder parameter
