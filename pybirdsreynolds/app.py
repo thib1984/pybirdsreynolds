@@ -165,7 +165,7 @@ def app():
             else:
                 value = "NA"
             canvas.create_text(
-                width_params,
+                width_controls,
                 0,            
                 anchor="nw",  
                 fill="yellow",
@@ -181,7 +181,7 @@ def app():
         if paused:
             if blink_state:
                 canvas.create_text(
-                    width_params,
+                    width_controls,
                     max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT),
                     anchor="sw",
                     fill="red",
@@ -321,9 +321,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND):
             global width_params, width_controls,width, hidden
             if not hidden:
-                to_maximize=False
                 if is_maximized():
-                    to_maximize=True
                     maximize_minimize(True)
                 global trans_hiden
                 trans_hiden=True
@@ -497,7 +495,7 @@ def app():
                 i_param=i_param+1
                 fill = "red"
                 canvas.create_text(
-                    x_text,
+                    x_text +  width_controls + width,
                     y_text + i_param * 2.1 * font_size,
                     anchor="nw",
                     fill=fill,
@@ -509,7 +507,7 @@ def app():
                 i_control=i_control+1
                 # fill = "yellow"
                 # canvas.create_text(
-                #     8 * x_text + width_params + width,
+                #     8 * x_text,
                 #     2 * y_text + i_control * 2.1 * 2 * font_size,
                 #     anchor="nw",
                 #     fill=fill,
@@ -520,7 +518,7 @@ def app():
             elif not "[" in line:    
                 i_param=i_param+1               
                 canvas.create_text(
-                    x_text,
+                    x_text  +  width_controls + width,
                     y_text + i_param * 2.1 * font_size,
                     anchor="nw",
                     fill=fill_color,
@@ -564,13 +562,13 @@ def app():
 
                     if globals()[name_button] is None:
                         globals()[name_button] = canvas.create_window(
-                            x_text + x_offset + 2 + width_params + width,
+                            x_text + x_offset + 2 ,
                             y_pos_control, anchor="nw", window=lbl_btn_tmp, tags=("controls_button",)
                         )
                     else:
                         canvas.coords(
                             globals()[name_button],
-                            x_text + x_offset + 2 + width_params + width,
+                            x_text + x_offset + 2 ,
                             y_pos_control
                         )
 
@@ -587,21 +585,21 @@ def app():
                     lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
                     lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                     
                     if globals()[name_button_down] is None: 
-                        globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 , y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
+                        globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 + width_controls + width, y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
                     else:
-                        canvas.coords(globals()[name_button_down], x_text + x_offset + 1 , y_pos_param)
+                        canvas.coords(globals()[name_button_down], x_text + x_offset + 1 + width_controls + width, y_pos_param)
                     lbl_right = tk.Label(canvas, text=">", fg="blue", bg="white", font=font_to_use)
                     lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
                     lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
                     if globals()[name_button_up] is None: 
-                        globals()[name_button_up] = canvas.create_window(x_text + x_offset + 18 , y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
+                        globals()[name_button_up] = canvas.create_window(x_text + x_offset + 18 + width_controls + width, y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
                     else:
-                        canvas.coords(globals()[name_button_up], x_text + x_offset + 18 , y_pos_param)
+                        canvas.coords(globals()[name_button_up], x_text + x_offset + 18 + width_controls + width, y_pos_param)
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " ("+display_range(param_name.upper())+")"
         if doc_text:
             canvas.create_text(
-                x_text,
+                x_text + width_controls + width,
                 height,
                 anchor="sw",
                 fill="green",
@@ -620,7 +618,7 @@ def app():
             heigth_before_maximized=height         
         canvas.delete("boundary")
         canvas.create_rectangle(
-            width_params, 0, width_params + width, height,
+            width_controls, 0, width_controls + width, height,
             outline=fill_color, width=margin,
             tags="boundary"
         )
@@ -632,7 +630,7 @@ def app():
         if not birds: 
             velocities = []
             for _ in range(num_birds):
-                px = random.randint(margin + width_params, width - margin + width_params)
+                px = random.randint(margin + width_controls, width - margin + width_controls)
                 py = random.randint(margin, height - margin)
                 birds.append((px, py))
                 angle = random.uniform(0, 2 * math.pi)
@@ -646,14 +644,14 @@ def app():
                 for i in range(len(birds)):
                     x, y = birds[i]
                     if hidden:
-                        birds[i] = (x + WIDTH_PARAMS_DEFAULT, y)
+                        birds[i] = (x + WIDTH_CONTROLS_DEFAULT, y)
                     else:
-                        birds[i] = (x - WIDTH_PARAMS_DEFAULT, y)                               
+                        birds[i] = (x - WIDTH_CONTROLS_DEFAULT, y)                               
             # Keep birds only if inside
             inside_points = []
             inside_velocities = []
             for (x, y), (vx, vy) in zip(birds, velocities):
-                if width_params + margin <= x <= width_params + width - margin and 0 + margin <= y <= height - margin:
+                if width_controls + margin <= x <= width_controls + width - margin and 0 + margin <= y <= height - margin:
                     inside_points.append((x, y))
                     inside_velocities.append((vx, vy))
             birds[:] = inside_points
@@ -664,7 +662,7 @@ def app():
             # Add birds if not enough
             if num_birds > current_count:
                 for _ in range(num_birds - current_count):
-                    px = random.randint(margin + width_params, width - margin + width_params)
+                    px = random.randint(margin + width_controls, width - margin + width_controls)
                     py = random.randint(margin, height - margin)
                     birds.append((px, py))
 
@@ -762,14 +760,14 @@ def app():
             nx = x + vx
             ny = y + vy
             # Bounces
-            while nx < margin + width_params or nx > width - margin + width_params:
-                if nx < margin + width_params:
-                    overshoot = (margin + width_params) - nx
-                    nx = (margin + width_params) + overshoot
+            while nx < margin + width_controls or nx > width - margin + width_controls:
+                if nx < margin + width_controls:
+                    overshoot = (margin + width_controls) - nx
+                    nx = (margin + width_controls) + overshoot
                     vx = abs(vx)
-                elif nx > width - margin + width_params:
-                    overshoot = nx - (width - margin + width_params)
-                    nx = (width - margin + width_params) - overshoot
+                elif nx > width - margin + width_controls:
+                    overshoot = nx - (width - margin + width_controls)
+                    nx = (width - margin + width_controls) - overshoot
                     vx = -abs(vx)
             while ny < margin or ny > height - margin:
                 if ny < margin:
