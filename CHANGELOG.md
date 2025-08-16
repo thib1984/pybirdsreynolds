@@ -4,10 +4,11 @@
 
 # 2.0 (coming)
 
-- [ ] edges with random shapes for the square- [ ] clean code
+- [ ] edges with random shapes for the square
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 - [ ] separates classes for main app, interface, reynolds rules....
+- [ ] clean code
 
 # 1.99.18
 
