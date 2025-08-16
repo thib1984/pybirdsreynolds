@@ -26,6 +26,7 @@ pybirdsreynolds is a simulation of bird flocking behavior using Reynolds rules
 ``` 
 sudo apt install python3-tk #for ubuntu
 sudo pacman -S tk #for arch
+brew install python-tk #for mac
 ```
 
 # Documentation and options
