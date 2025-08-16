@@ -6,8 +6,8 @@
 
 # 1.99.13
 
-- [ ] fix bug hide, maximize, unhide
-- [ ] try to use tooltips to buttons
+- [x] fix bug hide, maximize, unhide
+- [x] try to use tooltips to buttons
 
 # 1.99.12
 

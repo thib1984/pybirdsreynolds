@@ -28,6 +28,7 @@ for var_name, default_value in list(globals().items()):
         globals()[option_name] = value
         globals()[option_name+"_button"] = None
 
+tip_window = None
 hidden=False
 root=None
 canvas=None
@@ -316,10 +317,14 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(NEXT_FRAME_COMMAND):
             frame()
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND):
-            maximize_minimize()
+            maximize_minimize(False)
         elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND):
             global width_params, width_controls,width, hidden
             if not hidden:
+                to_maximize=False
+                if is_maximized():
+                    to_maximize=True
+                    maximize_minimize(True)
                 global trans_hiden
                 trans_hiden=True
                 width_params=0
@@ -329,10 +334,12 @@ def app():
                 draw_canvas_hiden()
                 draw()
                 root.title(f"pybirdsreynolds - "+HIDE_COMMAND+" to display commands")
-                hidden=True
+                hidden=True            
             else:
                 width_params=WIDTH_PARAMS_DEFAULT
                 width_controls=WIDTH_CONTROLS_DEFAULT
+                if is_maximized():
+                    width=root.winfo_width()-width_params-width_controls
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
                 draw_canvas()
@@ -355,7 +362,7 @@ def app():
             root.winfo_height() >= root.winfo_screenheight()
         )
 
-    def maximize_minimize():
+    def maximize_minimize(force):
         global width_before_maximized
         global heigth_before_maximized
         global width, height  
@@ -365,8 +372,9 @@ def app():
                 root.attributes('-zoomed', False)
             except tk.TclError:
                 pass
-            width=width_before_maximized
-            height=heigth_before_maximized
+            if not force:
+                width=width_before_maximized
+                height=heigth_before_maximized
             #draw_canvas()
         else:
             width_before_maximized=width 
@@ -499,17 +507,17 @@ def app():
                 )
             elif "[" in line:
                 i_control=i_control+1
-                fill = "yellow"
-                canvas.create_text(
-                    8 * x_text + width_params + width,
-                    2 * y_text + i_control * 2.1 * 2 * font_size,
-                    anchor="nw",
-                    fill=fill,
-                    font=font_to_use,
-                    tags="controls",
-                    text=line.split(":", 1)[1].strip(),
-                )
-            else:    
+                # fill = "yellow"
+                # canvas.create_text(
+                #     8 * x_text + width_params + width,
+                #     2 * y_text + i_control * 2.1 * 2 * font_size,
+                #     anchor="nw",
+                #     fill=fill,
+                #     font=font_to_use,
+                #     tags="controls",
+                #     text=line.split(":", 1)[1].strip(),
+                # )
+            elif not "[" in line:    
                 i_param=i_param+1               
                 canvas.create_text(
                     x_text,
@@ -536,17 +544,24 @@ def app():
                     highlight_color = "yellow"
                     highlight_thickness = 2
 
-                    name_button=key+"_button"
+                    name_button = key + "_button"
                     globals()[name_button]
                     key = line.split()[0]
-                    icon = globals()[key.upper()+"_ICON"]
-                    cmd = globals()[key.upper()+"_COMMAND"]
+                    icon = globals()[key.upper() + "_ICON"]
+                    cmd = globals()[key.upper() + "_COMMAND"]
+
                     lbl_btn_tmp = tk.Label(
                         canvas, text=icon, fg="brown", bg="white",
                         font=btn_font, width=btn_width, height=btn_height, anchor="center",
                         highlightbackground=highlight_color, highlightthickness=highlight_thickness
                     )
+
+                    # Ajouter le tooltip ici
+                    lbl_btn_tmp.bind("<Enter>", lambda e, w=lbl_btn_tmp, t=f"{globals()[key.upper() + "_TEXT"]}": show_tip(w, t, e))
+                    lbl_btn_tmp.bind("<Leave>", hide_tip)
+
                     lbl_btn_tmp.bind("<Button-1>", lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)))
+
                     if globals()[name_button] is None:
                         globals()[name_button] = canvas.create_window(
                             x_text + x_offset + 2 + width_params + width,
@@ -593,7 +608,7 @@ def app():
                 font=italic_font,
                 tags="params",
                 text=param_name + " : " + doc_text,
-                width=width_controls - 2 * x_text
+                width=width_params - 2 * x_text
             )
 
     def draw_rectangle():
@@ -848,6 +863,29 @@ def app():
         root.destroy() 
         sys.exit(0)
 
+
+
+    def show_tip(widget, text, event=None):
+        global tip_window
+        if tip_window or not text:
+            return
+        if tip_window or not text:
+            return
+        x = widget.winfo_rootx() + 20
+        y = widget.winfo_rooty() + widget.winfo_height() + 10
+        tip_window = tw = tk.Toplevel(widget)
+        tw.wm_overrideredirect(True)  # pas de bordure
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(tw, text=text, background="yellow", relief="solid", borderwidth=1)
+        label.pack()
+
+    def hide_tip(event=None):
+        global tip_window
+        if tip_window:
+            tip_window.destroy()
+            tip_window = None
+
+            
     def rustine_1():
         root.geometry(f"{width_params + width +1+ width_controls}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
     def rustine_2():
