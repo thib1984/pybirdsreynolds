@@ -558,7 +558,7 @@ def app():
                         highlightbackground=highlight_color, highlightthickness=highlight_thickness
                     )
 
-                    lbl_btn_tmp.bind("<Enter>", lambda e, w=lbl_btn_tmp, t=f"{globals()[key.upper() + "_TEXT"]}": show_tip(w, t, e))
+                    lbl_btn_tmp.bind("<Enter>", lambda e, w=lbl_btn_tmp, t=f"{globals()[key.upper() + "_TEXT"]}" + " [" + f"{globals()[key.upper() + "_COMMAND"]}" +"]": show_tip(w, t, e))
                     lbl_btn_tmp.bind("<Leave>", hide_tip)
 
                     lbl_btn_tmp.bind("<Button-1>", lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)))
@@ -870,8 +870,18 @@ def app():
         tip_window = None
 
         def show_tip(event):
-            nonlocal tip_window
-            if tip_window:
+            global tip_window
+
+            # 1. Détruire l'ancien tooltip s'il existe
+            if tip_window is not None:
+                try:
+                    tip_window.destroy()
+                except:
+                    pass
+                tip_window = None
+
+            # 2. Si pas de texte, on arrête ici
+            if not text:
                 return
             x = canvas.winfo_rootx() + event.x + 10
             y = canvas.winfo_rooty() + event.y + 10
@@ -888,7 +898,7 @@ def app():
             label.pack(ipadx=4, ipady=2)
 
         def hide_tip(event):
-            nonlocal tip_window
+            global tip_window
             if tip_window:
                 tip_window.destroy()
                 tip_window = None
@@ -898,9 +908,17 @@ def app():
 
     def show_tip(widget, text, event=None):
         global tip_window
-        if tip_window or not text:
-            return
-        if tip_window or not text:
+
+        # 1. Détruire l'ancien tooltip s'il existe
+        if tip_window is not None:
+            try:
+                tip_window.destroy()
+            except:
+                pass
+            tip_window = None
+
+        # 2. Si pas de texte, on arrête ici
+        if not text:
             return
         x = widget.winfo_rootx() + 20
         y = widget.winfo_rooty() + widget.winfo_height() + 10

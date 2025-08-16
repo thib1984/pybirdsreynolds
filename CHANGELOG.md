@@ -4,6 +4,12 @@
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.99.16
+
+- [x] fix bug about tooltip
+- [x] remove uncessaries params
+- [x] adjust other params
+
 # 1.99.15
 
 - [x] clean UI/UX
