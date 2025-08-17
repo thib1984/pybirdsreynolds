@@ -2,6 +2,16 @@ import argparse
 import sys
 import textwrap
 from pybirdsreynolds.const import *
+from pathlib import Path
+import re
+import importlib
+
+def get_description() -> str:
+    return importlib.resources.files("pybirdsreynolds").joinpath("DESCRIPTION.txt").read_text(encoding="utf-8").strip()
+
+def get_epilog() -> str:
+    return importlib.resources.files("pybirdsreynolds").joinpath("EPILOG.txt").read_text(encoding="utf-8").strip()
+
 
 def display_range(prefix):
     g = globals()
@@ -71,25 +81,11 @@ def compute_args():
     )
 
     my_parser = argparse.ArgumentParser(
-        description=textwrap.dedent(f"""\
-This project is an interactive simulation of the Reynolds Boids model, implemented in Python with Tkinter. It allows you to visualize and experiment with the collective behavior of a flock of virtual birds by adjusting parameters such as cohesion, alignment, separation, speed, and neighborhood radius in real time. The interface also provides several controls (pause, reset, new generation, FPS display, etc.) to easily explore the dynamics of the system.
-
-Controls:
+        description = get_description() + "\n\n" + textwrap.dedent(f"""\
+controls:
 {controls_text}
-
-Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://youtu.be/xuKrkOh_mzk
         """),
-        epilog=textwrap.dedent("""\
-            Full documentation:  https://github.com/thib1984/pybirdsreynolds
-            Report bugs:         https://github.com/thib1984/pybirdsreynolds/issues
-
-            License: MIT
-            Copyright (c) 2025 thib1984
-
-            This is free software: you can modify and redistribute it.
-            There is NO WARRANTY, to the extent permitted by law.
-            Written by thib1984.
-        """),
+        epilog=get_epilog(),
         formatter_class=argparse.RawTextHelpFormatter
     )   
 
@@ -141,9 +137,8 @@ Thanks to Mehdi Moussaïd - http://www.mehdimoussaid.com/a-propos/ - https://you
 
         default_value = g[default_name]
         if not isinstance(default_value, int) or isinstance(default_value, bool):
-            continue  # on saute les booléens
+            continue
         
-        # Ici on suppose que les noms d'arguments sont en minuscules
         arg_value = getattr(args, prefix.lower(), None)
         check_values(prefix, args.free, arg_value, my_parser )   
 

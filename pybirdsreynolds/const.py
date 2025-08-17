@@ -1,3 +1,4 @@
+SHORT_DESCRIPTION="pybirdsreynolds is an interactive simulation of the Reynolds Boids model."
 HEIGHT_PARAMS_CONTROLS_DEFAULT=400
 WIDTH_CONTROLS_DEFAULT=70
 WIDTH_PARAMS_DEFAULT=300
