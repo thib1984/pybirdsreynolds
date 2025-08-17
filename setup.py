@@ -8,8 +8,8 @@ description = (this_directory / "pybirdsreynolds" / "DESCRIPTION.txt").read_text
 
 setup(
     name="pybirdsreynolds",
-    version="1.99.20",
-    description="pybirdsreynolds is an interactive simulation of the Reynolds Boids model.",
+    version="1.99.22",
+    description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",    
     url="https://github.com/thib1984/pybirdsreynolds",
