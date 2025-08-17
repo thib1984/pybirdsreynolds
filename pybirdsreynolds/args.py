@@ -78,6 +78,7 @@ def compute_args():
         f"  {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
         for name in globals()
         if name.endswith("_TEXT")
+        and globals().get(f"{name[:-5]}_HIDEN") < 2
     )
 
     my_parser = argparse.ArgumentParser(
