@@ -2,15 +2,21 @@
 
 - [ ] use an full pip3 library to replace tk
 
-# 1.99.24 (coming soon)
+
+# 1.99.25 (coming soon)
 
 - [ ] edges with random shapes for the square
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 - [ ] separates classes for main app, interface, reynolds rules....
 - [ ] clean code
-- [ ] very discreet text to issue the "h" command on the canvas
-- [ ] documentation button
+
+# 1.99.24
+
+- [x] very discreet text to issue the "h" command on the canvas
+- [x] documentation button
+- [x] complete tooltip documentation
+- [x] fix bug hide/unhide +2 in width value
 
 # 1.99.23
 

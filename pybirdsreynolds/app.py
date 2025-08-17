@@ -1,7 +1,7 @@
 import tkinter as tk
 import random
 import math
-from pybirdsreynolds.args import compute_args, display_range
+from pybirdsreynolds.args import compute_args, display_range, get_description, get_epilog
 import signal
 import sys
 import copy
@@ -153,6 +153,7 @@ def app():
         draw_points()
         draw_rectangle()
         draw_fps()
+        draw_hidden()
 
     def draw_fps():
         global FONT_TYPE
@@ -192,6 +193,21 @@ def app():
                 )
             blink_state = not blink_state
             canvas.after(500, draw_paused)
+
+    def draw_hidden():
+        global FONT_TYPE
+        global hidden
+        canvas.delete("hidden")
+        if hidden:
+            canvas.create_text(
+                WIDTH_CONTROLS+WIDTH,
+                max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT),
+                anchor="se",
+                fill="gray",
+                font=(FONT_TYPE, FONT_SIZE, "normal"),  # police fine
+                tags="hidden",
+                text="h to restore panels "
+            )
 
     def toggle_pause(event=None):
         global paused
@@ -234,16 +250,18 @@ def app():
             shift = (shift & 0x1) != 0
         else:
             shift = shift_pressed
+        if SHIFT_HIDEN==0:
+            shift =False    
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
         if (param == "WIDTH" or param == "HEIGHT") and is_maximized():
             val=0
-        if event.keysym == "Up":
+        if event.keysym == "Up" and ARROWS_HIDE<2:
             selected_index = (selected_index - 1) % len(param_order)
-        elif event.keysym == "Down":
+        elif event.keysym == "Down" and ARROWS_HIDE<2:
             selected_index = (selected_index + 1) % len(param_order)
-        elif event.keysym == "Right"  or event.keysym == "Left":
+        elif (event.keysym == "Right"  or event.keysym == "Left") and ARROWS_HIDE<=1:
             if param == "TRIANGLES":
                 TRIANGLES = not TRIANGLES
                 draw()
@@ -320,6 +338,46 @@ def app():
             frame()
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND) and TOOGLE_MAXIMIZE_HIDEN<=1:
             maximize_minimize(False)
+        elif getattr(event, "keysym", "").lower() == str(DOC_COMMAND) and DOC_HIDEN<=1:
+            help = f"pybirdsreynolds - {version_prog}\n\n"+get_description() + "\n\n" + "Controls:\n" + "\n".join(
+                f"  {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
+                for name in globals()
+                if name.endswith("_TEXT") and globals().get(f"{name[:-5]}_HIDEN") < 2
+            ) + "\n\n" +get_epilog()
+            # Création d'une popin
+            popin = tk.Toplevel(canvas)
+            popin.title("Documentation - pybirdreynolds")
+            popin.transient(canvas.winfo_toplevel())  # reste devant la fenêtre principale
+            popin.grab_set()  # rend la popin modale
+            popin.geometry("+200+200")  # position
+            popin.configure(bg="gray")  # fond noir pour tout le Toplevel
+
+            # Frame pour contenir Text + Scrollbar
+            frame = tk.Frame(popin, bg="gray")
+            frame.pack(padx=10, pady=10)
+
+            # Zone de texte noire avec texte blanc
+            text_widget = tk.Text(
+                frame,
+                wrap="word",
+                width=60,
+                height=20,
+                bg="gray",
+                fg="black",
+                insertbackground="black",
+                highlightthickness=0,
+                bd=0
+            )
+            text_widget.insert("1.0", help)
+            text_widget.config(state="disabled")  # lecture seule
+            text_widget.pack(side="left", fill="both", expand=True)
+
+            # Scrollbar verticale
+            scrollbar = tk.Scrollbar(frame, command=text_widget.yview)
+            scrollbar.pack(side="right", fill="y")
+            text_widget.config(yscrollcommand=scrollbar.set)
+
+
         elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND) and HIDE_HIDEN<=1:
             global WIDTH_PARAMS, WIDTH_CONTROLS,WIDTH, hidden
             if not hidden:
@@ -332,9 +390,8 @@ def app():
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
                 draw_canvas_hiden()
+                hidden=True
                 draw()
-                root.title(f"pybirdsreynolds - "+HIDE_COMMAND+" to display commands")
-                hidden=True            
             else:
                 WIDTH_PARAMS=WIDTH_PARAMS_DEFAULT
                 WIDTH_CONTROLS=WIDTH_CONTROLS_DEFAULT
@@ -343,9 +400,8 @@ def app():
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
                 draw_canvas()
-                draw()
-                root.title(f"pybirdsreynolds - {version_prog}")
                 hidden=False
+                draw()
         draw_status(False, False)
     def is_maximized():
         if root.tk.call('tk', 'windowingsystem') == 'aqua':
@@ -419,10 +475,14 @@ def app():
         root.geometry(f"{WIDTH+2}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
         root.minsize(WIDTH+2, HEIGHT)
         root.maxsize(WIDTH+2, HEIGHT)
+        width_tmp=WIDTH
+        height_tmp=HEIGHT        
         root.update()
         root.minsize(WIDTH_MIN, HEIGHT_MIN)
         root.maxsize(10000, 10000)
         root.update()
+        WIDTH=width_tmp
+        HEIGHT=height_tmp       
         return
 
     def draw_canvas():
@@ -498,7 +558,7 @@ def app():
             font_to_use = normal_font
             fill = fill_color
 
-            if i == selected_index:
+            if i == selected_index and ARROWS_HIDE<2:
                 i_param=i_param+1
                 fill = "red"
                 item= canvas.create_text(
@@ -534,7 +594,7 @@ def app():
                     tags="params",
                     text=line.lower(),
                 )
-                create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"])
+                create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"]+ " (" + display_range(key.upper()))
             y_pos_control = y_text + i_control * 2.1 * 2 * FONT_SIZE
             y_pos_param = y_text + i_param * 2.3 * FONT_SIZE
             
@@ -583,7 +643,7 @@ def app():
                 first_colon_index = line.find(":") + 1 
                 f = font.Font(font=font_to_use)
                 x_offset = f.measure(line[:first_colon_index])
-                if "[" not in line:
+                if "[" not in line and ARROWS_HIDE<2:
                     highlight_color = "black"
                     highlight_thickness = 1                    
                     name_button_up=key+"_BUTTON_UP"
@@ -876,16 +936,12 @@ def app():
 
         def show_tip(event):
             global tip_window
-
-            # 1. Détruire l'ancien tooltip s'il existe
             if tip_window is not None:
                 try:
                     tip_window.destroy()
                 except:
                     pass
                 tip_window = None
-
-            # 2. Si pas de texte, on arrête ici
             if not text:
                 return
             x = canvas.winfo_rootx() + event.x + 10
@@ -898,7 +954,8 @@ def app():
                 background="yellow",
                 relief="solid",
                 borderwidth=1,
-                font=(FONT_TYPE, FONT_SIZE)
+                font=(FONT_TYPE, FONT_SIZE),
+                wraplength=200
             )
             label.pack(ipadx=4, ipady=2)
 
