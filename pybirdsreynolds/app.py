@@ -17,16 +17,16 @@ options = compute_args()
 
 for var_name, default_value in list(globals().items()):
     if var_name.endswith("_DEFAULT"):
-        option_name = var_name[:-8].lower()
+        option_name = var_name[:-8]
         value = getattr(options, option_name, default_value)
         globals()[option_name] = value
-        globals()[option_name+"_button_up"] = None
-        globals()[option_name+"_button_down"] = None
+        globals()[option_name+"_BUTTON_UP"] = None
+        globals()[option_name+"_BUTTON_DOWN"] = None
     if var_name.endswith("_TEXT"):
-        option_name = var_name[:-5].lower()
+        option_name = var_name[:-5]
         value = getattr(options, option_name, default_value)
         globals()[option_name] = value
-        globals()[option_name+"_button"] = None
+        globals()[option_name+"_BUTTON"] = None
 
 tip_window = None
 hidden=False
@@ -45,9 +45,9 @@ resizing = False
 margin=1
 selected_index=0
 shift_pressed = False
-width_before_maximized=width
-heigth_before_maximized=height
-if not color:
+width_before_maximized=WIDTH
+heigth_before_maximized=HEIGHT
+if not COLOR:
     canvas_bg = "black"
     fill_color = "white"
     outline_color = "black"
@@ -61,31 +61,32 @@ refresh_button = None
 generation_button = None
 
 # deep copy
-max_speed_init = copy.deepcopy(max_speed)
-neighbor_radius_init = copy.deepcopy(neighbor_radius)
-num_birds_init = copy.deepcopy(num_birds)
-width_init = copy.deepcopy(width)
-height_init = copy.deepcopy(height)
-refresh_ms_init = copy.deepcopy(refresh_ms)
-random_speed_init = copy.deepcopy(random_speed)
-random_angle_init = copy.deepcopy(random_angle)
-sep_weight_init = copy.deepcopy(sep_weight)
-align_weight_init = copy.deepcopy(align_weight)
-coh_weight_init = copy.deepcopy(coh_weight)
-size_init = copy.deepcopy(size)
-font_size_init = copy.deepcopy(font_size)
-font_type_init = copy.deepcopy(font_type)
-triangles_init = copy.deepcopy(triangles)
-free_init = copy.deepcopy(free)
-color_init= copy.deepcopy(color)
+max_speed_init = copy.deepcopy(MAX_SPEED)
+neighbor_radius_init = copy.deepcopy(NEIGHBOR_RADIUS)
+num_birds_init = copy.deepcopy(NUM_BIRDS)
+width_init = copy.deepcopy(WIDTH)
+height_init = copy.deepcopy(HEIGHT)
+refresh_ms_init = copy.deepcopy(REFRESH_MS)
+random_speed_init = copy.deepcopy(RANDOM_SPEED)
+random_angle_init = copy.deepcopy(RANDOM_ANGLE)
+sep_weight_init = copy.deepcopy(SEP_WEIGHT)
+align_weight_init = copy.deepcopy(ALIGN_WEIGHT)
+coh_weight_init = copy.deepcopy(COH_WEIGHT)
+size_init = copy.deepcopy(SIZE)
+font_size_init = copy.deepcopy(FONT_SIZE)
+font_type_init = copy.deepcopy(FONT_TYPE)
+triangles_init = copy.deepcopy(TRIANGLES)
+free_init = copy.deepcopy(FREE)
+color_init= copy.deepcopy(COLOR)
 repeating = {"active": False, "job": None}
 
 
 # doc dict
 param_docs = {
-    name.lower().removesuffix("_doc"): value
+    name.removesuffix("_DOC"): value
     for name, value in globals().items()
     if name.endswith("_DOC")
+    and globals().get(f"{name[:-4]}_HIDEN") == 0
 }
 param_order = list(param_docs.keys())
 
@@ -93,30 +94,30 @@ def app():
 
     def restore_options():
 
-        global max_speed, neighbor_radius, num_birds, width, height
-        global refresh_ms, random_speed, random_angle
-        global sep_weight, align_weight, coh_weight
-        global paused, size, triangles, color, canvas_bg, font_size, font_type, fonts
-        global fill_color, outline_color, fps, free
+        global MAX_SPEED, NEIGHBOR_RADIUS, NUM_BIRDS, WIDTH, HEIGHT
+        global REFRESH_MS, RANDOM_SPEED, RANDOM_ANGLE
+        global SEP_WEIGHT, ALIGN_WEIGHT, COH_WEIGHT
+        global paused, SIZE, TRIANGLES, COLOR, canvas_bg, FONT_SIZE, FONT_TYPE, fonts
+        global fill_color, outline_color, fps, FREE
  
-        max_speed = copy.deepcopy(max_speed_init)
-        neighbor_radius = copy.deepcopy(neighbor_radius_init)
-        num_birds = copy.deepcopy(num_birds_init)
-        width = copy.deepcopy(width_init)
-        height = copy.deepcopy(height_init)
-        refresh_ms = copy.deepcopy(refresh_ms_init)
-        random_speed = copy.deepcopy(random_speed_init)
-        random_angle = copy.deepcopy(random_angle_init)
-        sep_weight = copy.deepcopy(sep_weight_init)
-        align_weight = copy.deepcopy(align_weight_init)
-        coh_weight = copy.deepcopy(coh_weight_init)
-        size = copy.deepcopy(size_init)
-        color = copy.deepcopy(color_init)
-        free = copy.deepcopy(free_init)
-        triangles = copy.deepcopy(triangles_init)
-        font_type = copy.deepcopy(font_type)   
+        MAX_SPEED = copy.deepcopy(max_speed_init)
+        NEIGHBOR_RADIUS = copy.deepcopy(neighbor_radius_init)
+        NUM_BIRDS = copy.deepcopy(num_birds_init)
+        WIDTH = copy.deepcopy(width_init)
+        HEIGHT = copy.deepcopy(height_init)
+        REFRESH_MS = copy.deepcopy(refresh_ms_init)
+        RANDOM_SPEED = copy.deepcopy(random_speed_init)
+        RANDOM_ANGLE = copy.deepcopy(random_angle_init)
+        SEP_WEIGHT = copy.deepcopy(sep_weight_init)
+        ALIGN_WEIGHT = copy.deepcopy(align_weight_init)
+        COH_WEIGHT = copy.deepcopy(coh_weight_init)
+        SIZE = copy.deepcopy(size_init)
+        COLOR = copy.deepcopy(color_init)
+        FREE = copy.deepcopy(free_init)
+        TRIANGLES = copy.deepcopy(triangles_init)
+        FONT_TYPE = copy.deepcopy(FONT_TYPE)   
 
-        if not color:
+        if not COLOR:
             canvas_bg = "black"
             fill_color = "white"
             outline_color = "black"
@@ -154,7 +155,7 @@ def app():
         draw_fps()
 
     def draw_fps():
-        global font_type
+        global FONT_TYPE
         canvas.delete("fps")
         if fps:
             if not paused:
@@ -165,27 +166,27 @@ def app():
             else:
                 value = "NA"
             canvas.create_text(
-                width_controls,
+                WIDTH_CONTROLS,
                 0,            
                 anchor="nw",  
                 fill="yellow",
-                font=(font_type, font_size, "bold"),
+                font=(FONT_TYPE, FONT_SIZE, "bold"),
                 tags="fps",
                 text=f" FPS : {value}"
         )
 
     def draw_paused():
-        global font_type
+        global FONT_TYPE
         global blink_state
         canvas.delete("paused")
         if paused:
             if blink_state:
                 canvas.create_text(
-                    width_controls,
-                    max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT),
+                    WIDTH_CONTROLS,
+                    max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT),
                     anchor="sw",
                     fill="red",
-                    font=(font_type, font_size, "bold"),
+                    font=(FONT_TYPE, FONT_SIZE, "bold"),
                     tags="paused",
                     text=" PAUSED "
                 )
@@ -200,7 +201,7 @@ def app():
         draw_status(False, False)
         draw_paused()
 
-    def change_value(type, val, free):
+    def change_value(type, val, FREE):
         value = globals().get(type)
         prefix = type.upper()
         default = globals().get(f"{prefix}_DEFAULT")
@@ -209,7 +210,7 @@ def app():
         min_free_value = globals().get(f"{prefix}_FREE_MIN")
         max_free_value = globals().get(f"{prefix}_FREE_MAX")                    
         value += val
-        if not free:
+        if not FREE:
             if max_value is not None:
                 value = min(value, max_value)
             if min_value is not None:
@@ -222,11 +223,11 @@ def app():
         return value
 
     def on_other_key(event):
-        global selected_index, num_birds, max_speed
-        global neighbor_radius, sep_weight, align_weight
-        global coh_weight, size, random_speed, random_angle
-        global triangles, free , refresh_ms, width, height, fonts
-        global color, canvas_bg, fill_color, outline_color, fps, font_type
+        global selected_index, NUM_BIRDS, MAX_SPEED
+        global NEIGHBOR_RADIUS, SEP_WEIGHT, ALIGN_WEIGHT
+        global COH_WEIGHT, SIZE, RANDOM_SPEED, RANDOM_ANGLE
+        global TRIANGLES, FREE , REFRESH_MS, WIDTH, HEIGHT, fonts
+        global COLOR, canvas_bg, fill_color, outline_color, fps, FONT_TYPE
         global shift_pressed
         shift = getattr(event, "state", None)        
         if shift is not None:
@@ -236,24 +237,24 @@ def app():
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
-        if (param == "width" or param == "height") and is_maximized():
+        if (param == "WIDTH" or param == "HEIGHT") and is_maximized():
             val=0
         if event.keysym == "Up":
             selected_index = (selected_index - 1) % len(param_order)
         elif event.keysym == "Down":
             selected_index = (selected_index + 1) % len(param_order)
         elif event.keysym == "Right"  or event.keysym == "Left":
-            if param == "triangles":
-                triangles = not triangles
+            if param == "TRIANGLES":
+                TRIANGLES = not TRIANGLES
                 draw()
-            elif param == "font_type":
-                current_index = fonts.index(font_type)
-                font_type = fonts[(current_index + val) % len(fonts)]
+            elif param == "FONT_TYPE":
+                current_index = fonts.index(FONT_TYPE)
+                FONT_TYPE = fonts[(current_index + val) % len(fonts)]
                 draw()
                 draw_status(True, True)               
-            elif param == "color":
-                color = not color 
-                if not color:
+            elif param == "COLOR":
+                COLOR = not COLOR 
+                if not COLOR:
                     canvas_bg = "black"
                     fill_color = "white"
                     outline_color = "black"
@@ -263,36 +264,36 @@ def app():
                     outline_color = "white" 
                 draw_canvas()
                 draw()
-            elif param == "free":
-                free = not free
+            elif param == "FREE":
+                FREE = not FREE
                 for paramm in param_order:
-                    if paramm not in ["free", "color" , "triangles", "font_type"]:
-                        globals()[paramm] = change_value(paramm, 0, free)                                                      
+                    if paramm not in ["FREE", "COLOR" , "TRIANGLES", "FONT_TYPE"]:
+                        globals()[paramm] = change_value(paramm, 0, FREE)                                                      
             else:  
-                globals()[param] = change_value(param, val, free)
+                globals()[param] = change_value(param, val, FREE)
 
-            if param == "num_birds":
+            if param == "NUM_BIRDS":
                 generate_points_and_facultative_move(False, False)
                 draw_points()                 
-            elif param == "width":  
+            elif param == "WIDTH":  
                 generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
                 draw_canvas()  
                 draw()
-            elif param == "height":  
+            elif param == "HEIGHT":  
                 generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
                 draw_canvas()
                 draw()
-            elif param == "free":
+            elif param == "FREE":
                 generate_points_and_facultative_move(False, False)
                 draw()                       
-            elif param == "size":
+            elif param == "SIZE":
                 generate_points_and_facultative_move(False, False)
                 draw()
-            elif param =="font_size" or param =="font_type":
+            elif param =="FONT_SIZE" or param =="FONT_TYPE":
                 draw_status(True, True)     
-        elif getattr(event, "keysym", "").lower() == str(RESET_COMMAND):
+        elif getattr(event, "keysym", "").lower() == str(RESET_COMMAND) and RESET_HIDEN<=1:
             restore_options()
             generate_points_and_facultative_move(False, False)
             draw()
@@ -301,7 +302,7 @@ def app():
             root.state('normal')
             root.focus_force()
             root.focus_set()
-        elif getattr(event, "keysym", "").lower() == str(REGENERATION_COMMAND):
+        elif getattr(event, "keysym", "").lower() == str(REGENERATION_COMMAND) and REGENERATION_COMMAND<=1:
             global velocities
             global birds
             global paused
@@ -310,24 +311,24 @@ def app():
             birds= [] 
             generate_points_and_facultative_move(False, False)
             draw_points()
-        elif getattr(event, "keysym", "").lower() == str(TOOGLE_FPS_COMMAND):
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_FPS_COMMAND) and TOOGLE_FPS_HIDEN<=1:
             fps = not fps
             draw_fps()
-        elif getattr(event, "keysym", "").lower() == str(TOOGLE_START_PAUSE_COMMAND):
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_START_PAUSE_COMMAND) and TOOGLE_START_PAUSE_COMMAND<=1:
             toggle_pause()
-        elif getattr(event, "keysym", "").lower() == str(NEXT_FRAME_COMMAND):
+        elif getattr(event, "keysym", "").lower() == str(NEXT_FRAME_COMMAND) and NEXT_FRAME_HIDEN<=1:
             frame()
-        elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND):
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND) and TOOGLE_MAXIMIZE_HIDEN<=1:
             maximize_minimize(False)
-        elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND):
-            global width_params, width_controls,width, hidden
+        elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND) and HIDE_HIDEN<=1:
+            global WIDTH_PARAMS, WIDTH_CONTROLS,WIDTH, hidden
             if not hidden:
                 if is_maximized():
                     maximize_minimize(True)
                 global trans_hiden
                 trans_hiden=True
-                width_params=0
-                width_controls=0
+                WIDTH_PARAMS=0
+                WIDTH_CONTROLS=0
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
                 draw_canvas_hiden()
@@ -335,10 +336,10 @@ def app():
                 root.title(f"pybirdsreynolds - "+HIDE_COMMAND+" to display commands")
                 hidden=True            
             else:
-                width_params=WIDTH_PARAMS_DEFAULT
-                width_controls=WIDTH_CONTROLS_DEFAULT
+                WIDTH_PARAMS=WIDTH_PARAMS_DEFAULT
+                WIDTH_CONTROLS=WIDTH_CONTROLS_DEFAULT
                 if is_maximized():
-                    width=root.winfo_width()-width_params-width_controls
+                    WIDTH=root.winfo_width()-WIDTH_PARAMS-WIDTH_CONTROLS
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
                 draw_canvas()
@@ -364,7 +365,7 @@ def app():
     def maximize_minimize(force):
         global width_before_maximized
         global heigth_before_maximized
-        global width, height  
+        global WIDTH, HEIGHT  
         if is_maximized():
             root.state("normal")
             try:
@@ -372,12 +373,12 @@ def app():
             except tk.TclError:
                 pass
             if not force:
-                width=width_before_maximized
-                height=heigth_before_maximized
+                WIDTH=width_before_maximized
+                HEIGHT=heigth_before_maximized
             #draw_canvas()
         else:
-            width_before_maximized=width 
-            heigth_before_maximized=height          
+            width_before_maximized=WIDTH 
+            heigth_before_maximized=HEIGHT          
 
             wm = root.tk.call('tk', 'windowingsystem')
             if wm == 'aqua':  # macOS
@@ -395,18 +396,18 @@ def app():
 
     def on_resize(event):
         global trans_hiden
-        global width, height,width_params, width_controls 
+        global WIDTH, HEIGHT,WIDTH_PARAMS, WIDTH_CONTROLS 
         if trans_hiden:
-            width = max(event.width - width_params - width_controls,WIDTH_MIN)
-            height = max(event.height,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+            WIDTH = max(event.width - WIDTH_PARAMS - WIDTH_CONTROLS,WIDTH_MIN)
+            HEIGHT = max(event.height,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
             generate_points_and_facultative_move(False, False)
             draw_points()
             draw_rectangle()
             draw_fps()
             trans_hiden=False
             return
-        width = max(event.width - width_params - width_controls -2,WIDTH_MIN)
-        height = max(event.height -2,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+        WIDTH = max(event.width - WIDTH_PARAMS - WIDTH_CONTROLS -2,WIDTH_MIN)
+        HEIGHT = max(event.height -2,HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         generate_points_and_facultative_move(False, False)
         draw_status(False, True)
         draw_points()
@@ -414,10 +415,10 @@ def app():
         draw_fps()
 
     def draw_canvas_hiden():
-        global root, canvas_bg, canvas, height, width
-        root.geometry(f"{width+2}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-        root.minsize(width+2, height)
-        root.maxsize(width+2, height)
+        global root, canvas_bg, canvas, HEIGHT, WIDTH
+        root.geometry(f"{WIDTH+2}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        root.minsize(WIDTH+2, HEIGHT)
+        root.maxsize(WIDTH+2, HEIGHT)
         root.update()
         root.minsize(WIDTH_MIN, HEIGHT_MIN)
         root.maxsize(10000, 10000)
@@ -425,22 +426,24 @@ def app():
         return
 
     def draw_canvas():
-        global canvas_bg, height, width
+        global canvas_bg, HEIGHT, WIDTH
         
-        root.geometry(f"{width_params+width+width_controls+2}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-        canvas.config(width=width_params+width+width_controls+2, height=max(height,HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=canvas_bg)
+        root.geometry(f"{WIDTH_PARAMS+WIDTH+WIDTH_CONTROLS+2}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        canvas.config(width=WIDTH_PARAMS+WIDTH+WIDTH_CONTROLS+2, height=max(HEIGHT,HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=canvas_bg)
 
     def on_click(l, sens):
         global selected_index
         first_word = l.split()[0] if l.split() else None
         lines = [
-            f"{name.lower().removesuffix('_doc'):15} :    {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
+            f"{name.removesuffix('_DOC'):15} :    {str(globals()[name.removesuffix('_DOC')]).split(maxsplit=1)[0]}"
             for name in globals()
             if name.endswith("_DOC")
+            and globals().get(f"{name[:-4]}_HIDEN") == 0
         ] + [
-            f"{name.lower().removesuffix('_text'):15} :    {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
+            f"{name.removesuffix('_TEXT'):15} :    {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
             for name in globals()
             if name.endswith("_TEXT")
+            and globals().get(f"{name[:-5]}_HIDEN") == 0
         ]
         selected_index = next(
             (i for i, line in enumerate(lines) if line.split(":")[0].strip() == first_word),
@@ -449,39 +452,41 @@ def app():
         on_other_key(types.SimpleNamespace(keysym=sens))
 
     def draw_status(fullRefreshParams, fullRefreshControls):
-        global font_type, start_button, refresh_button, generation_button, width_controls, width_params
+        global FONT_TYPE, start_button, refresh_button, generation_button, WIDTH_CONTROLS, WIDTH_PARAMS
         base_globals = [
-            var_name[:-8].lower()
+            var_name[:-8]
             for var_name in globals()
             if var_name.endswith("_DEFAULT")
         ]
-        globals_button_down = "global " + ", ".join(name + "_button_down" for name in base_globals)
+        globals_button_down = "global " + ", ".join(name + "_BUTTON_DOWN" for name in base_globals)
         exec(globals_button_down)
-        globals_button_up = "global " + ", ".join(name + "_button_up" for name in base_globals)
+        globals_button_up = "global " + ", ".join(name + "_BUTTON_UP" for name in base_globals)
         exec(globals_button_up) 
 
-        normal_font = font.Font(family=font_type, size=font_size, weight="normal")
-        bold_font   = font.Font(family=font_type, size=font_size, weight="bold")
-        italic_font = font.Font(family=font_type, size=font_size, slant="italic")
+        normal_font = font.Font(family=FONT_TYPE, size=FONT_SIZE, weight="normal")
+        bold_font   = font.Font(family=FONT_TYPE, size=FONT_SIZE, weight="bold")
+        italic_font = font.Font(family=FONT_TYPE, size=FONT_SIZE, slant="italic")
 
         lines = [
-            f"{name.lower().removesuffix('_doc'):15} :    {str(globals()[name.lower().removesuffix('_doc')]).split(maxsplit=1)[0]}"
+            f"{name.removesuffix('_DOC'):15} :    {str(globals()[name.removesuffix('_DOC')]).split(maxsplit=1)[0]}"
             for name in globals()
             if name.endswith("_DOC")
+            and globals().get(f"{name[:-4]}_HIDEN") == 0
         ] + [
-            f"{name.lower().removesuffix('_text'):15} :    {globals()[name]} [{globals().get(name.replace('_TEXT', '_COMMAND'), '')}]"
+            f"{name.removesuffix('_TEXT'):15} :    {globals()[name]} [{globals().get(name.replace('_TEXT', '_COMMAND'), '')}]"
             for name in globals()
             if name.endswith("_TEXT")
+            and globals().get(f"{name[:-5]}_HIDEN") == 0
         ]
         x_text = 10
         y_text = 10
         canvas.delete("controls")
         canvas.delete("params")
-        if width_params==0 and width_controls==0:
+        if WIDTH_PARAMS==0 and WIDTH_CONTROLS==0:
             canvas.delete("params_button")
             canvas.delete("controls_button")
             for name, value in globals().items():
-                if name.endswith(("_button", "_button_up", "_button_down")):
+                if name.endswith(("_BUTTON", "_BUTTON_UP", "_BUTTON_DOWN")):
                     globals()[name] = None
             return 
 
@@ -497,13 +502,13 @@ def app():
                 i_param=i_param+1
                 fill = "red"
                 item= canvas.create_text(
-                    x_text +  width_controls + width,
-                    y_text + i_param * 2.3 * font_size,
+                    x_text +  WIDTH_CONTROLS + WIDTH,
+                    y_text + i_param * 2.3 * FONT_SIZE,
                     anchor="nw",
                     fill=fill,
                     font=font_to_use,
                     tags="params",
-                    text=line,
+                    text=line.lower(),
                 )
                 create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"])
             elif "[" in line:
@@ -511,27 +516,27 @@ def app():
                 # fill = "yellow"
                 # canvas.create_text(
                 #     8 * x_text,
-                #     2 * y_text + i_control * 2.1 * 2 * font_size,
+                #     2 * y_text + i_control * 2.1 * 2 * FONT_SIZE,
                 #     anchor="nw",
                 #     fill=fill,
                 #     font=font_to_use,
                 #     tags="controls",
-                #     text=line.split(":", 1)[1].strip(),
+                #     text=line.split(":", 1)[1].strip().lower(),
                 # )
             elif not "[" in line:    
                 i_param=i_param+1               
                 item = canvas.create_text(
-                    x_text  +  width_controls + width,
-                    y_text + i_param * 2.3 * font_size,
+                    x_text  +  WIDTH_CONTROLS + WIDTH,
+                    y_text + i_param * 2.3 * FONT_SIZE,
                     anchor="nw",
                     fill=fill_color,
                     font=font_to_use,
                     tags="params",
-                    text=line,
+                    text=line.lower(),
                 )
                 create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"])
-            y_pos_control = y_text + i_control * 2.1 * 2 * font_size
-            y_pos_param = y_text + i_param * 2.3 * font_size
+            y_pos_control = y_text + i_control * 2.1 * 2 * FONT_SIZE
+            y_pos_param = y_text + i_param * 2.3 * FONT_SIZE
             
             
             if fullRefreshControls:         
@@ -540,13 +545,13 @@ def app():
                 x_offset = 0
                 if "[" in line:
                     key = line.split()[0]
-                    btn_font = (font_type, font_size*2)
+                    btn_font = (FONT_TYPE, FONT_SIZE*2)
                     btn_width = 2
                     btn_height = 1
                     highlight_color = "black"
                     highlight_thickness = 2
 
-                    name_button = key + "_button"
+                    name_button = key + "_BUTTON"
                     globals()[name_button]
                     key = line.split()[0]
                     icon = globals()[key.upper() + "_ICON"]
@@ -581,49 +586,49 @@ def app():
                 if "[" not in line:
                     highlight_color = "black"
                     highlight_thickness = 1                    
-                    name_button_up=key+"_button_up"
-                    name_button_down=key+"_button_down"
+                    name_button_up=key+"_BUTTON_UP"
+                    name_button_down=key+"_BUTTON_DOWN"
                     globals()[name_button_up]
                     globals()[name_button_down]
                     lbl_left = tk.Label(canvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
                     lbl_left.bind("<Enter>", lambda e, w=lbl_left, t=f"{globals()[key.upper() + "_DOC"]}": show_tip(w, t, e))
                     lbl_left.bind("<Leave>", hide_tip)                                    
                     if globals()[name_button_down] is None: 
-                        globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 + width_controls + width, y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
+                        globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 + WIDTH_CONTROLS + WIDTH, y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
                     else:
-                        canvas.coords(globals()[name_button_down], x_text + x_offset + 1 + width_controls + width, y_pos_param)
+                        canvas.coords(globals()[name_button_down], x_text + x_offset + 1 + WIDTH_CONTROLS + WIDTH, y_pos_param)
                     lbl_right = tk.Label(canvas, text=">", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
                     lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
                     lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
                     if globals()[name_button_up] is None: 
-                        globals()[name_button_up] = canvas.create_window(x_text + x_offset + 18 + width_controls + width, y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
+                        globals()[name_button_up] = canvas.create_window(x_text + x_offset + 18 + WIDTH_CONTROLS + WIDTH, y_pos_param, anchor="nw", window=lbl_right, tags=("params_button",))
                     else:
-                        canvas.coords(globals()[name_button_up], x_text + x_offset + 18 + width_controls + width, y_pos_param)
+                        canvas.coords(globals()[name_button_up], x_text + x_offset + 18 + WIDTH_CONTROLS + WIDTH, y_pos_param)
         param_name = param_order[selected_index]   
         doc_text = param_docs.get(param_name, "") + " ("+display_range(param_name.upper())+")"
         if doc_text:
             return
             canvas.create_text(
-                x_text + width_controls + width,
-                height,
+                x_text + WIDTH_CONTROLS + WIDTH,
+                HEIGHT,
                 anchor="sw",
                 fill=fill_color,
                 font=italic_font,
                 tags="params",
                 text=param_name + " : " + doc_text,
-                width=width_params - 2 * x_text
+                width=WIDTH_PARAMS - 2 * x_text
             )
 
     def draw_rectangle():
-        global width_params, width_controls
+        global WIDTH_PARAMS, WIDTH_CONTROLS
         if not is_maximized():
             global width_before_maximized
             global heigth_before_maximized  
-            width_before_maximized=width 
-            heigth_before_maximized=height         
+            width_before_maximized=WIDTH 
+            heigth_before_maximized=HEIGHT         
         canvas.delete("boundary")
         canvas.create_rectangle(
-            width_controls, 0, width_controls + width, height,
+            WIDTH_CONTROLS, 0, WIDTH_CONTROLS + WIDTH, HEIGHT,
             outline=fill_color, width=margin,
             tags="boundary"
         )
@@ -634,12 +639,12 @@ def app():
         global hidden
         if not birds: 
             velocities = []
-            for _ in range(num_birds):
-                px = random.randint(margin + width_controls, width - margin + width_controls)
-                py = random.randint(margin, height - margin)
+            for _ in range(NUM_BIRDS):
+                px = random.randint(margin + WIDTH_CONTROLS, WIDTH - margin + WIDTH_CONTROLS)
+                py = random.randint(margin, HEIGHT - margin)
                 birds.append((px, py))
                 angle = random.uniform(0, 2 * math.pi)
-                speed = random.uniform(0, max_speed)
+                speed = random.uniform(0, MAX_SPEED)
                 vx = speed * math.cos(angle)
                 vy = speed * math.sin(angle)
                 velocities.append((vx, vy))
@@ -656,7 +661,7 @@ def app():
             inside_points = []
             inside_velocities = []
             for (x, y), (vx, vy) in zip(birds, velocities):
-                if width_controls + margin <= x <= width_controls + width - margin and 0 + margin <= y <= height - margin:
+                if WIDTH_CONTROLS + margin <= x <= WIDTH_CONTROLS + WIDTH - margin and 0 + margin <= y <= HEIGHT - margin:
                     inside_points.append((x, y))
                     inside_velocities.append((vx, vy))
             birds[:] = inside_points
@@ -665,21 +670,21 @@ def app():
             current_count = len(birds)
             
             # Add birds if not enough
-            if num_birds > current_count:
-                for _ in range(num_birds - current_count):
-                    px = random.randint(margin + width_controls, width - margin + width_controls)
-                    py = random.randint(margin, height - margin)
+            if NUM_BIRDS > current_count:
+                for _ in range(NUM_BIRDS - current_count):
+                    px = random.randint(margin + WIDTH_CONTROLS, WIDTH - margin + WIDTH_CONTROLS)
+                    py = random.randint(margin, HEIGHT - margin)
                     birds.append((px, py))
 
                     angle = random.uniform(0, 2 * math.pi)
-                    speed = random.uniform(0, max_speed)
+                    speed = random.uniform(0, MAX_SPEED)
                     vx = speed * math.cos(angle)
                     vy = speed * math.sin(angle)
                     velocities.append((vx, vy))
 
             # Delete birds if not enough
-            elif num_birds < current_count:
-                for _ in range(current_count - num_birds):
+            elif NUM_BIRDS < current_count:
+                for _ in range(current_count - NUM_BIRDS):
                     idx = random.randint(0, len(birds) - 1)
                     birds.pop(idx)
                     velocities.pop(idx)
@@ -696,12 +701,12 @@ def app():
             move_coh_x, move_coh_y, move_coh_x_tmp, move_coh_y_tmp = 0, 0, 0, 0
             neighbors = 0
             vx, vy = velocities[i]
-            if neighbor_radius > 0 and not (sep_weight == 0 and align_weight == 0 and coh_weight == 0):
+            if NEIGHBOR_RADIUS > 0 and not (SEP_WEIGHT == 0 and ALIGN_WEIGHT == 0 and COH_WEIGHT == 0):
                 for j, (x2, y2) in enumerate(birds):
                     if i == j:
                         continue
                     dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
-                    if dist < neighbor_radius and dist > 0:
+                    if dist < NEIGHBOR_RADIUS and dist > 0:
                         # SEPARATION
                         # If a neighbor is too close, add a vector to move away from it (opposite direction of the neighbor).
                         move_sep_x += (x - x2) / dist
@@ -728,28 +733,28 @@ def app():
                     move_coh_x = move_coh_x - x
                     move_coh_y = move_coh_y - y
 
-                vx += sep_weight * move_sep_x + align_weight * move_align_x + coh_weight * move_coh_x
-                vy += sep_weight * move_sep_y + align_weight * move_align_y + coh_weight * move_coh_y
+                vx += SEP_WEIGHT * move_sep_x + ALIGN_WEIGHT * move_align_x + COH_WEIGHT * move_coh_x
+                vy += SEP_WEIGHT * move_sep_y + ALIGN_WEIGHT * move_align_y + COH_WEIGHT * move_coh_y
       
             #RANDOM
             speed = math.sqrt(vx**2 + vy**2)
-            if random_speed!=0:
-                target_speed = max_speed / 2
-                sigma_percent = random_speed       # écart-type maximal en % de vmax
+            if RANDOM_SPEED!=0:
+                target_speed = MAX_SPEED / 2
+                sigma_percent = RANDOM_SPEED       # écart-type maximal en % de vmax
                 adjust_strength = 0.05    # rappel vers target_speed
-                sigma_base = (sigma_percent / 100) * max_speed
-                weight = 4 * speed * (max_speed - speed) / (max_speed ** 2)
+                sigma_base = (sigma_percent / 100) * MAX_SPEED
+                weight = 4 * speed * (MAX_SPEED - speed) / (MAX_SPEED ** 2)
                 sigma = sigma_base * weight
                 delta_speed = random.gauss(0, sigma)
                 new_speed = speed + delta_speed
                 new_speed += (target_speed - new_speed) * adjust_strength
-                new_speed = max(0.1, min(max_speed, new_speed))
+                new_speed = max(0.1, min(MAX_SPEED, new_speed))
                 factor = new_speed / speed
                 vx *= factor
                 vy *= factor
-            if random_angle!=0:
+            if RANDOM_ANGLE!=0:
                 angle = math.atan2(vy, vx)
-                angle += math.radians(random.uniform(-1 * random_angle, random_angle))
+                angle += math.radians(random.uniform(-1 * RANDOM_ANGLE, RANDOM_ANGLE))
                 speed = math.sqrt(vx**2 + vy**2)
                 vx = speed * math.cos(angle)
                 vy = speed * math.sin(angle)
@@ -765,23 +770,23 @@ def app():
             nx = x + vx
             ny = y + vy
             # Bounces
-            while nx < margin + width_controls or nx > width - margin + width_controls:
-                if nx < margin + width_controls:
-                    overshoot = (margin + width_controls) - nx
-                    nx = (margin + width_controls) + overshoot
+            while nx < margin + WIDTH_CONTROLS or nx > WIDTH - margin + WIDTH_CONTROLS:
+                if nx < margin + WIDTH_CONTROLS:
+                    overshoot = (margin + WIDTH_CONTROLS) - nx
+                    nx = (margin + WIDTH_CONTROLS) + overshoot
                     vx = abs(vx)
-                elif nx > width - margin + width_controls:
-                    overshoot = nx - (width - margin + width_controls)
-                    nx = (width - margin + width_controls) - overshoot
+                elif nx > WIDTH - margin + WIDTH_CONTROLS:
+                    overshoot = nx - (WIDTH - margin + WIDTH_CONTROLS)
+                    nx = (WIDTH - margin + WIDTH_CONTROLS) - overshoot
                     vx = -abs(vx)
-            while ny < margin or ny > height - margin:
+            while ny < margin or ny > HEIGHT - margin:
                 if ny < margin:
                     overshoot = margin - ny
                     ny = margin + overshoot
                     vy = abs(vy)
-                elif ny > height - margin:
-                    overshoot = ny - (height - margin)
-                    ny = (height - margin) - overshoot
+                elif ny > HEIGHT - margin:
+                    overshoot = ny - (HEIGHT - margin)
+                    ny = (HEIGHT - margin) - overshoot
                     vy = -abs(vy)
             idx = birds.index((x, y))
             velocities[idx] = (vx, vy)
@@ -794,14 +799,14 @@ def app():
             canvas.delete(pid)
         point_ids.clear()
 
-        triangle_size = 6*size
-        triangle_width = 4*size
+        triangle_size = 6*SIZE
+        triangle_width = 4*SIZE
 
         for (x, y), (vx, vy) in zip(birds, velocities):
-            if not triangles: 
+            if not TRIANGLES: 
                 pid = canvas.create_oval(
-                    x - size, y - size,
-                    x + size, y + size,
+                    x - SIZE, y - SIZE,
+                    x + SIZE, y + SIZE,
                     fill=fill_color, outline=outline_color)
             else:
                 angle = math.atan2(vy, vx)
@@ -827,9 +832,9 @@ def app():
 
     def limit_speed(vx, vy):
         speed = math.sqrt(vx*vx + vy*vy)
-        if speed > max_speed:
-            vx = (vx / speed) * max_speed
-            vy = (vy / speed) * max_speed
+        if speed > MAX_SPEED:
+            vx = (vx / speed) * MAX_SPEED
+            vy = (vy / speed) * MAX_SPEED
         return vx, vy
 
     def frame():
@@ -859,7 +864,7 @@ def app():
             count = False
             fps_value = 0          
 
-        root.after(refresh_ms, update)
+        root.after(REFRESH_MS, update)
 
     def signal_handler(sig, frame):
         print("Interrupted! Closing application...")
@@ -893,7 +898,7 @@ def app():
                 background="yellow",
                 relief="solid",
                 borderwidth=1,
-                font=(font_type, font_size)
+                font=(FONT_TYPE, FONT_SIZE)
             )
             label.pack(ipadx=4, ipady=2)
 
@@ -931,7 +936,7 @@ def app():
             background="yellow",
             relief="solid",
             borderwidth=1,
-            font=(font_type, font_size) 
+            font=(FONT_TYPE, FONT_SIZE) 
         )
         label.pack()
 
@@ -943,20 +948,20 @@ def app():
 
             
     def rustine_1():
-        root.geometry(f"{width_params + width +1+ width_controls}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        root.geometry(f"{WIDTH_PARAMS + WIDTH +1+ WIDTH_CONTROLS}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
     def rustine_2():
-        root.geometry(f"{width_params + width +3+ width_controls}x{max(height, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        root.geometry(f"{WIDTH_PARAMS + WIDTH +3+ WIDTH_CONTROLS}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
     global root, canvas
 
 
     root = tk.Tk()
     root.title(f"pybirdsreynolds - {version_prog}")
-    root.minsize(width_params+ WIDTH_MIN+width_controls, max(height,HEIGHT_PARAMS_CONTROLS_DEFAULT))
-    canvas = tk.Canvas(root, width=width_params+width+width_controls, height=height, bg=canvas_bg)
+    root.minsize(WIDTH_PARAMS+ WIDTH_MIN+WIDTH_CONTROLS, max(HEIGHT,HEIGHT_PARAMS_CONTROLS_DEFAULT))
+    canvas = tk.Canvas(root, width=WIDTH_PARAMS+WIDTH+WIDTH_CONTROLS, height=HEIGHT, bg=canvas_bg)
     canvas.pack(fill="both", expand=True)
 
-    global font_type, font_type, fonts
+    global FONT_TYPE, FONT_TYPE, fonts
     default_fonts = [f for f in FONT_TYPE_LIST if f in font.families()] 
     available_fonts = font.families()
     mono_fonts = [f for f in available_fonts if "mono" in f.lower()]
@@ -966,8 +971,8 @@ def app():
         if f not in fonts:
             fonts.append(f)
 
-    if font_type not in fonts:
-        font_type = fonts[0]  
+    if FONT_TYPE not in fonts:
+        FONT_TYPE = fonts[0]  
         
     birds = [] 
     point_ids = []

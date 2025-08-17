@@ -97,6 +97,9 @@ controls:
             continue
 
         prefix = name[:-4]
+        hide =g[f"{prefix}_HIDEN"]
+        if hide == 2:
+            continue 
         default_name = f"{prefix}_DEFAULT"
         if default_name not in g:
             continue 
@@ -131,6 +134,9 @@ controls:
             continue
 
         prefix = name[:-4]
+        hide =g[f"{prefix}_HIDEN"]
+        if hide == 2:
+            continue         
         default_name = f"{prefix}_DEFAULT"
         if default_name not in g:
             continue

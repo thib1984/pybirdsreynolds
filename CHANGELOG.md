@@ -2,7 +2,7 @@
 
 - [ ] use an full pip3 library to replace tk
 
-# 1.99.23
+# 1.99.24 (coming soon)
 
 - [ ] edges with random shapes for the square
 - [ ] optimize code -> use Grid / Uniform Cell List 
@@ -10,8 +10,12 @@
 - [ ] separates classes for main app, interface, reynolds rules....
 - [ ] clean code
 - [ ] very discreet text to issue the "h" command on the canvas
-- [ ] variable hidden 0-1-2 in the consts
 - [ ] documentation button
+
+# 1.99.23
+
+- [x] variable hidden 0-1-2 in the consts
+- [x] params to uppercase
 
 # 1.99.22
 
