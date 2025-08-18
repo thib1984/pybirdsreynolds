@@ -1,7 +1,7 @@
 import tkinter as tk
 import random
 import math
-from pybirdsreynolds.args import compute_args, display_range, get_description, get_epilog
+from pybirdsreynolds.args import compute_args, display_range, get_description, get_epilog, get_help_text
 import signal
 import sys
 import copy
@@ -18,13 +18,13 @@ options = compute_args()
 for var_name, default_value in list(globals().items()):
     if var_name.endswith("_DEFAULT"):
         option_name = var_name[:-8]
-        value = getattr(options, option_name, default_value)
+        value = getattr(options, option_name.lower(), default_value)
         globals()[option_name] = value
         globals()[option_name+"_BUTTON_UP"] = None
         globals()[option_name+"_BUTTON_DOWN"] = None
     if var_name.endswith("_TEXT"):
         option_name = var_name[:-5]
-        value = getattr(options, option_name, default_value)
+        value = getattr(options, option_name.lower(), default_value)
         globals()[option_name] = value
         globals()[option_name+"_BUTTON"] = None
 
@@ -130,7 +130,7 @@ def app():
         def repeat():
             on_click(ligne, direction)
             if repeating["active"]:
-                repeating["job"] = canvas.after(100, repeat)  # répète toutes les 100ms
+                repeating["job"] = canvas.after(100, repeat)
         repeating["active"] = True
         repeat()
 
@@ -204,7 +204,7 @@ def app():
                 max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT),
                 anchor="se",
                 fill="gray",
-                font=(FONT_TYPE, FONT_SIZE, "normal"),  # police fine
+                font=(FONT_TYPE, FONT_SIZE), 
                 tags="hidden",
                 text="h to restore panels "
             )
@@ -339,28 +339,21 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND) and TOOGLE_MAXIMIZE_HIDEN<=1:
             maximize_minimize(False)
         elif getattr(event, "keysym", "").lower() == str(DOC_COMMAND) and DOC_HIDEN<=1:
-            help = f"pybirdsreynolds - {version_prog}\n\n"+get_description() + "\n\n" + "Controls:\n" + "\n".join(
-                f"  {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
-                for name in globals()
-                if name.endswith("_TEXT") and globals().get(f"{name[:-5]}_HIDEN") < 2
-            ) + "\n\n" +get_epilog()
-            # Création d'une popin
+            help = f"pybirdsreynolds {version_prog}\n\n"+get_help_text()
             popin = tk.Toplevel(canvas)
             popin.title("Documentation - pybirdreynolds")
-            popin.transient(canvas.winfo_toplevel())  # reste devant la fenêtre principale
-            popin.grab_set()  # rend la popin modale
-            popin.geometry("+200+200")  # position
-            popin.configure(bg="gray")  # fond noir pour tout le Toplevel
+            popin.transient(canvas.winfo_toplevel())  
+            popin.grab_set() 
+            popin.geometry("+200+200")  
+            popin.configure(bg="gray") 
 
-            # Frame pour contenir Text + Scrollbar
             frame = tk.Frame(popin, bg="gray")
             frame.pack(padx=10, pady=10)
 
-            # Zone de texte noire avec texte blanc
             text_widget = tk.Text(
                 frame,
                 wrap="word",
-                width=60,
+                width=80,
                 height=20,
                 bg="gray",
                 fg="black",
@@ -369,10 +362,9 @@ def app():
                 bd=0
             )
             text_widget.insert("1.0", help)
-            text_widget.config(state="disabled")  # lecture seule
+            text_widget.config(state="disabled")  
             text_widget.pack(side="left", fill="both", expand=True)
 
-            # Scrollbar verticale
             scrollbar = tk.Scrollbar(frame, command=text_widget.yview)
             scrollbar.pack(side="right", fill="y")
             text_widget.config(yscrollcommand=scrollbar.set)
@@ -431,7 +423,6 @@ def app():
             if not force:
                 WIDTH=width_before_maximized
                 HEIGHT=heigth_before_maximized
-            #draw_canvas()
         else:
             width_before_maximized=WIDTH 
             heigth_before_maximized=HEIGHT          
@@ -651,8 +642,8 @@ def app():
                     globals()[name_button_up]
                     globals()[name_button_down]
                     lbl_left = tk.Label(canvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
-                    lbl_left.bind("<Enter>", lambda e, w=lbl_left, t=f"{globals()[key.upper() + "_DOC"]}": show_tip(w, t, e))
-                    lbl_left.bind("<Leave>", hide_tip)                                    
+                    lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
+                    lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                                  
                     if globals()[name_button_down] is None: 
                         globals()[name_button_down] = canvas.create_window(x_text + x_offset + 1 + WIDTH_CONTROLS + WIDTH, y_pos_param, anchor="nw", window=lbl_left, tags=("params_button",))
                     else:
@@ -800,8 +791,8 @@ def app():
             speed = math.sqrt(vx**2 + vy**2)
             if RANDOM_SPEED!=0:
                 target_speed = MAX_SPEED / 2
-                sigma_percent = RANDOM_SPEED       # écart-type maximal en % de vmax
-                adjust_strength = 0.05    # rappel vers target_speed
+                sigma_percent = RANDOM_SPEED   
+                adjust_strength = 0.05 
                 sigma_base = (sigma_percent / 100) * MAX_SPEED
                 weight = 4 * speed * (MAX_SPEED - speed) / (MAX_SPEED ** 2)
                 sigma = sigma_base * weight
@@ -971,7 +962,6 @@ def app():
     def show_tip(widget, text, event=None):
         global tip_window
 
-        # 1. Détruire l'ancien tooltip s'il existe
         if tip_window is not None:
             try:
                 tip_window.destroy()
@@ -979,7 +969,6 @@ def app():
                 pass
             tip_window = None
 
-        # 2. Si pas de texte, on arrête ici
         if not text:
             return
         x = widget.winfo_rootx() + 20
@@ -1005,15 +994,15 @@ def app():
 
             
     def rustine_1():
-        root.geometry(f"{WIDTH_PARAMS + WIDTH +1+ WIDTH_CONTROLS}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        root.geometry(f"{WIDTH_PARAMS + WIDTH +1+ WIDTH_CONTROLS}x{max(HEIGHT +1, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
     def rustine_2():
-        root.geometry(f"{WIDTH_PARAMS + WIDTH +3+ WIDTH_CONTROLS}x{max(HEIGHT, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        root.geometry(f"{WIDTH_PARAMS + WIDTH +3+ WIDTH_CONTROLS}x{max(HEIGHT +3, HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
     global root, canvas
 
 
     root = tk.Tk()
-    root.title(f"pybirdsreynolds - {version_prog}")
+    root.title(f"pybirdsreynolds")
     root.minsize(WIDTH_PARAMS+ WIDTH_MIN+WIDTH_CONTROLS, max(HEIGHT,HEIGHT_PARAMS_CONTROLS_DEFAULT))
     canvas = tk.Canvas(root, width=WIDTH_PARAMS+WIDTH+WIDTH_CONTROLS, height=HEIGHT, bg=canvas_bg)
     canvas.pack(fill="both", expand=True)
@@ -1056,7 +1045,6 @@ def app():
     root.after(100, rustine_1)
     root.after(200, rustine_2)
     root.update()
-
     root.mainloop()           
 
 

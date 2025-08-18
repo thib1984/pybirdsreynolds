@@ -2,14 +2,20 @@
 
 - [ ] use an full pip3 library to replace tk
 
-
-# 1.99.25 (coming soon)
+# 1.99.26 (coming soon)
 
 - [ ] edges with random shapes for the square
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 - [ ] separates classes for main app, interface, reynolds rules....
 - [ ] clean code
+
+# 1.99.25
+
+- [x] fix bug with the parameters who don't working
+- [x] use --help message in documentation
+- [x] fix bug with left button
+- [x] fix a bug who give +2 to the height at the start
 
 # 1.99.24
 
