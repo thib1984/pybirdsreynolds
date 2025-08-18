@@ -2,6 +2,7 @@ import pybirdsreynolds.const as const
 import tkinter as tk
 import math
 
+tip_window = None
 canvas=None
 point_ids = []
 
@@ -164,4 +165,54 @@ def maximize_minimize(proot, force):
             except tk.TclError:
                 proot.attributes("-fullscreen", True)
     proot.focus_force()
-    proot.focus_set()          
+    proot.focus_set() 
+
+def show_tip(widget, text, event=None, dx=10, dy=10, wraplength=200):
+    global tip_window
+
+    # Si un tooltip est déjà affiché → le détruire
+    if tip_window is not None:
+        try:
+            tip_window.destroy()
+        except:
+            pass
+        tip_window = None
+
+    if not text:
+        return
+
+    # Position du tooltip
+    if event:  # cas des événements <Enter> sur un Canvas
+        x = widget.winfo_rootx() + event.x + dx
+        y = widget.winfo_rooty() + event.y + dy
+    else:  # cas d’un widget normal
+        x = widget.winfo_rootx() + dx
+        y = widget.winfo_rooty() + widget.winfo_height() + dy
+
+    tip_window = tw = tk.Toplevel(widget)
+    tw.wm_overrideredirect(True)
+    tw.wm_geometry(f"+{x}+{y}")
+    label = tk.Label(
+        tw,
+        text=text,
+        background="yellow",
+        relief="solid",
+        borderwidth=1,
+        font=(const.FONT_TYPE, const.FONT_SIZE),
+        wraplength=wraplength
+    )
+    label.pack(ipadx=4, ipady=2)
+
+def hide_tip(event=None):
+    global tip_window
+    if tip_window:
+        tip_window.destroy()
+        tip_window = None
+
+def add_canvas_tooltip(pcanvas, item, text):
+    pcanvas.tag_bind(item, "<Enter>", lambda e: show_tip(pcanvas, text, e))
+    pcanvas.tag_bind(item, "<Leave>", hide_tip)
+
+def add_widget_tooltip(widget, text):
+    widget.bind("<Enter>", lambda e: show_tip(widget, text))
+    widget.bind("<Leave>", hide_tip)             

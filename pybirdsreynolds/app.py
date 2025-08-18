@@ -10,7 +10,7 @@ import time
 from tkinter import font
 import types
 import pybirdsreynolds.const as const
-from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, maximize_minimize, is_maximized
+from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized
 import pybirdsreynolds.draw as draw
 
 
@@ -24,7 +24,7 @@ for var_name in dir(const):
         value = getattr(options, option_name.lower(), default_value)
         setattr(const, option_name, value)
 
-tip_window = None
+
 
 root=None
 trans_hiden=False
@@ -425,20 +425,9 @@ def app():
                     tags="params",
                     text=line.lower(),
                 )
-                #create_canvas_tooltip(canvas, item, globals()[key.upper() + "_DOC"])
-                create_canvas_tooltip(draw.canvas, item, getattr(const, key.upper() + "_DOC"))
+                add_canvas_tooltip(draw.canvas, item, getattr(const, key.upper() + "_DOC"))
             elif "[" in line:
                 i_control=i_control+1
-                # fill = "yellow"
-                # draw.canvas.create_text(
-                #     8 * x_text,
-                #     2 * y_text + i_control * 2.1 * 2 * FONT_SIZE,
-                #     anchor="nw",
-                #     fill=fill,
-                #     font=font_to_use,
-                #     tags="controls",
-                #     text=line.split(":", 1)[1].strip().lower(),
-                # )
             elif not "[" in line:    
                 i_param=i_param+1               
                 item = draw.canvas.create_text(
@@ -450,7 +439,7 @@ def app():
                     tags="params",
                     text=line.lower(),
                 )
-                create_canvas_tooltip(
+                add_canvas_tooltip(
                     draw.canvas,
                     item,
                     getattr(const, key.upper() + "_DOC") + " (" + display_range(key.upper()) + ")"
@@ -483,8 +472,8 @@ def app():
                         highlightbackground=highlight_color, highlightthickness=highlight_thickness
                     )
 
-                    lbl_btn_tmp.bind("<Enter>", lambda e, w=lbl_btn_tmp, t=f"{getattr(const, key.upper() + '_TEXT')}" + " [" + f"{getattr(const, key.upper() + '_COMMAND')}" +"]": show_tip(w, t, e))
-                    lbl_btn_tmp.bind("<Leave>", hide_tip)
+                    tooltip_text = f"{getattr(const, key.upper() + '_TEXT')} [{getattr(const, key.upper() + '_COMMAND')}]"
+                    add_widget_tooltip(lbl_btn_tmp, tooltip_text)
 
                     lbl_btn_tmp.bind("<Button-1>", lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)))
 
@@ -773,75 +762,7 @@ def app():
         root.destroy() 
         sys.exit(0)
 
-    def create_canvas_tooltip(canvas, item, text):
-        tip_window = None
 
-        def show_tip(event):
-            global tip_window
-            if tip_window is not None:
-                try:
-                    tip_window.destroy()
-                except:
-                    pass
-                tip_window = None
-            if not text:
-                return
-            x = canvas.winfo_rootx() + event.x + 10
-            y = canvas.winfo_rooty() + event.y + 10
-            tip_window = tw = tk.Toplevel(canvas)
-            tw.wm_overrideredirect(True)
-            tw.wm_geometry(f"+{x}+{y}")
-            label = tk.Label(
-                tw, text=text,
-                background="yellow",
-                relief="solid",
-                borderwidth=1,
-                font=(const.FONT_TYPE, const.FONT_SIZE),
-                wraplength=200
-            )
-            label.pack(ipadx=4, ipady=2)
-
-        def hide_tip(event):
-            global tip_window
-            if tip_window:
-                tip_window.destroy()
-                tip_window = None
-
-        canvas.tag_bind(item, "<Enter>", show_tip)
-        canvas.tag_bind(item, "<Leave>", hide_tip)
-
-    def show_tip(widget, text, event=None):
-        global tip_window
-
-        if tip_window is not None:
-            try:
-                tip_window.destroy()
-            except:
-                pass
-            tip_window = None
-
-        if not text:
-            return
-        x = widget.winfo_rootx() + 20
-        y = widget.winfo_rooty() + widget.winfo_height() + 10
-        tip_window = tw = tk.Toplevel(widget)
-        tw.wm_overrideredirect(True)
-        tw.wm_geometry(f"+{x}+{y}")
-        label = tk.Label(
-            tw,
-            text=text,
-            background="yellow",
-            relief="solid",
-            borderwidth=1,
-            font=(const.FONT_TYPE, const.FONT_SIZE) 
-        )
-        label.pack()
-
-    def hide_tip(event=None):
-        global tip_window
-        if tip_window:
-            tip_window.destroy()
-            tip_window = None
 
             
     def rustine_1():
