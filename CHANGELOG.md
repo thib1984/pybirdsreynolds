@@ -10,6 +10,10 @@
 - [ ] separates classes for main app, interface, reynolds rules....
 - [ ] clean code
 
+# 1.99.26
+
+- [x] fix bugs width controls buttons and next frame
+
 # 1.99.25
 
 - [x] fix bug with the parameters who don't working

@@ -320,7 +320,7 @@ def app():
             root.state('normal')
             root.focus_force()
             root.focus_set()
-        elif getattr(event, "keysym", "").lower() == str(REGENERATION_COMMAND) and REGENERATION_COMMAND<=1:
+        elif getattr(event, "keysym", "").lower() == str(REGENERATION_COMMAND) and REGENERATION_HIDEN<=1:
             global velocities
             global birds
             global paused
@@ -332,10 +332,10 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_FPS_COMMAND) and TOOGLE_FPS_HIDEN<=1:
             fps = not fps
             draw_fps()
-        elif getattr(event, "keysym", "").lower() == str(TOOGLE_START_PAUSE_COMMAND) and TOOGLE_START_PAUSE_COMMAND<=1:
+        elif getattr(event, "keysym", "").lower() == str(TOOGLE_START_PAUSE_COMMAND) and TOOGLE_START_PAUSE_HIDEN<=1:
             toggle_pause()
         elif getattr(event, "keysym", "").lower() == str(NEXT_FRAME_COMMAND) and NEXT_FRAME_HIDEN<=1:
-            frame()
+            next_frame()
         elif getattr(event, "keysym", "").lower() == str(TOOGLE_MAXIMIZE_COMMAND) and TOOGLE_MAXIMIZE_HIDEN<=1:
             maximize_minimize(False)
         elif getattr(event, "keysym", "").lower() == str(DOC_COMMAND) and DOC_HIDEN<=1:
@@ -888,7 +888,7 @@ def app():
             vy = (vy / speed) * MAX_SPEED
         return vx, vy
 
-    def frame():
+    def next_frame():
         if paused:
             generate_points_and_facultative_move(True, False)
             draw_points()
