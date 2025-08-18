@@ -2,6 +2,7 @@ import pybirdsreynolds.const as const
 import tkinter as tk
 import math
 
+root = None
 tip_window = None
 canvas=None
 point_ids = []
@@ -103,13 +104,13 @@ def is_maximized(proot):
     )
 
 def draw_points(pcanvas, pbirds, pvelocities):
+    global point_ids
     for pid in point_ids:
         pcanvas.delete(pid)
     point_ids.clear()
 
     triangle_size = 6*const.SIZE
     triangle_width = 4*const.SIZE
-
     for (x, y), (vx, vy) in zip(pbirds, pvelocities):
         if not const.TRIANGLES: 
             pid = pcanvas.create_oval(
@@ -135,8 +136,7 @@ def draw_points(pcanvas, pbirds, pvelocities):
                 right_x, right_y,
                 fill=const.FILL_COLOR, outline=const.OUTLINE_COLOR
             )
-        point_ids.append(pid)  
-
+        point_ids.append(pid) 
 
 def maximize_minimize(proot, force):
     global width_before_maximized

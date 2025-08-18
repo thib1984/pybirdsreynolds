@@ -27,7 +27,6 @@ for var_name in dir(const):
 
 
 
-root=None
 trans_hiden=False
 last_time = time.time()
 
@@ -140,7 +139,7 @@ def app():
     def draw():
         draw_status(False, False)
         draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
-        draw_rectangle(draw.canvas, root)
+        draw_rectangle(draw.canvas, draw.root)
         draw_fps(draw.canvas, fps_value)
         draw_hidden(draw.canvas)
 
@@ -185,7 +184,7 @@ def app():
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
         param = param_order[selected_index]
-        if (param == "WIDTH" or param == "HEIGHT") and is_maximized():
+        if (param == "WIDTH" or param == "HEIGHT") and is_maximized(draw.root):
             val=0
         if event.keysym == "Up" and const.ARROWS_HIDE<2:
             selected_index = (selected_index - 1) % len(param_order)
@@ -210,7 +209,7 @@ def app():
                     const.CANVAS_BG = "#87CEEB"
                     const.FILL_COLOR = "black"
                     const.OUTLINE_COLOR = "white" 
-                draw_canvas(draw.canvas,root)
+                draw_canvas(draw.canvas,draw.root)
                 draw()
             elif param == "FREE":
                 const.FREE = not const.FREE
@@ -226,12 +225,12 @@ def app():
             elif param == "WIDTH":  
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw_status(False, True)
-                draw_canvas(draw.canvas,root)  
+                draw_canvas(draw.canvas,draw.root)  
                 draw()
             elif param == "HEIGHT":  
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw_status(False, True)
-                draw_canvas(draw.canvas,root)
+                draw_canvas(draw.canvas,draw.root)
                 draw()
             elif param == "FREE":
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
@@ -245,11 +244,11 @@ def app():
             restore_options()
             generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
             draw()
-            draw_canvas(draw.canvas,root)
+            draw_canvas(draw.canvas,draw.root)
             draw_status(False, True)
-            root.state('normal')
-            root.focus_force()
-            root.focus_set()
+            draw.root.state('normal')
+            draw.root.focus_force()
+            draw.root.focus_set()
         elif getattr(event, "keysym", "").lower() == str(const.REGENERATION_COMMAND) and const.REGENERATION_HIDEN<=1:
             reynolds.velocities = []
             reynolds.birds= [] 
@@ -263,7 +262,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(const.NEXT_FRAME_COMMAND) and const.NEXT_FRAME_HIDEN<=1:
             next_frame()
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_MAXIMIZE_COMMAND) and const.TOOGLE_MAXIMIZE_HIDEN<=1:
-            maximize_minimize(root, False)
+            maximize_minimize(draw.root, False)
         elif getattr(event, "keysym", "").lower() == str(const.DOC_COMMAND) and const.DOC_HIDEN<=1:
             help = f"pybirdsreynolds {version_prog}\n\n"+get_help_text()
             popin = tk.Toplevel(draw.canvas)
@@ -299,25 +298,25 @@ def app():
 
         elif getattr(event, "keysym", "").lower() == str(const.HIDE_COMMAND) and const.HIDE_HIDEN<=1:
             if not const.HIDDEN:
-                if is_maximized(root):
-                    maximize_minimize(root, True)
+                if is_maximized(draw.root):
+                    maximize_minimize(draw.root, True)
                 global trans_hiden
                 trans_hiden=True
                 const.WIDTH_PARAMS=0
                 const.WIDTH_CONTROLS=0
                 draw_status(True, True)
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
-                draw_canvas_hiden(root)
+                draw_canvas_hiden(draw.root)
                 const.HIDDEN=True
                 draw()
             else:
                 const.WIDTH_PARAMS=const.WIDTH_PARAMS_DEFAULT
                 const.WIDTH_CONTROLS=const.WIDTH_CONTROLS_DEFAULT
-                if is_maximized(root):
-                    const.WIDTH=root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
+                if is_maximized(draw.root):
+                    const.WIDTH=draw.root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
                 draw_status(True, True)
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
-                draw_canvas(draw.canvas,root)
+                draw_canvas(draw.canvas,draw.root)
                 const.HIDDEN=False
                 draw()
         draw_status(False, False)
@@ -329,7 +328,7 @@ def app():
             const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
             generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
-            draw_rectangle(draw.canvas, root)
+            draw_rectangle(draw.canvas, draw.root)
             draw_fps(draw.canvas, fps_value)
             trans_hiden=False
             return
@@ -338,7 +337,7 @@ def app():
         generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
         draw_status(False, True)
         draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
-        draw_rectangle(draw.canvas, root)
+        draw_rectangle(draw.canvas, draw.root)
         draw_fps(draw.canvas, fps_value)
 
     def on_click(l, sens):
@@ -346,12 +345,14 @@ def app():
         first_word = l.split()[0] if l.split() else None
         lines = [
             f"{name.removesuffix('_DOC'):15} :    {str(getattr(const, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
-            for name in dir(const)
-            if name.endswith("_DOC") and getattr(const, f"{name[:-4]}_HIDEN") == 0
+            for name in vars(const)
+            if name.endswith("_DOC")
+            and getattr(const, f"{name[:-4]}_HIDEN", 1) == 0
         ] + [
-            f"{name.removesuffix('_TEXT'):15} :    {getattr(const, name)} [{getattr(const, name.replace('_TEXT', '_COMMAND'))}]"
-            for name in dir(const)
-            if name.endswith("_TEXT") and getattr(const, f"{name[:-5]}_HIDEN") == 0
+            f"{name.removesuffix('_TEXT'):15} :    {getattr(const, name)} [{getattr(const, name.replace('_TEXT', '_COMMAND'), '')}]"
+            for name in vars(const)
+            if name.endswith("_TEXT")
+            and getattr(const, f"{name[:-5]}_HIDEN", 1) == 0
         ]
         selected_index = next(
             (i for i, line in enumerate(lines) if line.split(":")[0].strip() == first_word),
@@ -496,7 +497,6 @@ def app():
                     highlight_thickness = 1                    
                     name_button_up=key+"_BUTTON_UP"
                     name_button_down=key+"_BUTTON_DOWN"
-
                     lbl_left = tk.Label(draw.canvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
                     lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
                     lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                                  
@@ -560,23 +560,22 @@ def app():
             count = False
             fps_value = 0          
 
-        root.after(const.REFRESH_MS, update)
+        draw.root.after(const.REFRESH_MS, update)
 
     def signal_handler(sig, frame):
         print("Interrupted! Closing application...")
-        root.destroy() 
+        draw.root.destroy() 
         sys.exit(0)
             
     def rustine_1():
-        root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +1+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +1+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
     def rustine_2():
-        root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
-    global root
-    root = tk.Tk()
-    root.title(f"pybirdsreynolds")
-    root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
-    draw.canvas = tk.Canvas(root, width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS, height=const.HEIGHT, bg=const.CANVAS_BG)
+    draw.root = tk.Tk()
+    draw.root.title(f"pybirdsreynolds")
+    draw.root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
+    draw.canvas = tk.Canvas(draw.root, width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS, height=const.HEIGHT, bg=const.CANVAS_BG)
     draw.canvas.pack(fill="both", expand=True)
 
     
@@ -596,24 +595,24 @@ def app():
     draw()
     draw_status(True, True)
     draw_paused(draw.canvas)
-    root.bind('p', toggle_pause)
-    root.bind("<Key>", on_other_key)
-    root.bind_all("<Shift_L>", on_shift_press)
-    root.bind_all("<Shift_R>", on_shift_press)
-    root.bind_all("<KeyRelease-Shift_L>", on_shift_release)
-    root.bind_all("<KeyRelease-Shift_R>", on_shift_release)
+    draw.root.bind('p', toggle_pause)
+    draw.root.bind("<Key>", on_other_key)
+    draw.root.bind_all("<Shift_L>", on_shift_press)
+    draw.root.bind_all("<Shift_R>", on_shift_press)
+    draw.root.bind_all("<KeyRelease-Shift_L>", on_shift_release)
+    draw.root.bind_all("<KeyRelease-Shift_R>", on_shift_release)
 
     draw.canvas.bind("<Configure>", on_resize)
     
     signal.signal(signal.SIGINT, signal_handler)
     update()
     global last_x, last_y
-    last_x = root.winfo_x()
-    last_y = root.winfo_y()
+    last_x = draw.root.winfo_x()
+    last_y = draw.root.winfo_y()
 
-    root.after(100, rustine_1)
-    root.after(200, rustine_2)
-    root.update()
-    root.mainloop()           
+    draw.root.after(100, rustine_1)
+    draw.root.after(200, rustine_2)
+    draw.root.update()
+    draw.root.mainloop()           
 
 
