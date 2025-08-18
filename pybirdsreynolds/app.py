@@ -17,7 +17,12 @@ import pybirdsreynolds.draw as draw
 # variables
 version_prog = version("pybirdsreynolds")
 options = compute_args()
-
+for var_name in dir(const):
+    if var_name.endswith("_DEFAULT"):
+        option_name = var_name[:-8]
+        default_value = getattr(const, var_name)
+        value = getattr(options, option_name.lower(), default_value)
+        setattr(const, option_name, value)
 
 tip_window = None
 
@@ -193,7 +198,7 @@ def app():
                 const.TRIANGLES = not const.TRIANGLES
                 draw()
             elif param == "FONT_TYPE":
-                current_index = fonts.index(FONT_TYPE)
+                current_index = fonts.index(const.FONT_TYPE)
                 const.FONT_TYPE = fonts[(current_index + val) % len(fonts)]
                 draw()
                 draw_status(True, True)               

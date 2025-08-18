@@ -1,4 +1,6 @@
 import pybirdsreynolds.const as const
+import tkinter as tk
+
 
 canvas=None
 
@@ -66,7 +68,7 @@ def draw_rectangle(pcanvas, proot):
 
 def is_maximized(proot):
     if proot.tk.call('tk', 'windowingsystem') == 'aqua':
-        return bool(root.attributes("-fullscreen"))
+        return bool(proot.attributes("-fullscreen"))
     if proot.state() == "zoomed":
         return True
     try:
