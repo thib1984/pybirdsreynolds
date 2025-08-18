@@ -8,6 +8,11 @@
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 
+# 1.99.29
+
+- [/] clean code
+- [/] separates classes for main app, interface, reynolds rules....
+
 # 1.99.28
 
 - [/] clean code
