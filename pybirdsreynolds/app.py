@@ -13,7 +13,7 @@ import pybirdsreynolds.const as const
 from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized
 import pybirdsreynolds.draw as draw
 import pybirdsreynolds.reynolds as reynolds
-from pybirdsreynolds.reynolds import limit_speed
+from pybirdsreynolds.reynolds import generate_points_and_facultative_move
 
 # variables
 version_prog = version("pybirdsreynolds")
@@ -144,9 +144,6 @@ def app():
         draw_fps(draw.canvas, fps_value)
         draw_hidden(draw.canvas)
 
-
-
-
     def toggle_pause(event=None):
         const.BLINK_STATE = True
         const.PAUSED = not const.PAUSED
@@ -224,29 +221,29 @@ def app():
                 setattr(const, param, change_value(param, val, const.FREE))
 
             if param == "NUM_BIRDS":
-                generate_points_and_facultative_move(False, False)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw_points(draw.canvas, reynolds.birds, reynolds.velocities)                 
             elif param == "WIDTH":  
-                generate_points_and_facultative_move(False, False)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw_status(False, True)
                 draw_canvas(draw.canvas,root)  
                 draw()
             elif param == "HEIGHT":  
-                generate_points_and_facultative_move(False, False)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw_status(False, True)
                 draw_canvas(draw.canvas,root)
                 draw()
             elif param == "FREE":
-                generate_points_and_facultative_move(False, False)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw()                       
             elif param == "SIZE":
-                generate_points_and_facultative_move(False, False)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
                 draw()
             elif param =="FONT_SIZE" or param =="FONT_TYPE":
                 draw_status(True, True)     
         elif getattr(event, "keysym", "").lower() == str(const.RESET_COMMAND) and const.RESET_HIDEN<=1:
             restore_options()
-            generate_points_and_facultative_move(False, False)
+            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
             draw()
             draw_canvas(draw.canvas,root)
             draw_status(False, True)
@@ -254,10 +251,9 @@ def app():
             root.focus_force()
             root.focus_set()
         elif getattr(event, "keysym", "").lower() == str(const.REGENERATION_COMMAND) and const.REGENERATION_HIDEN<=1:
-            pause= True
             reynolds.velocities = []
             reynolds.birds= [] 
-            generate_points_and_facultative_move(False, False)
+            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_FPS_COMMAND) and const.TOOGLE_FPS_HIDEN<=1:
             const.FPS = not const.FPS
@@ -310,7 +306,7 @@ def app():
                 const.WIDTH_PARAMS=0
                 const.WIDTH_CONTROLS=0
                 draw_status(True, True)
-                generate_points_and_facultative_move(False, True)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
                 draw_canvas_hiden(root)
                 const.HIDDEN=True
                 draw()
@@ -320,19 +316,18 @@ def app():
                 if is_maximized(root):
                     const.WIDTH=root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
                 draw_status(True, True)
-                generate_points_and_facultative_move(False, True)
+                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
                 draw_canvas(draw.canvas,root)
                 const.HIDDEN=False
                 draw()
         draw_status(False, False)
-
 
     def on_resize(event):
         global trans_hiden
         if trans_hiden:
             const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
             const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-            generate_points_and_facultative_move(False, False)
+            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
             draw_rectangle(draw.canvas, root)
             draw_fps(draw.canvas, fps_value)
@@ -340,12 +335,11 @@ def app():
             return
         const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS -2,const.WIDTH_MIN)
         const.HEIGHT = max(event.height -2,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-        generate_points_and_facultative_move(False, False)
+        generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
         draw_status(False, True)
         draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
         draw_rectangle(draw.canvas, root)
         draw_fps(draw.canvas, fps_value)
-
 
     def on_click(l, sens):
         global selected_index
@@ -539,177 +533,15 @@ def app():
                     else:
                         draw.canvas.coords(getattr(const, name_button_up), x_text + x_offset + 18 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
 
-    def generate_points_and_facultative_move(with_move, translate):
-        global new_velocities
-        if not reynolds.birds: 
-            reynolds.velocities = []
-            for _ in range(const.NUM_BIRDS):
-                px = random.randint(const.MARGIN + const.WIDTH_CONTROLS, const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS)
-                py = random.randint(const.MARGIN, const.HEIGHT - const.MARGIN)
-                reynolds.birds.append((px, py))
-                angle = random.uniform(0, 2 * math.pi)
-                speed = random.uniform(0, const.MAX_SPEED)
-                vx = speed * math.cos(angle)
-                vy = speed * math.sin(angle)
-                reynolds.velocities.append((vx, vy))
-
-        else:
-            if translate:
-                for i in range(len(reynolds.birds)):
-                    x, y = reynolds.birds[i]
-                    if const.HIDDEN:
-                        reynolds.birds[i] = (x + const.WIDTH_CONTROLS_DEFAULT, y)
-                    else:
-                        reynolds.birds[i] = (x - const.WIDTH_CONTROLS_DEFAULT, y)                               
-            # Keep birds only if inside
-            inside_points = []
-            inside_velocities = []
-            for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
-                if const.WIDTH_CONTROLS + const.MARGIN <= x <= const.WIDTH_CONTROLS + const.WIDTH - const.MARGIN and 0 + const.MARGIN <= y <= const.HEIGHT - const.MARGIN:
-                    inside_points.append((x, y))
-                    inside_velocities.append((vx, vy))
-            reynolds.birds[:] = inside_points
-            reynolds.velocities[:] = inside_velocities
-            new_velocities = []
-            current_count = len(reynolds.birds)
-            
-            # Add birds if not enough
-            if const.NUM_BIRDS > current_count:
-                for _ in range(const.NUM_BIRDS - current_count):
-                    px = random.randint(const.MARGIN + const.WIDTH_CONTROLS, const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS)
-                    py = random.randint(const.MARGIN, const.HEIGHT - const.MARGIN)
-                    reynolds.birds.append((px, py))
-
-                    angle = random.uniform(0, 2 * math.pi)
-                    speed = random.uniform(0, const.MAX_SPEED)
-                    vx = speed * math.cos(angle)
-                    vy = speed * math.sin(angle)
-                    reynolds.velocities.append((vx, vy))
-
-            # Delete birds if not enough
-            elif const.NUM_BIRDS < current_count:
-                for _ in range(current_count - const.NUM_BIRDS):
-                    idx = random.randint(0, len(reynolds.birds) - 1)
-                    reynolds.birds.pop(idx)
-                    reynolds.velocities.pop(idx)
-
-            if with_move:                    
-                move()
-    def move():
-        global new_velocities
-        #TODO n2 use Grid / Uniform Cell List 
-        for i, (x, y) in enumerate(reynolds.birds):
-            move_sep_x, move_sep_y = 0, 0
-            move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = 0, 0, 0, 0
-            move_coh_x, move_coh_y, move_coh_x_tmp, move_coh_y_tmp = 0, 0, 0, 0
-            neighbors = 0
-            vx, vy = reynolds.velocities[i]
-            if const.NEIGHBOR_RADIUS > 0 and not (const.SEP_WEIGHT == 0 and const.ALIGN_WEIGHT == 0 and const.COH_WEIGHT == 0):
-                for j, (x2, y2) in enumerate(reynolds.birds):
-                    if i == j:
-                        continue
-                    dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
-                    if dist < const.NEIGHBOR_RADIUS and dist > 0:
-                        # SEPARATION
-                        # If a neighbor is too close, add a vector to move away from it (opposite direction of the neighbor).
-                        move_sep_x += (x - x2) / dist
-                        move_sep_y += (y - y2) / dist
-                        # ALIGNMENT
-                        # Add the neighbor's velocity so the bird tends to align with it.
-                        # Division is done later
-                        vx2, vy2 = reynolds.velocities[j]
-                        move_align_x_tmp += vx2
-                        move_align_y_tmp += vy2
-                        # COHESION
-                        # Add the neighbor's position to later calculate an average point, 
-                        # so the bird moves toward the group's center.
-                        # Division is done later
-                        move_coh_x_tmp += x2
-                        move_coh_y_tmp += y2
-                        neighbors += 1
-                
-                if neighbors > 0:
-                    move_align_x = move_align_x_tmp/neighbors
-                    move_align_y = move_align_y_tmp/neighbors
-                    move_coh_x = move_coh_x_tmp/neighbors
-                    move_coh_y = move_coh_y_tmp/neighbors
-                    move_coh_x = move_coh_x - x
-                    move_coh_y = move_coh_y - y
-
-                vx += const.SEP_WEIGHT * move_sep_x + const.ALIGN_WEIGHT * move_align_x + const.COH_WEIGHT * move_coh_x
-                vy += const.SEP_WEIGHT * move_sep_y + const.ALIGN_WEIGHT * move_align_y + const.COH_WEIGHT * move_coh_y
-      
-            #RANDOM
-            speed = math.sqrt(vx**2 + vy**2)
-            if const.RANDOM_SPEED!=0:
-                target_speed = const.MAX_SPEED / 2
-                sigma_percent = const.RANDOM_SPEED   
-                adjust_strength = 0.05 
-                sigma_base = (sigma_percent / 100) * const.MAX_SPEED
-                weight = 4 * speed * (const.MAX_SPEED - speed) / (const.MAX_SPEED ** 2)
-                sigma = sigma_base * weight
-                delta_speed = random.gauss(0, sigma)
-                new_speed = speed + delta_speed
-                new_speed += (target_speed - new_speed) * adjust_strength
-                new_speed = max(0.1, min(const.MAX_SPEED, new_speed))
-                factor = new_speed / speed
-                vx *= factor
-                vy *= factor
-            if const.RANDOM_ANGLE!=0:
-                angle = math.atan2(vy, vx)
-                angle += math.radians(random.uniform(-1 * const.RANDOM_ANGLE, const.RANDOM_ANGLE))
-                speed = math.sqrt(vx**2 + vy**2)
-                vx = speed * math.cos(angle)
-                vy = speed * math.sin(angle)
-            vx, vy = limit_speed(vx, vy)
-                
-            new_velocities.append((vx, vy))
-
-        reynolds.velocities = new_velocities
-
-        # Update positions
-        new_points = []
-        for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
-            nx = x + vx
-            ny = y + vy
-            # Bounces
-            while nx < const.MARGIN + const.WIDTH_CONTROLS or nx > const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS:
-                if nx < const.MARGIN + const.WIDTH_CONTROLS:
-                    overshoot = (const.MARGIN + const.WIDTH_CONTROLS) - nx
-                    nx = (const.MARGIN + const.WIDTH_CONTROLS) + overshoot
-                    vx = abs(vx)
-                elif nx > const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS:
-                    overshoot = nx - (const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS)
-                    nx = (const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS) - overshoot
-                    vx = -abs(vx)
-            while ny < const.MARGIN or ny > const.HEIGHT - const.MARGIN:
-                if ny < const.MARGIN:
-                    overshoot = const.MARGIN - ny
-                    ny = const.MARGIN + overshoot
-                    vy = abs(vy)
-                elif ny > const.HEIGHT - const.MARGIN:
-                    overshoot = ny - (const.HEIGHT - const.MARGIN)
-                    ny = (const.HEIGHT - const.MARGIN) - overshoot
-                    vy = -abs(vy)
-            idx = reynolds.birds.index((x, y))
-            reynolds.velocities[idx] = (vx, vy)
-            new_points.append((nx, ny))
-        reynolds.birds[:] = new_points
-
-
-
-
-
-
     def next_frame():
         if const.PAUSED:
-            generate_points_and_facultative_move(True, False)
+            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
 
     def update():
         global frame_count, last_time, fps_value, count
         if not const.PAUSED:
-            generate_points_and_facultative_move(True, False)
+            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
             draw_fps(draw.canvas, fps_value)
             frame_count += 1
@@ -734,9 +566,6 @@ def app():
         print("Interrupted! Closing application...")
         root.destroy() 
         sys.exit(0)
-
-
-
             
     def rustine_1():
         root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +1+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
@@ -744,8 +573,6 @@ def app():
         root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
     global root
-
-
     root = tk.Tk()
     root.title(f"pybirdsreynolds")
     root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
@@ -765,7 +592,7 @@ def app():
     if const.FONT_TYPE not in fonts:
         const.FONT_TYPE = fonts[0]  
         
-    generate_points_and_facultative_move(True, False)
+    generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
     draw()
     draw_status(True, True)
     draw_paused(draw.canvas)
