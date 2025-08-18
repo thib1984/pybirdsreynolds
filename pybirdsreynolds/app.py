@@ -333,7 +333,7 @@ def app():
             trans_hiden=False
             return
         const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS -2,const.WIDTH_MIN)
-        const.HEIGHT = max(event.height -2,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+        const.HEIGHT = max(event.height-2,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
         draw_status(False, True)
         draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
@@ -570,13 +570,13 @@ def app():
     def rustine_1():
         draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +1+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
     def rustine_2():
-        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT + 3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
     draw.root = tk.Tk()
     draw.root.title(f"pybirdsreynolds")
     draw.root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
     draw.canvas = tk.Canvas(draw.root, width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS, height=const.HEIGHT, bg=const.CANVAS_BG)
-    draw.canvas.pack(fill="both", expand=True)
+    draw.canvas.pack(fill="both", expand=True, padx=0, pady=0)
 
     
     default_fonts = [f for f in const.FONT_TYPE_LIST if f in font.families()] 
