@@ -343,7 +343,6 @@ def app():
             popin = tk.Toplevel(canvas)
             popin.title("Documentation - pybirdreynolds")
             popin.transient(canvas.winfo_toplevel())  
-            popin.grab_set() 
             popin.geometry("+200+200")  
             popin.configure(bg="gray") 
 
@@ -368,6 +367,8 @@ def app():
             scrollbar = tk.Scrollbar(frame, command=text_widget.yview)
             scrollbar.pack(side="right", fill="y")
             text_widget.config(yscrollcommand=scrollbar.set)
+            popin.wait_visibility()
+            popin.grab_set() 
 
 
         elif getattr(event, "keysym", "").lower() == str(HIDE_COMMAND) and HIDE_HIDEN<=1:
