@@ -10,7 +10,7 @@ import time
 from tkinter import font
 import types
 import pybirdsreynolds.const as const
-from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, is_maximized
+from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, maximize_minimize, is_maximized
 import pybirdsreynolds.draw as draw
 
 
@@ -137,8 +137,9 @@ def app():
         shift_pressed = False
 
     def draw():
+        global velocities
         draw_status(False, False)
-        draw_points()
+        draw_points(draw.canvas, birds, velocities)
         draw_rectangle(draw.canvas, root)
         draw_fps(draw.canvas, fps_value)
         draw_hidden(draw.canvas)
@@ -177,6 +178,8 @@ def app():
         global selected_index
         global fonts
         global shift_pressed
+        global velocities
+        global birds
         shift = getattr(event, "state", None)        
         if shift is not None:
             shift = (shift & 0x1) != 0
@@ -224,7 +227,7 @@ def app():
 
             if param == "NUM_BIRDS":
                 generate_points_and_facultative_move(False, False)
-                draw_points()                 
+                draw_points(draw.canvas, birds, velocities)                 
             elif param == "WIDTH":  
                 generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
@@ -253,13 +256,11 @@ def app():
             root.focus_force()
             root.focus_set()
         elif getattr(event, "keysym", "").lower() == str(const.REGENERATION_COMMAND) and const.REGENERATION_HIDEN<=1:
-            global velocities
-            global birds
             pause= True
             velocities = []
             birds= [] 
             generate_points_and_facultative_move(False, False)
-            draw_points()
+            draw_points(draw.canvas, birds, velocities)
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_FPS_COMMAND) and const.TOOGLE_FPS_HIDEN<=1:
             const.FPS = not const.FPS
             draw_fps(draw.canvas, fps_value)
@@ -268,7 +269,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(const.NEXT_FRAME_COMMAND) and const.NEXT_FRAME_HIDEN<=1:
             next_frame()
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_MAXIMIZE_COMMAND) and const.TOOGLE_MAXIMIZE_HIDEN<=1:
-            maximize_minimize(False)
+            maximize_minimize(root, False)
         elif getattr(event, "keysym", "").lower() == str(const.DOC_COMMAND) and const.DOC_HIDEN<=1:
             help = f"pybirdsreynolds {version_prog}\n\n"+get_help_text()
             popin = tk.Toplevel(draw.canvas)
@@ -305,7 +306,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(const.HIDE_COMMAND) and const.HIDE_HIDEN<=1:
             if not const.HIDDEN:
                 if is_maximized(root):
-                    maximize_minimize(True)
+                    maximize_minimize(root, True)
                 global trans_hiden
                 trans_hiden=True
                 const.WIDTH_PARAMS=0
@@ -328,43 +329,14 @@ def app():
         draw_status(False, False)
 
 
-    def maximize_minimize(force):
-        global width_before_maximized
-        global heigth_before_maximized
-        if is_maximized(root):
-            root.state("normal")
-            try:
-                root.attributes('-zoomed', False)
-            except tk.TclError:
-                pass
-            if not force:
-                const.WIDTH=width_before_maximized
-                const.HEIGHT=heigth_before_maximized
-        else:
-            width_before_maximized=const.WIDTH 
-            heigth_before_maximized=const.HEIGHT          
-
-            wm = root.tk.call('tk', 'windowingsystem')
-            if wm == 'aqua':  # macOS
-                root.attributes("-fullscreen", True)
-            elif wm == 'win32':  # Windows
-                root.state("zoomed")
-            else:  # Linux
-                try:
-                    root.attributes('-zoomed', True)
-                except tk.TclError:
-                    root.attributes("-fullscreen", True)
-        root.focus_force()
-        root.focus_set()
-
-
     def on_resize(event):
         global trans_hiden
+        global velocities
         if trans_hiden:
             const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
             const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
             generate_points_and_facultative_move(False, False)
-            draw_points()
+            draw_points(draw.canvas, birds, velocities)
             draw_rectangle(draw.canvas, root)
             draw_fps(draw.canvas, fps_value)
             trans_hiden=False
@@ -373,7 +345,7 @@ def app():
         const.HEIGHT = max(event.height -2,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         generate_points_and_facultative_move(False, False)
         draw_status(False, True)
-        draw_points()
+        draw_points(draw.canvas, birds, velocities)
         draw_rectangle(draw.canvas, root)
         draw_fps(draw.canvas, fps_value)
 
@@ -755,40 +727,7 @@ def app():
         birds[:] = new_points
 
 
-    def draw_points():
-        for pid in point_ids:
-            draw.canvas.delete(pid)
-        point_ids.clear()
 
-        triangle_size = 6*const.SIZE
-        triangle_width = 4*const.SIZE
-
-        for (x, y), (vx, vy) in zip(birds, velocities):
-            if not const.TRIANGLES: 
-                pid = draw.canvas.create_oval(
-                    x - const.SIZE, y - const.SIZE,
-                    x + const.SIZE, y + const.SIZE,
-                    fill=const.FILL_COLOR, outline=const.OUTLINE_COLOR)
-            else:
-                angle = math.atan2(vy, vx)
-                tip_x = x + math.cos(angle) * triangle_size
-                tip_y = y + math.sin(angle) * triangle_size
-                left_angle = angle + math.radians(150)
-                right_angle = angle - math.radians(150)
-
-                left_x = x + math.cos(left_angle) * triangle_width
-                left_y = y + math.sin(left_angle) * triangle_width
-
-                right_x = x + math.cos(right_angle) * triangle_width
-                right_y = y + math.sin(right_angle) * triangle_width
-
-                pid = draw.canvas.create_polygon(
-                    tip_x, tip_y,
-                    left_x, left_y,
-                    right_x, right_y,
-                    fill=const.FILL_COLOR, outline=const.OUTLINE_COLOR
-                )
-            point_ids.append(pid)
 
 
     def limit_speed(vx, vy):
@@ -799,15 +738,17 @@ def app():
         return vx, vy
 
     def next_frame():
+        global velocities
         if const.PAUSED:
             generate_points_and_facultative_move(True, False)
-            draw_points()
+            draw_points(draw.canvas, birds, velocities)
 
     def update():
+        global velocities
         global frame_count, last_time, fps_value, count
         if not const.PAUSED:
             generate_points_and_facultative_move(True, False)
-            draw_points()
+            draw_points(draw.canvas, birds, velocities)
             draw_fps(draw.canvas, fps_value)
             frame_count += 1
             now = time.time()
@@ -931,7 +872,6 @@ def app():
         const.FONT_TYPE = fonts[0]  
         
     birds = [] 
-    point_ids = []
 
     generate_points_and_facultative_move(True, False)
     draw()
