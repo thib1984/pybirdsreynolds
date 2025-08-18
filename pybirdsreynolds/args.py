@@ -2,7 +2,7 @@
 import argparse
 import textwrap
 import importlib
-from pybirdsreynolds.const import *
+import pybirdsreynolds.const as const
 
 def get_description() -> str:
     return importlib.resources.files("pybirdsreynolds").joinpath("DESCRIPTION.txt").read_text(encoding="utf-8").strip()
@@ -11,13 +11,12 @@ def get_epilog() -> str:
     return importlib.resources.files("pybirdsreynolds").joinpath("EPILOG.txt").read_text(encoding="utf-8").strip()
 
 def display_range(prefix):
-    g = globals()
-    value_default   = g[f"{prefix}_DEFAULT"]
-    if type(value_default) is int:
-        value_min       = g[f"{prefix}_MIN"]
-        value_max       = g[f"{prefix}_MAX"]
-        value_free_min  = g[f"{prefix}_FREE_MIN"]
-        value_free_max  = g[f"{prefix}_FREE_MAX"]
+    value_default = getattr(const, f"{prefix}_DEFAULT")
+    if not isinstance(value_default, bool) and isinstance(value_default, bool):
+        value_min      = getattr(const, f"{prefix}_MIN")
+        value_max      = getattr(const, f"{prefix}_MAX")
+        value_free_min = getattr(const, f"{prefix}_FREE_MIN")
+        value_free_max = getattr(const, f"{prefix}_FREE_MAX")
         parts = []
 
         if value_min is not None and value_max is not None:
@@ -48,12 +47,11 @@ def display_range(prefix):
         return "string value"
 
 def check_values(prefix, free, value, parser):
-    g = globals()
-    value_default = g[f"{prefix}_DEFAULT"]
-    value_min = g[f"{prefix}_MIN"]
-    value_max = g[f"{prefix}_MAX"]
-    value_free_min = g[f"{prefix}_FREE_MIN"]
-    value_free_max = g[f"{prefix}_FREE_MAX"]
+    value_default   = getattr(const, f"{prefix}_DEFAULT")
+    value_min       = getattr(const, f"{prefix}_MIN")
+    value_max       = getattr(const, f"{prefix}_MAX")
+    value_free_min  = getattr(const, f"{prefix}_FREE_MIN")
+    value_free_max  = getattr(const, f"{prefix}_FREE_MAX")
 
     if not free:
         if value_min is not None and value_max is not None and (value < value_min or value > value_max):
@@ -72,9 +70,9 @@ def check_values(prefix, free, value, parser):
 
 def create_parser():
     controls_text = "\n".join(
-        f"  {globals()[name]} [{globals()[name.replace('_TEXT', '_COMMAND')]}]"
-        for name in globals()
-        if name.endswith("_TEXT") and globals().get(f"{name[:-5]}_HIDEN") < 2
+        f"  {getattr(const, name)} [{getattr(const, name.replace('_TEXT', '_COMMAND'))}]"
+        for name in dir(const)
+        if name.endswith("_TEXT") and getattr(const, f"{name[:-5]}_HIDEN") < 2
     )
 
     parser = argparse.ArgumentParser(
@@ -83,25 +81,35 @@ def create_parser():
         formatter_class=argparse.RawTextHelpFormatter
     )
 
-    g = globals()
-    for name, doc in g.items():
+    for name in dir(const):
         if not name.endswith("_DOC"):
             continue
+
         prefix = name[:-4]
-        hide = g[f"{prefix}_HIDEN"]
+        hide = getattr(const, f"{prefix}_HIDEN")
         if hide == 2:
             continue
+
         default_name = f"{prefix}_DEFAULT"
-        if default_name not in g:
+        if not hasattr(const, default_name):
             continue
-        default_value = g[default_name]
+
+        default_value = getattr(const, default_name)
         arg_name = "--" + prefix.lower()
         if isinstance(default_value, bool):
-            parser.add_argument(arg_name, action="store_true", default=default_value,
-                                help=g[name] + " (" + display_range(prefix) + ")")
+            parser.add_argument(
+                arg_name,
+                action="store_true",
+                default=default_value,
+                help=getattr(const, name) + " (" + display_range(prefix) + ")"
+            )
         elif isinstance(default_value, int):
-            parser.add_argument(arg_name, type=int, default=default_value,
-                                help=g[name] + " (" + display_range(prefix) + ")")
+            parser.add_argument(
+                arg_name,
+                type=int,
+                default=default_value,
+                help=getattr(const, name) + " (" + display_range(prefix) + ")"
+            )
         elif isinstance(default_value, str):
             parser.add_argument(arg_name, type=str, default=default_value,
                                 help=g[name])
@@ -111,20 +119,22 @@ def compute_args():
     parser = create_parser()
     args = parser.parse_args()
 
-    g = globals()
-    for name, doc in g.items():
+    import pybirdsreynolds.const as const
+
+    for name in dir(const):
         if not name.endswith("_DOC"):
             continue
 
         prefix = name[:-4]
-        hide =g[f"{prefix}_HIDEN"]
+        hide = getattr(const, f"{prefix}_HIDEN")
         if hide == 2:
-            continue         
-        default_name = f"{prefix}_DEFAULT"
-        if default_name not in g:
             continue
 
-        default_value = g[default_name]
+        default_name = f"{prefix}_DEFAULT"
+        if not hasattr(const, default_name):
+            continue
+
+        default_value = getattr(const, default_name)
         if not isinstance(default_value, int) or isinstance(default_value, bool):
             continue
         
