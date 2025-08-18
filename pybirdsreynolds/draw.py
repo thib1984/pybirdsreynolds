@@ -66,6 +66,25 @@ def draw_rectangle(pcanvas, proot):
         tags="boundary"
     )        
 
+def draw_canvas_hiden(proot):
+    proot.geometry(f"{const.WIDTH+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    proot.minsize(const.WIDTH+2, const.HEIGHT)
+    proot.maxsize(const.WIDTH+2, const.HEIGHT)
+    width_tmp=const.WIDTH
+    height_tmp=const.HEIGHT        
+    proot.update()
+    proot.minsize(const.WIDTH_MIN, const.HEIGHT_MIN)
+    proot.maxsize(10000, 10000)
+    proot.update()
+    const.WIDTH=width_tmp
+    const.HEIGHT=height_tmp       
+    return
+
+def draw_canvas(pcanvas, proot):
+    proot.geometry(f"{const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    pcanvas.config(width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2, height=max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=const.CANVAS_BG)
+
+
 def is_maximized(proot):
     if proot.tk.call('tk', 'windowingsystem') == 'aqua':
         return bool(proot.attributes("-fullscreen"))

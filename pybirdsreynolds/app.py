@@ -10,7 +10,7 @@ import time
 from tkinter import font
 import types
 import pybirdsreynolds.const as const
-from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, is_maximized
+from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, is_maximized
 import pybirdsreynolds.draw as draw
 
 
@@ -212,7 +212,7 @@ def app():
                     const.CANVAS_BG = "#87CEEB"
                     const.FILL_COLOR = "black"
                     const.OUTLINE_COLOR = "white" 
-                draw_canvas()
+                draw_canvas(draw.canvas,root)
                 draw()
             elif param == "FREE":
                 const.FREE = not const.FREE
@@ -228,12 +228,12 @@ def app():
             elif param == "WIDTH":  
                 generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
-                draw_canvas()  
+                draw_canvas(draw.canvas,root)  
                 draw()
             elif param == "HEIGHT":  
                 generate_points_and_facultative_move(False, False)
                 draw_status(False, True)
-                draw_canvas()
+                draw_canvas(draw.canvas,root)
                 draw()
             elif param == "FREE":
                 generate_points_and_facultative_move(False, False)
@@ -247,7 +247,7 @@ def app():
             restore_options()
             generate_points_and_facultative_move(False, False)
             draw()
-            draw_canvas()
+            draw_canvas(draw.canvas,root)
             draw_status(False, True)
             root.state('normal')
             root.focus_force()
@@ -312,7 +312,7 @@ def app():
                 const.WIDTH_CONTROLS=0
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
-                draw_canvas_hiden()
+                draw_canvas_hiden(root)
                 const.HIDDEN=True
                 draw()
             else:
@@ -322,7 +322,7 @@ def app():
                     const.WIDTH=root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
                 draw_status(True, True)
                 generate_points_and_facultative_move(False, True)
-                draw_canvas()
+                draw_canvas(draw.canvas,root)
                 const.HIDDEN=False
                 draw()
         draw_status(False, False)
@@ -377,26 +377,6 @@ def app():
         draw_rectangle(draw.canvas, root)
         draw_fps(draw.canvas, fps_value)
 
-    def draw_canvas_hiden():
-        global root
-        root.geometry(f"{const.WIDTH+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-        root.minsize(const.WIDTH+2, const.HEIGHT)
-        root.maxsize(const.WIDTH+2, const.HEIGHT)
-        width_tmp=const.WIDTH
-        height_tmp=const.HEIGHT        
-        root.update()
-        root.minsize(const.WIDTH_MIN, const.HEIGHT_MIN)
-        root.maxsize(10000, 10000)
-        root.update()
-        const.WIDTH=width_tmp
-        const.HEIGHT=height_tmp       
-        return
-
-    def draw_canvas():
-        global root
-        
-        root.geometry(f"{const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-        draw.canvas.config(width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2, height=max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=const.CANVAS_BG)
 
     def on_click(l, sens):
         global selected_index
