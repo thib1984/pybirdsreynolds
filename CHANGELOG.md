@@ -2,13 +2,16 @@
 
 - [ ] use an full pip3 library to replace tk
 
-# 1.99.28 (coming soon)
+# 1.99.29
 
 - [ ] edges with random shapes for the square
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
-- [ ] separates classes for main app, interface, reynolds rules....
-- [ ] clean code
+
+# 1.99.28
+
+- [/] clean code
+- [/] separates classes for main app, interface, reynolds rules....
 
 
 # 1.99.27
