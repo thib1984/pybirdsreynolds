@@ -8,7 +8,7 @@ description = (this_directory / "pybirdsreynolds" / "DESCRIPTION.txt").read_text
 
 setup(
     name="pybirdsreynolds",
-    version="1.99.30",
+    version="1.99.31",
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",    
