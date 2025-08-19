@@ -1,12 +1,25 @@
 # 2.0 (one day... perhaps)
 
 - [ ] use an full pip3 library to replace tk
-
-# 1.99.29
-
-- [ ] edges with random shapes for the square
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
+
+# 1.99.32 (coming soon)
+
+- [ ] bug with h control il windows if resized after
+- [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
+- [ ] edges with random shapes for the square
+- [ ] reorder controls and params
+
+# 1.99.31
+
+- [/] clean code
+- [/] separates classes for main app, interface, reynolds rules....
+
+# 1.99.30
+
+- [/] clean code
+- [/] separates classes for main app, interface, reynolds rules....
 
 # 1.99.29
 
