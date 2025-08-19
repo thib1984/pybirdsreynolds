@@ -332,8 +332,11 @@ def app():
             draw_fps(draw.canvas, fps_value)
             trans_hiden=False
             return
+        #TODO BUGIFX
         const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS -2,const.WIDTH_MIN)
-        const.HEIGHT = max(event.height-2,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+        const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+        #const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
+        #const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
         draw_status(False, True)
         draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
@@ -568,9 +571,14 @@ def app():
         sys.exit(0)
             
     def rustine_1():
-        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +1+ const.WIDTH_CONTROLS}x{max(const.HEIGHT +1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        #TODO BUGFIX
+        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +1+ const.WIDTH_CONTROLS}x{max(const.HEIGHT -1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        #draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH + const.WIDTH_CONTROLS}x{max(const.HEIGHT , const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+
     def rustine_2():
-        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT + 3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        #TODO BUGFIX
+        draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH +3+ const.WIDTH_CONTROLS}x{max(const.HEIGHT -3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+        #draw.root.geometry(f"{const.WIDTH_PARAMS + const.WIDTH + const.WIDTH_CONTROLS}x{max(const.HEIGHT , const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
 
     draw.root = tk.Tk()
     draw.root.title(f"pybirdsreynolds")

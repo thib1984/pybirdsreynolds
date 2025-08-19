@@ -70,9 +70,13 @@ def draw_rectangle(pcanvas, proot):
     )        
 
 def draw_canvas_hiden(proot):
-    proot.geometry(f"{const.WIDTH+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-    proot.minsize(const.WIDTH+2, const.HEIGHT)
-    proot.maxsize(const.WIDTH+2, const.HEIGHT)
+    #TODO BUG FIX
+    #proot.geometry(f"{const.WIDTH+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    #proot.minsize(const.WIDTH+2, const.HEIGHT)
+    #proot.maxsize(const.WIDTH+2, const.HEIGHT)
+    proot.geometry(f"{const.WIDTH}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    proot.minsize(const.WIDTH, const.HEIGHT)
+    proot.maxsize(const.WIDTH, const.HEIGHT)
     width_tmp=const.WIDTH
     height_tmp=const.HEIGHT        
     proot.update()
