@@ -10,6 +10,7 @@
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
 - [ ] reorder controls and params
+- [ ] rework font type
 
 # 1.99.31
 
