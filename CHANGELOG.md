@@ -11,6 +11,8 @@
 - [ ] edges with random shapes for the square
 - [ ] reorder controls and params
 - [ ] rework font type
+- [ ] add limits in popin params
+- [ ] place [] before commands in help message
 
 # 1.99.31
 
