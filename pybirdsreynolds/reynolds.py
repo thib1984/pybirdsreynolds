@@ -14,67 +14,67 @@ def limit_speed(vx, vy):
 
 
 
-def generate_points_and_facultative_move(pbirds, pvelocities, with_move, translate):
-    if not pbirds or pbirds==[]: 
+def generate_points_and_facultative_move(with_move, translate):
+    if not birds or birds==[]: 
         for _ in range(const.NUM_BIRDS):
             px = random.randint(const.MARGIN + const.WIDTH_CONTROLS, const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS)
             py = random.randint(const.MARGIN, const.HEIGHT - const.MARGIN)
-            pbirds.append((px, py))
+            birds.append((px, py))
             angle = random.uniform(0, 2 * math.pi)
             speed = random.uniform(0, const.MAX_SPEED)
             vx = speed * math.cos(angle)
             vy = speed * math.sin(angle)
-            pvelocities.append((vx, vy))
+            velocities.append((vx, vy))
     else:
         if translate:
-            for i in range(len(pbirds)):
-                x, y = pbirds[i]
+            for i in range(len(birds)):
+                x, y = birds[i]
                 if const.HIDDEN:
-                    pbirds[i] = (x + const.WIDTH_CONTROLS_DEFAULT, y)
+                    birds[i] = (x + const.WIDTH_CONTROLS_DEFAULT, y)
                 else:
-                    pbirds[i] = (x - const.WIDTH_CONTROLS_DEFAULT, y)                               
+                    birds[i] = (x - const.WIDTH_CONTROLS_DEFAULT, y)                               
         # Keep birds only if inside
         inside_points = []
         inside_velocities = []
-        for (x, y), (vx, vy) in zip(pbirds, pvelocities):
+        for (x, y), (vx, vy) in zip(birds, velocities):
             if const.WIDTH_CONTROLS + const.MARGIN <= x <= const.WIDTH_CONTROLS + const.WIDTH - const.MARGIN and 0 + const.MARGIN <= y <= const.HEIGHT - const.MARGIN:
                 inside_points.append((x, y))
                 inside_velocities.append((vx, vy))
-        pbirds[:] = inside_points
-        pvelocities[:] = inside_velocities
-        current_count = len(pbirds)
+        birds[:] = inside_points
+        velocities[:] = inside_velocities
+        current_count = len(birds)
         
         # Add birds if not enough
         if const.NUM_BIRDS > current_count:
             for _ in range(const.NUM_BIRDS - current_count):
                 px = random.randint(const.MARGIN + const.WIDTH_CONTROLS, const.WIDTH - const.MARGIN + const.WIDTH_CONTROLS)
                 py = random.randint(const.MARGIN, const.HEIGHT - const.MARGIN)
-                pbirds.append((px, py))
+                birds.append((px, py))
 
                 angle = random.uniform(0, 2 * math.pi)
                 speed = random.uniform(0, const.MAX_SPEED)
                 vx = speed * math.cos(angle)
                 vy = speed * math.sin(angle)
-                pvelocities.append((vx, vy))
+                velocities.append((vx, vy))
 
         # Delete birds if not enough
         elif const.NUM_BIRDS < current_count:
             for _ in range(current_count - const.NUM_BIRDS):
-                idx = random.randint(0, len(pbirds) - 1)
-                pbirds.pop(idx)
-                pvelocities.pop(idx)
+                idx = random.randint(0, len(birds) - 1)
+                birds.pop(idx)
+                velocities.pop(idx)
 
         if with_move:                    
             new_velocities=[]
             #TODO n2 use Grid / Uniform Cell List 
-            for i, (x, y) in enumerate(pbirds):
+            for i, (x, y) in enumerate(birds):
                 move_sep_x, move_sep_y = 0, 0
                 move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = 0, 0, 0, 0
                 move_coh_x, move_coh_y, move_coh_x_tmp, move_coh_y_tmp = 0, 0, 0, 0
                 neighbors = 0
-                vx, vy = pvelocities[i]
+                vx, vy = velocities[i]
                 if const.NEIGHBOR_RADIUS > 0 and not (const.SEP_WEIGHT == 0 and const.ALIGN_WEIGHT == 0 and const.COH_WEIGHT == 0):
-                    for j, (x2, y2) in enumerate(pbirds):
+                    for j, (x2, y2) in enumerate(birds):
                         if i == j:
                             continue
                         dist = math.sqrt((x2 - x)**2 + (y2 - y)**2)
@@ -86,7 +86,7 @@ def generate_points_and_facultative_move(pbirds, pvelocities, with_move, transla
                             # ALIGNMENT
                             # Add the neighbor's velocity so the bird tends to align with it.
                             # Division is done later
-                            vx2, vy2 = pvelocities[j]
+                            vx2, vy2 = velocities[j]
                             move_align_x_tmp += vx2
                             move_align_y_tmp += vy2
                             # COHESION
@@ -136,7 +136,7 @@ def generate_points_and_facultative_move(pbirds, pvelocities, with_move, transla
 
             # Update positions
             new_points = []
-            for (x, y), (vx, vy) in zip(pbirds, new_velocities):
+            for (x, y), (vx, vy) in zip(birds, new_velocities):
                 nx = x + vx
                 ny = y + vy
                 # Bounces
@@ -158,7 +158,7 @@ def generate_points_and_facultative_move(pbirds, pvelocities, with_move, transla
                         overshoot = ny - (const.HEIGHT - const.MARGIN)
                         ny = (const.HEIGHT - const.MARGIN) - overshoot
                         vy = -abs(vy)
-                idx = pbirds.index((x, y))
-                pvelocities[idx] = (vx, vy)
+                idx = birds.index((x, y))
+                velocities[idx] = (vx, vy)
                 new_points.append((nx, ny))
-            pbirds[:] = new_points
+            birds[:] = new_points

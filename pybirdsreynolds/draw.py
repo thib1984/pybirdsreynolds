@@ -21,8 +21,8 @@ def update():
 def update_tmp(pcanvas, proot):
     global frame_count, last_time, count, fps_value
     if not const.PAUSED:
-        generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
-        draw_points(pcanvas, reynolds.birds, reynolds.velocities)
+        generate_points_and_facultative_move(True, False)
+        draw_points()
         draw_fps(pcanvas)
         frame_count += 1
         now = time.time()
@@ -44,7 +44,7 @@ def update_tmp(pcanvas, proot):
 
 def draw_all(pcanvas, proot, on_other_key,start_repeat , stop_repeat):
     draw_status(pcanvas,False, False, on_other_key,start_repeat , stop_repeat)
-    draw_points(pcanvas, reynolds.birds, reynolds.velocities)
+    draw_points()
     draw_rectangle(pcanvas, proot)
     draw_fps(pcanvas)
     draw_hidden(pcanvas)
@@ -107,7 +107,6 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                 text=line.lower(),
             )
             add_canvas_tooltip(
-                pcanvas,
                 item,
                 getattr(const, key.upper() + "_DOC") + " (" + display_range(key.upper()) + ")")
         elif "[" in line:
@@ -124,7 +123,6 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                 text=line.lower(),
             )
             add_canvas_tooltip(
-                pcanvas,
                 item,
                 getattr(const, key.upper() + "_DOC") + " (" + display_range(key.upper()) + ")"
 )
@@ -327,17 +325,17 @@ def is_maximized(proot):
         proot.winfo_height() >= proot.winfo_screenheight()
     )
 
-def draw_points(pcanvas, pbirds, pvelocities):
+def draw_points():
     global point_ids
     for pid in point_ids:
-        pcanvas.delete(pid)
+        canvas.delete(pid)
     point_ids.clear()
 
     triangle_size = 6*const.SIZE
     triangle_width = 4*const.SIZE
-    for (x, y), (vx, vy) in zip(pbirds, pvelocities):
+    for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
         if not const.TRIANGLES: 
-            pid = pcanvas.create_oval(
+            pid = canvas.create_oval(
                 x - const.SIZE, y - const.SIZE,
                 x + const.SIZE, y + const.SIZE,
                 fill=const.FILL_COLOR, outline=const.OUTLINE_COLOR)
@@ -354,7 +352,7 @@ def draw_points(pcanvas, pbirds, pvelocities):
             right_x = x + math.cos(right_angle) * triangle_width
             right_y = y + math.sin(right_angle) * triangle_width
 
-            pid = pcanvas.create_polygon(
+            pid = canvas.create_polygon(
                 tip_x, tip_y,
                 left_x, left_y,
                 right_x, right_y,
@@ -362,13 +360,13 @@ def draw_points(pcanvas, pbirds, pvelocities):
             )
         point_ids.append(pid) 
 
-def maximize_minimize(proot, force):
+def maximize_minimize(force):
     global width_before_maximized
     global heigth_before_maximized
-    if is_maximized(proot):
-        proot.state("normal")
+    if is_maximized(root):
+        root.state("normal")
         try:
-            proot.attributes('-zoomed', False)
+            root.attributes('-zoomed', False)
         except tk.TclError:
             pass
         if not force:
@@ -378,18 +376,18 @@ def maximize_minimize(proot, force):
         width_before_maximized=const.WIDTH 
         heigth_before_maximized=const.HEIGHT          
 
-        wm = proot.tk.call('tk', 'windowingsystem')
+        wm = root.tk.call('tk', 'windowingsystem')
         if wm == 'aqua':  # macOS
-            proot.attributes("-fullscreen", True)
+            root.attributes("-fullscreen", True)
         elif wm == 'win32':  # Windows
-            proot.state("zoomed")
+            root.state("zoomed")
         else:  # Linux
             try:
-                proot.attributes('-zoomed', True)
+                root.attributes('-zoomed', True)
             except tk.TclError:
-                proot.attributes("-fullscreen", True)
-    proot.focus_force()
-    proot.focus_set() 
+                root.attributes("-fullscreen", True)
+    root.focus_force()
+    root.focus_set() 
 
 def show_tip(widget, text, event=None, dx=10, dy=10, wraplength=200):
     global tip_window
@@ -433,9 +431,9 @@ def hide_tip(event=None):
         tip_window.destroy()
         tip_window = None
 
-def add_canvas_tooltip(pcanvas, item, text):
-    pcanvas.tag_bind(item, "<Enter>", lambda e: show_tip(pcanvas, text, e))
-    pcanvas.tag_bind(item, "<Leave>", hide_tip)
+def add_canvas_tooltip(item, text):
+    canvas.tag_bind(item, "<Enter>", lambda e: show_tip(canvas, text, e))
+    canvas.tag_bind(item, "<Leave>", hide_tip)
 
 def add_widget_tooltip(widget, text):
     widget.bind("<Enter>", lambda e: show_tip(widget, text))

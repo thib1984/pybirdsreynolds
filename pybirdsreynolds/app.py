@@ -208,29 +208,29 @@ def app():
                 setattr(const, param, change_value(param, val, const.FREE))
 
             if param == "NUM_BIRDS":
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-                draw_points(draw.canvas, reynolds.birds, reynolds.velocities)                 
+                generate_points_and_facultative_move(False, False)
+                draw_points()                 
             elif param == "WIDTH":  
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
+                generate_points_and_facultative_move(False, False)
                 draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
                 draw_canvas(draw.canvas,draw.root)  
                 draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param == "HEIGHT":  
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
+                generate_points_and_facultative_move(False, False)
                 draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
                 draw_canvas(draw.canvas,draw.root)
                 draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param == "FREE":
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
+                generate_points_and_facultative_move(False, False)
                 draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)                       
             elif param == "SIZE":
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
+                generate_points_and_facultative_move(False, False)
                 draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param =="FONT_SIZE" or param =="FONT_TYPE":
                 draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)     
         elif getattr(event, "keysym", "").lower() == str(const.RESET_COMMAND) and const.RESET_HIDEN<=1:
             restore_options()
-            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
+            generate_points_and_facultative_move(False, False)
             draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             draw_canvas(draw.canvas,draw.root)
             draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
@@ -240,8 +240,8 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(const.REGENERATION_COMMAND) and const.REGENERATION_HIDEN<=1:
             reynolds.velocities = []
             reynolds.birds= [] 
-            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-            draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
+            generate_points_and_facultative_move(False, False)
+            draw_points() 
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_FPS_COMMAND) and const.TOOGLE_FPS_HIDEN<=1:
             const.FPS = not const.FPS
             draw_fps(draw.canvas)
@@ -250,7 +250,7 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(const.NEXT_FRAME_COMMAND) and const.NEXT_FRAME_HIDEN<=1:
             next_frame()
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_MAXIMIZE_COMMAND) and const.TOOGLE_MAXIMIZE_HIDEN<=1:
-            maximize_minimize(draw.root, False)
+            maximize_minimize(False)
         elif getattr(event, "keysym", "").lower() == str(const.DOC_COMMAND) and const.DOC_HIDEN<=1:
             help = f"pybirdsreynolds {version_prog}\n\n"+get_help_text()
             popin = tk.Toplevel(draw.canvas)
@@ -287,13 +287,13 @@ def app():
         elif getattr(event, "keysym", "").lower() == str(const.HIDE_COMMAND) and const.HIDE_HIDEN<=1:
             if not const.HIDDEN:
                 if is_maximized(draw.root):
-                    maximize_minimize(draw.root, True)
+                    maximize_minimize(True)
                 global trans_hiden
                 trans_hiden=True
                 const.WIDTH_PARAMS=0
                 const.WIDTH_CONTROLS=0
                 draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
+                generate_points_and_facultative_move(False, True)
                 draw_canvas_hiden(draw.root)
                 const.HIDDEN=True
                 draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
@@ -303,7 +303,7 @@ def app():
                 if is_maximized(draw.root):
                     const.WIDTH=draw.root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
                 draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
-                generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
+                generate_points_and_facultative_move(False, True)
                 draw_canvas(draw.canvas,draw.root)
                 const.HIDDEN=False
                 draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
@@ -314,8 +314,8 @@ def app():
         if trans_hiden:
             const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
             const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-            draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
+            generate_points_and_facultative_move(False, False)
+            draw_points()
             draw_rectangle(draw.canvas, draw.root)
             draw_fps(draw.canvas)
             trans_hiden=False
@@ -325,9 +325,9 @@ def app():
         const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         #const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
         #const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-        generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
+        generate_points_and_facultative_move(False, False)
         draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
-        draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
+        draw_points()
         draw_rectangle(draw.canvas, draw.root)
         draw_fps(draw.canvas)
 
@@ -352,8 +352,8 @@ def app():
 
     def next_frame():
         if const.PAUSED:
-            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
-            draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
+            generate_points_and_facultative_move(True, False)
+            draw_points()
 
     def signal_handler(sig, frame):
         print("Interrupted! Closing application...")
@@ -387,7 +387,7 @@ def app():
     if const.FONT_TYPE not in fonts:
         const.FONT_TYPE = fonts[0]  
 
-    generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
+    generate_points_and_facultative_move(True, False)
     draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
     draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
     draw_paused(draw.canvas)
