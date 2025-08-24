@@ -10,7 +10,7 @@ import time
 from tkinter import font
 import types
 import pybirdsreynolds.const as const
-from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized
+from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, draw_status, draw_all, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized, update_tmp, update
 import pybirdsreynolds.draw as draw
 import pybirdsreynolds.reynolds as reynolds
 from pybirdsreynolds.reynolds import generate_points_and_facultative_move
@@ -30,13 +30,10 @@ for var_name in dir(const):
 trans_hiden=False
 last_time = time.time()
 
-frame_count = 0
-fps_value = 0
 fonts=[]
 count= not const.PAUSED
 resizing = False
 
-selected_index=0
 shift_pressed = False
 width_before_maximized=const.WIDTH
 heigth_before_maximized=const.HEIGHT
@@ -135,17 +132,10 @@ def app():
         global shift_pressed
         shift_pressed = False
 
-    def draw():
-        draw_status(False, False)
-        draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
-        draw_rectangle(draw.canvas, draw.root)
-        draw_fps(draw.canvas, fps_value)
-        draw_hidden(draw.canvas)
-
     def toggle_pause(event=None):
         const.BLINK_STATE = True
         const.PAUSED = not const.PAUSED
-        draw_status(False, False)
+        draw_status(draw.canvas,False, False, on_other_key,start_repeat , stop_repeat)
         draw_paused(draw.canvas)
 
     def change_value(type, val, free):
@@ -170,7 +160,6 @@ def app():
         return value
 
     def on_other_key(event):
-        global selected_index
         global fonts
         global shift_pressed
         shift = getattr(event, "state", None)        
@@ -182,22 +171,22 @@ def app():
             shift =False    
         mult = 10 if shift else 1
         val = mult if event.keysym == "Right" else 1*-mult
-        param = param_order[selected_index]
+        param = param_order[const.SELECTED_INDEX]
         if (param == "WIDTH" or param == "HEIGHT") and is_maximized(draw.root):
             val=0
         if event.keysym == "Up" and const.ARROWS_HIDEN<2:
-            selected_index = (selected_index - 1) % len(param_order)
+            const.SELECTED_INDEX = (const.SELECTED_INDEX - 1) % len(param_order)
         elif event.keysym == "Down" and const.ARROWS_HIDEN<2:
-            selected_index = (selected_index + 1) % len(param_order)
+            const.SELECTED_INDEX = (const.SELECTED_INDEX + 1) % len(param_order)
         elif (event.keysym == "Right"  or event.keysym == "Left") and const.ARROWS_HIDEN<=1:
             if param == "TRIANGLES":
                 const.TRIANGLES = not const.TRIANGLES
-                draw()
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param == "FONT_TYPE":
                 current_index = fonts.index(const.FONT_TYPE)
                 const.FONT_TYPE = fonts[(current_index + val) % len(fonts)]
-                draw()
-                draw_status(True, True)               
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)              
             elif param == "COLOR":
                 COLOR = not COLOR 
                 if not COLOR:
@@ -209,7 +198,7 @@ def app():
                     const.FILL_COLOR = "black"
                     const.OUTLINE_COLOR = "white" 
                 draw_canvas(draw.canvas,draw.root)
-                draw()
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param == "FREE":
                 const.FREE = not const.FREE
                 for paramm in param_order:
@@ -223,28 +212,28 @@ def app():
                 draw_points(draw.canvas, reynolds.birds, reynolds.velocities)                 
             elif param == "WIDTH":  
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-                draw_status(False, True)
+                draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
                 draw_canvas(draw.canvas,draw.root)  
-                draw()
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param == "HEIGHT":  
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-                draw_status(False, True)
+                draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
                 draw_canvas(draw.canvas,draw.root)
-                draw()
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param == "FREE":
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-                draw()                       
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)                       
             elif param == "SIZE":
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-                draw()
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             elif param =="FONT_SIZE" or param =="FONT_TYPE":
-                draw_status(True, True)     
+                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)     
         elif getattr(event, "keysym", "").lower() == str(const.RESET_COMMAND) and const.RESET_HIDEN<=1:
             restore_options()
             generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-            draw()
+            draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             draw_canvas(draw.canvas,draw.root)
-            draw_status(False, True)
+            draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
             draw.root.state('normal')
             draw.root.focus_force()
             draw.root.focus_set()
@@ -255,7 +244,7 @@ def app():
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_FPS_COMMAND) and const.TOOGLE_FPS_HIDEN<=1:
             const.FPS = not const.FPS
-            draw_fps(draw.canvas, fps_value)
+            draw_fps(draw.canvas)
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_START_PAUSE_COMMAND) and const.TOOGLE_START_PAUSE_HIDEN<=1:
             toggle_pause()
         elif getattr(event, "keysym", "").lower() == str(const.NEXT_FRAME_COMMAND) and const.NEXT_FRAME_HIDEN<=1:
@@ -303,22 +292,22 @@ def app():
                 trans_hiden=True
                 const.WIDTH_PARAMS=0
                 const.WIDTH_CONTROLS=0
-                draw_status(True, True)
+                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
                 draw_canvas_hiden(draw.root)
                 const.HIDDEN=True
-                draw()
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
             else:
                 const.WIDTH_PARAMS=const.WIDTH_PARAMS_DEFAULT
                 const.WIDTH_CONTROLS=const.WIDTH_CONTROLS_DEFAULT
                 if is_maximized(draw.root):
                     const.WIDTH=draw.root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
-                draw_status(True, True)
+                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
                 generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, True)
                 draw_canvas(draw.canvas,draw.root)
                 const.HIDDEN=False
-                draw()
-        draw_status(False, False)
+                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+        draw_status(draw.canvas,False, False, on_other_key,start_repeat , stop_repeat)
 
     def on_resize(event):
         global trans_hiden
@@ -328,7 +317,7 @@ def app():
             generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
             draw_rectangle(draw.canvas, draw.root)
-            draw_fps(draw.canvas, fps_value)
+            draw_fps(draw.canvas)
             trans_hiden=False
             return
         #TODO BUGIFX
@@ -337,13 +326,12 @@ def app():
         #const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
         #const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
         generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,False, False)
-        draw_status(False, True)
+        draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
         draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
         draw_rectangle(draw.canvas, draw.root)
-        draw_fps(draw.canvas, fps_value)
+        draw_fps(draw.canvas)
 
     def on_click(l, sens):
-        global selected_index
         first_word = l.split()[0] if l.split() else None
         lines = [
             f"{name.removesuffix('_DOC'):15} :    {str(getattr(const, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
@@ -356,216 +344,16 @@ def app():
             if name.endswith("_TEXT")
             and getattr(const, f"{name[:-5]}_HIDEN", 1) == 0
         ]
-        selected_index = next(
+        const.SELECTED_INDEX = next(
             (i for i, line in enumerate(lines) if line.split(":")[0].strip() == first_word),
             0
         )
         on_other_key(types.SimpleNamespace(keysym=sens))
 
-    def draw_status(fullRefreshParams, fullRefreshControls):
-        global start_button, refresh_button, generation_button
-        # récupérer toutes les variables _DEFAULT dans const
-        base_globals = [
-            var_name[:-8]  # enlever le "_DEFAULT"
-            for var_name in vars(const)
-            if var_name.endswith("_DEFAULT")
-        ]
-
-
-        normal_font = font.Font(family=const.FONT_TYPE, size=const.FONT_SIZE, weight="normal")
-        bold_font   = font.Font(family=const.FONT_TYPE, size=const.FONT_SIZE, weight="bold")
-        italic_font = font.Font(family=const.FONT_TYPE, size=const.FONT_SIZE, slant="italic")
-
-        lines = [
-            f"{name.removesuffix('_DOC'):15} :    {str(getattr(const, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
-            for name in vars(const)
-            if name.endswith("_DOC")
-            and getattr(const, f"{name[:-4]}_HIDEN", 1) == 0
-        ] + [
-            f"{name.removesuffix('_TEXT'):15} :    {getattr(const, name)} [{getattr(const, name.replace('_TEXT', '_COMMAND'), '')}]"
-            for name in vars(const)
-            if name.endswith("_TEXT")
-            and getattr(const, f"{name[:-5]}_HIDEN", 1) == 0
-        ]
-        x_text = 10
-        y_text = 10
-        draw.canvas.delete("controls")
-        draw.canvas.delete("params")
-        if const.WIDTH_PARAMS==0 and const.WIDTH_CONTROLS==0:
-            draw.canvas.delete("params_button")
-            draw.canvas.delete("controls_button")
-            for name in dir(const):
-                if name.endswith(("_BUTTON", "_BUTTON_UP", "_BUTTON_DOWN")):
-                    setattr(const, name, None)
-            return 
-
-        i_param=-1
-        i_control=-1 
-        y_pos_control=0 
-        for i, line in enumerate(lines):
-            key = line.split()[0]
-            font_to_use = normal_font
-            fill = const.FILL_COLOR
-
-            if i == selected_index and const.ARROWS_HIDEN<2:
-                i_param=i_param+1
-                fill = "red"
-                item= draw.canvas.create_text(
-                    x_text +  const.WIDTH_CONTROLS + const.WIDTH,
-                    y_text + i_param * 2.3 * const.FONT_SIZE,
-                    anchor="nw",
-                    fill=fill,
-                    font=font_to_use,
-                    tags="params",
-                    text=line.lower(),
-                )
-                add_canvas_tooltip(
-                    draw.canvas,
-                    item,
-                    getattr(const, key.upper() + "_DOC") + " (" + display_range(key.upper()) + ")")
-            elif "[" in line:
-                i_control=i_control+1
-            elif not "[" in line:    
-                i_param=i_param+1               
-                item = draw.canvas.create_text(
-                    x_text  +  const.WIDTH_CONTROLS + const.WIDTH,
-                    y_text + i_param * 2.3 * const.FONT_SIZE,
-                    anchor="nw",
-                    fill=const.FILL_COLOR,
-                    font=font_to_use,
-                    tags="params",
-                    text=line.lower(),
-                )
-                add_canvas_tooltip(
-                    draw.canvas,
-                    item,
-                    getattr(const, key.upper() + "_DOC") + " (" + display_range(key.upper()) + ")"
-)
-
-            y_pos_control = y_text + i_control * 2.1 * 2 * const.FONT_SIZE
-            y_pos_param = y_text + i_param * 2.3 * const.FONT_SIZE
-            
-            
-            if fullRefreshControls:         
-                first_colon_index = line.find(":") + 1 
-                f = font.Font(font=font_to_use)
-                x_offset = 0
-                if "[" in line:
-                    key = line.split()[0]
-                    btn_font = (const.FONT_TYPE, const.FONT_SIZE*2)
-                    btn_width = 2
-                    btn_height = 1
-                    highlight_color = "black"
-                    highlight_thickness = 2
-
-                    name_button = key + "_BUTTON"
-                    key = line.split()[0]
-                    icon = getattr(const, key.upper() + "_ICON")
-                    cmd  = getattr(const, key.upper() + "_COMMAND")
-
-                    lbl_btn_tmp = tk.Label(
-                        draw.canvas, text=icon, fg="black", bg="white",
-                        font=btn_font, width=btn_width, height=btn_height, anchor="center",
-                        highlightbackground=highlight_color, highlightthickness=highlight_thickness
-                    )
-
-                    tooltip_text = f"{getattr(const, key.upper() + '_TEXT')} [{getattr(const, key.upper() + '_COMMAND')}]"
-                    add_widget_tooltip(lbl_btn_tmp, tooltip_text)
-
-                    lbl_btn_tmp.bind("<Button-1>", lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)))
-
-                    # Création du bouton
-                    if getattr(const, name_button, None) is None:
-                        setattr(
-                            const,
-                            name_button,
-                            draw.canvas.create_window(
-                                x_text + x_offset + 2,
-                                y_pos_control,
-                                anchor="nw",
-                                window=lbl_btn_tmp,
-                                tags=("controls_button",)
-                            )
-                        )
-                    else:
-                        draw.canvas.coords(
-                            getattr(const, name_button),
-                            x_text + x_offset + 2,
-                            y_pos_control
-                        )
-
-                first_colon_index = line.find(":") + 1 
-                f = font.Font(font=font_to_use)
-                x_offset = f.measure(line[:first_colon_index])
-                if "[" not in line and const.ARROWS_HIDEN<2:
-                    highlight_color = "black"
-                    highlight_thickness = 1                    
-                    name_button_up=key+"_BUTTON_UP"
-                    name_button_down=key+"_BUTTON_DOWN"
-                    lbl_left = tk.Label(draw.canvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
-                    lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
-                    lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                                  
-                    if not hasattr(const, name_button_down) or getattr(const, name_button_down) is None: 
-                        setattr(
-                            const,
-                            name_button_down,
-                            draw.canvas.create_window(
-                                x_text + x_offset + 1 + const.WIDTH_CONTROLS + const.WIDTH,
-                                y_pos_param,
-                                anchor="nw",
-                                window=lbl_left,
-                                tags=("params_button",)
-                            )
-                        )
-
-                    else:
-                        draw.canvas.coords(getattr(const, name_button_down), x_text + x_offset + 1 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
-                    lbl_right = tk.Label(draw.canvas, text=">", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
-                    lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
-                    lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
-                    if not hasattr(const, name_button_up) or getattr(const, name_button_up) is None: 
-                        setattr(
-                            const,
-                            name_button_up,
-                            draw.canvas.create_window(
-                                x_text + x_offset + 18 + const.WIDTH_CONTROLS + const.WIDTH,
-                                y_pos_param,
-                                anchor="nw",
-                                window=lbl_right,
-                                tags=("params_button",)
-                            )
-                        )
-                    else:
-                        draw.canvas.coords(getattr(const, name_button_up), x_text + x_offset + 18 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
-
     def next_frame():
         if const.PAUSED:
             generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
             draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
-
-    def update():
-        global frame_count, last_time, fps_value, count
-        if not const.PAUSED:
-            generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
-            draw_points(draw.canvas, reynolds.birds, reynolds.velocities)
-            draw_fps(draw.canvas, fps_value)
-            frame_count += 1
-            now = time.time()
-            if not count:
-                last_time = now
-                count = True
-            #add delay to stabilize fps    
-            if now - last_time >= 1.0: 
-                fps_value = frame_count / (now - last_time)
-                frame_count = 0
-                last_time = now 
-        #reset fps        
-        else:
-            frame_count = 0
-            count = False
-            fps_value = 0          
-
-        draw.root.after(const.REFRESH_MS, update)
 
     def signal_handler(sig, frame):
         print("Interrupted! Closing application...")
@@ -600,8 +388,8 @@ def app():
         const.FONT_TYPE = fonts[0]  
 
     generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
-    draw()
-    draw_status(True, True)
+    draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+    draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
     draw_paused(draw.canvas)
     draw.root.bind('p', toggle_pause)
     draw.root.bind("<Key>", on_other_key)
@@ -613,7 +401,7 @@ def app():
     draw.canvas.bind("<Configure>", on_resize)
     
     signal.signal(signal.SIGINT, signal_handler)
-    update()
+    update_tmp(draw.canvas, draw.root)
     global last_x, last_y
     last_x = draw.root.winfo_x()
     last_y = draw.root.winfo_y()
