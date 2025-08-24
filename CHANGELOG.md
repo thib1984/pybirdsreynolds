@@ -4,15 +4,18 @@
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 
-# 1.99.32 (coming soon)
+# 1.99.33 (coming soon)
 
 - [ ] bug with h control il windows if resized after
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
-- [ ] reorder controls and params
-- [ ] rework font type
-- [ ] add limits in popin params
-- [ ] place [] before commands in help message
+
+# 1.99.32
+
+- [x] reorder controls and params
+- [x] rework font type
+- [x] add limits in popin params
+- [x] place [] before commands in help message
 
 # 1.99.31
 

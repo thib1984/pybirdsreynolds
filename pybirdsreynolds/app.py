@@ -102,8 +102,7 @@ def app():
         const.COLOR = copy.deepcopy(color_init)
         const.FREE = copy.deepcopy(free_init)
         const.TRIANGLES = copy.deepcopy(triangles_init)
-        #TODO mieux gérer le font_type
-        #const.FONT_TYPE = copy.deepcopy(font_type_init)   
+        const.FONT_TYPE = copy.deepcopy(font_type_init)   
 
         if not const.COLOR:
             const.CANVAS_BG = "black"
@@ -186,11 +185,11 @@ def app():
         param = param_order[selected_index]
         if (param == "WIDTH" or param == "HEIGHT") and is_maximized(draw.root):
             val=0
-        if event.keysym == "Up" and const.ARROWS_HIDE<2:
+        if event.keysym == "Up" and const.ARROWS_HIDEN<2:
             selected_index = (selected_index - 1) % len(param_order)
-        elif event.keysym == "Down" and const.ARROWS_HIDE<2:
+        elif event.keysym == "Down" and const.ARROWS_HIDEN<2:
             selected_index = (selected_index + 1) % len(param_order)
-        elif (event.keysym == "Right"  or event.keysym == "Left") and const.ARROWS_HIDE<=1:
+        elif (event.keysym == "Right"  or event.keysym == "Left") and const.ARROWS_HIDEN<=1:
             if param == "TRIANGLES":
                 const.TRIANGLES = not const.TRIANGLES
                 draw()
@@ -408,7 +407,7 @@ def app():
             font_to_use = normal_font
             fill = const.FILL_COLOR
 
-            if i == selected_index and const.ARROWS_HIDE<2:
+            if i == selected_index and const.ARROWS_HIDEN<2:
                 i_param=i_param+1
                 fill = "red"
                 item= draw.canvas.create_text(
@@ -420,7 +419,10 @@ def app():
                     tags="params",
                     text=line.lower(),
                 )
-                add_canvas_tooltip(draw.canvas, item, getattr(const, key.upper() + "_DOC"))
+                add_canvas_tooltip(
+                    draw.canvas,
+                    item,
+                    getattr(const, key.upper() + "_DOC") + " (" + display_range(key.upper()) + ")")
             elif "[" in line:
                 i_control=i_control+1
             elif not "[" in line:    
@@ -495,7 +497,7 @@ def app():
                 first_colon_index = line.find(":") + 1 
                 f = font.Font(font=font_to_use)
                 x_offset = f.measure(line[:first_colon_index])
-                if "[" not in line and const.ARROWS_HIDE<2:
+                if "[" not in line and const.ARROWS_HIDEN<2:
                     highlight_color = "black"
                     highlight_thickness = 1                    
                     name_button_up=key+"_BUTTON_UP"
@@ -585,20 +587,18 @@ def app():
     draw.root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
     draw.canvas = tk.Canvas(draw.root, width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS, height=const.HEIGHT, bg=const.CANVAS_BG)
     draw.canvas.pack(fill="both", expand=True, padx=0, pady=0)
-
     
     default_fonts = [f for f in const.FONT_TYPE_LIST if f in font.families()] 
     available_fonts = font.families()
-    mono_fonts = [f for f in available_fonts if "mono" in f.lower()]
-
+    global fonts
     fonts = []
-    for f in default_fonts + mono_fonts:
+    for f in default_fonts:
         if f not in fonts:
             fonts.append(f)
 
     if const.FONT_TYPE not in fonts:
         const.FONT_TYPE = fonts[0]  
-        
+
     generate_points_and_facultative_move(reynolds.birds, reynolds.velocities,True, False)
     draw()
     draw_status(True, True)

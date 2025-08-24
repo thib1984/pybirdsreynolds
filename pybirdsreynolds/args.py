@@ -12,7 +12,7 @@ def get_epilog() -> str:
 
 def display_range(prefix):
     value_default = getattr(const, f"{prefix}_DEFAULT")
-    if not isinstance(value_default, bool) and isinstance(value_default, bool):
+    if not isinstance(value_default, bool) and isinstance(value_default, int):
         value_min      = getattr(const, f"{prefix}_MIN")
         value_max      = getattr(const, f"{prefix}_MAX")
         value_free_min = getattr(const, f"{prefix}_FREE_MIN")
@@ -42,9 +42,9 @@ def display_range(prefix):
         
         return f"{' , '.join(parts)}" if parts else ""
     elif isinstance(value_default, bool):
-        return "boolean value"
+        return f"boolean value, default: {value_default}"
     else:
-        return "string value"
+        return f"string value, default: {value_default}"
 
 def check_values(prefix, free, value, parser):
     value_default   = getattr(const, f"{prefix}_DEFAULT")
@@ -70,8 +70,8 @@ def check_values(prefix, free, value, parser):
 
 def create_parser():
     controls_text = "\n".join(
-        f"  {getattr(const, name)} [{getattr(const, name.replace('_TEXT', '_COMMAND'))}]"
-        for name in dir(const)
+        f"  [{getattr(const, name.replace('_TEXT', '_COMMAND'))}] : {getattr(const, name)}"
+        for name, value in const.__dict__.items()
         if name.endswith("_TEXT") and getattr(const, f"{name[:-5]}_HIDEN") < 2
     )
 
@@ -112,7 +112,8 @@ def create_parser():
             )
         elif isinstance(default_value, str):
             parser.add_argument(arg_name, type=str, default=default_value,
-                                help=g[name])
+                                help=getattr(const, name) + " (" + display_range(prefix) + ")"
+                                )
     return parser
 
 def compute_args():
