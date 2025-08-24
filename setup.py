@@ -38,5 +38,5 @@ setup(
     ],
     python_requires=">=3.6",
     include_package_data=True,
-    package_data={"pybirdsreynolds": ["DESCRIPTION.txt","EPILOG.txt","oiseau_emoji.png"]},
+    package_data={"pybirdsreynolds": ["DESCRIPTION.txt","EPILOG.txt"]},
 )

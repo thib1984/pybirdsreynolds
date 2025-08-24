@@ -14,8 +14,6 @@ from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectan
 import pybirdsreynolds.draw as draw
 import pybirdsreynolds.reynolds as reynolds
 from pybirdsreynolds.reynolds import generate_points_and_facultative_move
-import os
-import importlib
 
 # variables
 version_prog = version("pybirdsreynolds")
@@ -584,19 +582,6 @@ def app():
 
     draw.root = tk.Tk()
     draw.root.title(f"pybirdsreynolds")
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    icon_path = os.path.join(script_dir, "oiseau_emoji.png")
-
-    draw.root = tk.Tk()
-    draw.root.title("pybirdsreynolds")
-
-    import importlib.resources
-    with importlib.resources.path("pybirdsreynolds", "oiseau_emoji.png") as icon_path:
-        icon = tk.PhotoImage(file=str(icon_path))
-        draw.root.iconphoto(True, icon)
-        draw.root.icon_ref = icon  # important !
-
     draw.root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
     draw.canvas = tk.Canvas(draw.root, width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS, height=const.HEIGHT, bg=const.CANVAS_BG)
     draw.canvas.pack(fill="both", expand=True, padx=0, pady=0)
