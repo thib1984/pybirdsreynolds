@@ -16,14 +16,11 @@ canvas=None
 point_ids = []
 
 def update():
-    update_tmp(canvas, root)
-
-def update_tmp(pcanvas, proot):
     global frame_count, last_time, count, fps_value
     if not const.PAUSED:
         generate_points_and_facultative_move(True, False)
         draw_points()
-        draw_fps(pcanvas)
+        draw_fps(canvas)
         frame_count += 1
         now = time.time()
         if not count:
@@ -40,7 +37,7 @@ def update_tmp(pcanvas, proot):
         count = False
         fps_value = 0          
 
-    proot.after(const.REFRESH_MS, update)
+    root.after(const.REFRESH_MS, update)
 
 def draw_all(pcanvas, proot, on_other_key,start_repeat , stop_repeat):
     draw_status(pcanvas,False, False, on_other_key,start_repeat , stop_repeat)

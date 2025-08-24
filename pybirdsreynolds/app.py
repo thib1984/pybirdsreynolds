@@ -10,7 +10,7 @@ import time
 from tkinter import font
 import types
 import pybirdsreynolds.const as const
-from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, draw_status, draw_all, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized, update_tmp, update
+from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, draw_status, draw_all, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized, update
 import pybirdsreynolds.draw as draw
 import pybirdsreynolds.reynolds as reynolds
 from pybirdsreynolds.reynolds import generate_points_and_facultative_move
@@ -401,7 +401,7 @@ def app():
     draw.canvas.bind("<Configure>", on_resize)
     
     signal.signal(signal.SIGINT, signal_handler)
-    update_tmp(draw.canvas, draw.root)
+    update()
     global last_x, last_y
     last_x = draw.root.winfo_x()
     last_y = draw.root.winfo_y()
