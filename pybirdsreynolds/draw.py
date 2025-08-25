@@ -20,7 +20,7 @@ def update():
     if not const.PAUSED:
         generate_points_and_facultative_move(True, False)
         draw_points()
-        draw_fps(canvas)
+        draw_fps()
         frame_count += 1
         now = time.time()
         if not count:
@@ -39,14 +39,14 @@ def update():
 
     root.after(const.REFRESH_MS, update)
 
-def draw_all(pcanvas, proot, on_other_key,start_repeat , stop_repeat):
-    draw_status(pcanvas,False, False, on_other_key,start_repeat , stop_repeat)
+def draw_all(on_other_key,start_repeat , stop_repeat):
+    draw_status(False, False, on_other_key,start_repeat , stop_repeat)
     draw_points()
-    draw_rectangle(pcanvas, proot)
-    draw_fps(pcanvas)
-    draw_hidden(pcanvas)
+    draw_rectangle()
+    draw_fps()
+    draw_hidden()
 
-def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,start_repeat , stop_repeat):
+def draw_status(fullRefreshParams, fullRefreshControls, on_other_key,start_repeat , stop_repeat):
     global start_button, refresh_button, generation_button
     # récupérer toutes les variables _DEFAULT dans const
     base_globals = [
@@ -73,11 +73,11 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
     ]
     x_text = 10
     y_text = 10
-    pcanvas.delete("controls")
-    pcanvas.delete("params")
+    canvas.delete("controls")
+    canvas.delete("params")
     if const.WIDTH_PARAMS==0 and const.WIDTH_CONTROLS==0:
-        pcanvas.delete("params_button")
-        pcanvas.delete("controls_button")
+        canvas.delete("params_button")
+        canvas.delete("controls_button")
         for name in dir(const):
             if name.endswith(("_BUTTON", "_BUTTON_UP", "_BUTTON_DOWN")):
                 setattr(const, name, None)
@@ -94,7 +94,7 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
         if i == const.SELECTED_INDEX and const.ARROWS_HIDEN<2:
             i_param=i_param+1
             fill = "red"
-            item= pcanvas.create_text(
+            item= canvas.create_text(
                 x_text +  const.WIDTH_CONTROLS + const.WIDTH,
                 y_text + i_param * 2.3 * const.FONT_SIZE,
                 anchor="nw",
@@ -110,7 +110,7 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
             i_control=i_control+1
         elif not "[" in line:    
             i_param=i_param+1               
-            item = pcanvas.create_text(
+            item = canvas.create_text(
                 x_text  +  const.WIDTH_CONTROLS + const.WIDTH,
                 y_text + i_param * 2.3 * const.FONT_SIZE,
                 anchor="nw",
@@ -146,7 +146,7 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                 cmd  = getattr(const, key.upper() + "_COMMAND")
 
                 lbl_btn_tmp = tk.Label(
-                    pcanvas, text=icon, fg="black", bg="white",
+                    canvas, text=icon, fg="black", bg="white",
                     font=btn_font, width=btn_width, height=btn_height, anchor="center",
                     highlightbackground=highlight_color, highlightthickness=highlight_thickness
                 )
@@ -161,7 +161,7 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                     setattr(
                         const,
                         name_button,
-                        pcanvas.create_window(
+                        canvas.create_window(
                             x_text + x_offset + 2,
                             y_pos_control,
                             anchor="nw",
@@ -170,7 +170,7 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                         )
                     )
                 else:
-                    pcanvas.coords(
+                    canvas.coords(
                         getattr(const, name_button),
                         x_text + x_offset + 2,
                         y_pos_control
@@ -184,14 +184,14 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                 highlight_thickness = 1                    
                 name_button_up=key+"_BUTTON_UP"
                 name_button_down=key+"_BUTTON_DOWN"
-                lbl_left = tk.Label(pcanvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
+                lbl_left = tk.Label(canvas, text="<", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
                 lbl_left.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left"))
                 lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())                                  
                 if not hasattr(const, name_button_down) or getattr(const, name_button_down) is None: 
                     setattr(
                         const,
                         name_button_down,
-                        pcanvas.create_window(
+                        canvas.create_window(
                             x_text + x_offset + 1 + const.WIDTH_CONTROLS + const.WIDTH,
                             y_pos_param,
                             anchor="nw",
@@ -201,15 +201,15 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                     )
 
                 else:
-                    pcanvas.coords(getattr(const, name_button_down), x_text + x_offset + 1 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
-                lbl_right = tk.Label(pcanvas, text=">", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
+                    canvas.coords(getattr(const, name_button_down), x_text + x_offset + 1 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
+                lbl_right = tk.Label(canvas, text=">", fg="black", bg="white", font=font_to_use , highlightbackground=highlight_color, highlightthickness=highlight_thickness)
                 lbl_right.bind("<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right"))
                 lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat()) 
                 if not hasattr(const, name_button_up) or getattr(const, name_button_up) is None: 
                     setattr(
                         const,
                         name_button_up,
-                        pcanvas.create_window(
+                        canvas.create_window(
                             x_text + x_offset + 18 + const.WIDTH_CONTROLS + const.WIDTH,
                             y_pos_param,
                             anchor="nw",
@@ -218,14 +218,14 @@ def draw_status(pcanvas, fullRefreshParams, fullRefreshControls, on_other_key,st
                         )
                     )
                 else:
-                    pcanvas.coords(getattr(const, name_button_up), x_text + x_offset + 18 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
+                    canvas.coords(getattr(const, name_button_up), x_text + x_offset + 18 + const.WIDTH_CONTROLS + const.WIDTH, y_pos_param)
 
 
-def draw_paused(pcanvas):
-    pcanvas.delete("paused")
+def draw_paused():
+    canvas.delete("paused")
     if const.PAUSED:
         if const.BLINK_STATE:
-            pcanvas.create_text(
+            canvas.create_text(
                 const.WIDTH_CONTROLS,
                 max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
                 anchor="sw",
@@ -235,11 +235,11 @@ def draw_paused(pcanvas):
                 text=" PAUSED "
             )
         const.BLINK_STATE = not const.BLINK_STATE
-        pcanvas.after(500, lambda: draw_paused(pcanvas))
+        canvas.after(500, lambda: draw_paused)
 
-def draw_fps(pcanvas):
+def draw_fps():
     global fps_value
-    pcanvas.delete("fps")
+    canvas.delete("fps")
     if const.FPS:
         if not const.PAUSED:
             if fps_value == 0:
@@ -248,7 +248,7 @@ def draw_fps(pcanvas):
                 value = f"{fps_value:.1f}"
         else:
             value = "NA"
-        pcanvas.create_text(
+        canvas.create_text(
             const.WIDTH_CONTROLS,
             0,            
             anchor="nw",  
@@ -258,10 +258,10 @@ def draw_fps(pcanvas):
             text=f" FPS : {value}"
     ) 
 
-def draw_hidden(pcanvas):
-    pcanvas.delete("hidden")
+def draw_hidden():
+    canvas.delete("hidden")
     if const.HIDDEN:
-        pcanvas.create_text(
+        canvas.create_text(
             const.WIDTH_CONTROLS+const.WIDTH,
             max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
             anchor="se",
@@ -271,55 +271,54 @@ def draw_hidden(pcanvas):
             text="h to restore panels "
         )           
 
-def draw_rectangle(pcanvas, proot):
-    if not is_maximized(proot):
+def draw_rectangle():
+    if not is_maximized():
         global width_before_maximized
         global heigth_before_maximized  
         width_before_maximized=const.WIDTH 
         heigth_before_maximized=const.HEIGHT         
-    pcanvas.delete("boundary")
-    pcanvas.create_rectangle(
+    canvas.delete("boundary")
+    canvas.create_rectangle(
         const.WIDTH_CONTROLS, 0, const.WIDTH_CONTROLS + const.WIDTH, const.HEIGHT,
         outline=const.FILL_COLOR, width=const.MARGIN,
         tags="boundary"
     )        
 
-def draw_canvas_hiden(proot):
+def draw_canvas_hiden():
     #TODO BUG FIX
-    #proot.geometry(f"{const.WIDTH+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-    #proot.minsize(const.WIDTH+2, const.HEIGHT)
-    #proot.maxsize(const.WIDTH+2, const.HEIGHT)
-    proot.geometry(f"{const.WIDTH}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-    proot.minsize(const.WIDTH, const.HEIGHT)
-    proot.maxsize(const.WIDTH, const.HEIGHT)
+    #root.geometry(f"{const.WIDTH+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    #root.minsize(const.WIDTH+2, const.HEIGHT)
+    #root.maxsize(const.WIDTH+2, const.HEIGHT)
+    root.geometry(f"{const.WIDTH}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    root.minsize(const.WIDTH, const.HEIGHT)
+    root.maxsize(const.WIDTH, const.HEIGHT)
     width_tmp=const.WIDTH
     height_tmp=const.HEIGHT        
-    proot.update()
-    proot.minsize(const.WIDTH_MIN, const.HEIGHT_MIN)
-    proot.maxsize(10000, 10000)
-    proot.update()
+    root.update()
+    root.minsize(const.WIDTH_MIN, const.HEIGHT_MIN)
+    root.maxsize(10000, 10000)
+    root.update()
     const.WIDTH=width_tmp
-    const.HEIGHT=height_tmp       
-    return
+    const.HEIGHT=height_tmp
 
-def draw_canvas(pcanvas, proot):
-    proot.geometry(f"{const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-    pcanvas.config(width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2, height=max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=const.CANVAS_BG)
+def draw_canvas():
+    root.geometry(f"{const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2}x{max(const.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
+    canvas.config(width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS+2, height=max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT), bg=const.CANVAS_BG)
 
 
-def is_maximized(proot):
-    if proot.tk.call('tk', 'windowingsystem') == 'aqua':
-        return bool(proot.attributes("-fullscreen"))
-    if proot.state() == "zoomed":
+def is_maximized():
+    if root.tk.call('tk', 'windowingsystem') == 'aqua':
+        return bool(root.attributes("-fullscreen"))
+    if root.state() == "zoomed":
         return True
     try:
-        if proot.attributes('-zoomed'):
+        if root.attributes('-zoomed'):
             return True
     except tk.TclError:
         pass
     return (
-        proot.winfo_width() >= proot.winfo_screenwidth() and
-        proot.winfo_height() >= proot.winfo_screenheight()
+        root.winfo_width() >= root.winfo_screenwidth() and
+        root.winfo_height() >= root.winfo_screenheight()
     )
 
 def draw_points():
@@ -360,7 +359,7 @@ def draw_points():
 def maximize_minimize(force):
     global width_before_maximized
     global heigth_before_maximized
-    if is_maximized(root):
+    if is_maximized():
         root.state("normal")
         try:
             root.attributes('-zoomed', False)
@@ -435,3 +434,24 @@ def add_canvas_tooltip(item, text):
 def add_widget_tooltip(widget, text):
     widget.bind("<Enter>", lambda e: show_tip(widget, text))
     widget.bind("<Leave>", hide_tip)             
+
+def on_resize(on_other_key,start_repeat , stop_repeat, event):
+    if const.TRANS_HIDEN:
+        const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
+        const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+        generate_points_and_facultative_move(False, False)
+        draw_points()
+        draw_rectangle()
+        draw_fps()
+        const.TRANS_HIDEN=False
+        return
+    #TODO BUGIFX
+    const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS -2,const.WIDTH_MIN)
+    const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+    #const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
+    #const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
+    generate_points_and_facultative_move(False, False)
+    draw_status(False, True, on_other_key,start_repeat , stop_repeat)
+    draw_points()
+    draw_rectangle()
+    draw_fps()    

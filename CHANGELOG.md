@@ -6,6 +6,7 @@
 
 # 1.99.33 (coming soon)
 
+- [ ] fix bug with reset all params
 - [ ] bug with h control il windows if resized after
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square

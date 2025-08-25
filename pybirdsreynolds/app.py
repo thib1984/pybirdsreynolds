@@ -10,10 +10,11 @@ import time
 from tkinter import font
 import types
 import pybirdsreynolds.const as const
-from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, draw_status, draw_all, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized, update
+from pybirdsreynolds.draw import draw_paused, draw_fps, draw_hidden, draw_rectangle, draw_canvas, draw_canvas_hiden, draw_points, draw_status, draw_all, maximize_minimize, add_canvas_tooltip, add_widget_tooltip, is_maximized, update, on_resize
 import pybirdsreynolds.draw as draw
 import pybirdsreynolds.reynolds as reynolds
 from pybirdsreynolds.reynolds import generate_points_and_facultative_move
+from functools import partial
 
 # variables
 version_prog = version("pybirdsreynolds")
@@ -26,8 +27,6 @@ for var_name in dir(const):
         setattr(const, option_name, value)
 
 
-
-trans_hiden=False
 last_time = time.time()
 
 fonts=[]
@@ -135,8 +134,8 @@ def app():
     def toggle_pause(event=None):
         const.BLINK_STATE = True
         const.PAUSED = not const.PAUSED
-        draw_status(draw.canvas,False, False, on_other_key,start_repeat , stop_repeat)
-        draw_paused(draw.canvas)
+        draw_status(False, False, on_other_key,start_repeat , stop_repeat)
+        draw_paused()
 
     def change_value(type, val, free):
         value = getattr(const, type, None)
@@ -181,12 +180,12 @@ def app():
         elif (event.keysym == "Right"  or event.keysym == "Left") and const.ARROWS_HIDEN<=1:
             if param == "TRIANGLES":
                 const.TRIANGLES = not const.TRIANGLES
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_all(on_other_key,start_repeat , stop_repeat)
             elif param == "FONT_TYPE":
                 current_index = fonts.index(const.FONT_TYPE)
                 const.FONT_TYPE = fonts[(current_index + val) % len(fonts)]
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
-                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)              
+                draw_all(on_other_key,start_repeat , stop_repeat)
+                draw_status(True, True, on_other_key,start_repeat , stop_repeat)              
             elif param == "COLOR":
                 COLOR = not COLOR 
                 if not COLOR:
@@ -197,8 +196,8 @@ def app():
                     const.CANVAS_BG = "#87CEEB"
                     const.FILL_COLOR = "black"
                     const.OUTLINE_COLOR = "white" 
-                draw_canvas(draw.canvas,draw.root)
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_canvas()
+                draw_all(on_other_key,start_repeat , stop_repeat)
             elif param == "FREE":
                 const.FREE = not const.FREE
                 for paramm in param_order:
@@ -212,28 +211,28 @@ def app():
                 draw_points()                 
             elif param == "WIDTH":  
                 generate_points_and_facultative_move(False, False)
-                draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
-                draw_canvas(draw.canvas,draw.root)  
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_status(False, True, on_other_key,start_repeat , stop_repeat)
+                draw_canvas()  
+                draw_all(on_other_key,start_repeat , stop_repeat)
             elif param == "HEIGHT":  
                 generate_points_and_facultative_move(False, False)
-                draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
-                draw_canvas(draw.canvas,draw.root)
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_status(False, True, on_other_key,start_repeat , stop_repeat)
+                draw_canvas()
+                draw_all(on_other_key,start_repeat , stop_repeat)
             elif param == "FREE":
                 generate_points_and_facultative_move(False, False)
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)                       
+                draw_all(on_other_key,start_repeat , stop_repeat)                       
             elif param == "SIZE":
                 generate_points_and_facultative_move(False, False)
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_all(on_other_key,start_repeat , stop_repeat)
             elif param =="FONT_SIZE" or param =="FONT_TYPE":
-                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)     
+                draw_status(True, True, on_other_key,start_repeat , stop_repeat)     
         elif getattr(event, "keysym", "").lower() == str(const.RESET_COMMAND) and const.RESET_HIDEN<=1:
             restore_options()
             generate_points_and_facultative_move(False, False)
-            draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
-            draw_canvas(draw.canvas,draw.root)
-            draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
+            draw_all(on_other_key,start_repeat , stop_repeat)
+            draw_canvas()
+            draw_status(False, True, on_other_key,start_repeat , stop_repeat)
             draw.root.state('normal')
             draw.root.focus_force()
             draw.root.focus_set()
@@ -244,7 +243,7 @@ def app():
             draw_points() 
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_FPS_COMMAND) and const.TOOGLE_FPS_HIDEN<=1:
             const.FPS = not const.FPS
-            draw_fps(draw.canvas)
+            draw_fps()
         elif getattr(event, "keysym", "").lower() == str(const.TOOGLE_START_PAUSE_COMMAND) and const.TOOGLE_START_PAUSE_HIDEN<=1:
             toggle_pause()
         elif getattr(event, "keysym", "").lower() == str(const.NEXT_FRAME_COMMAND) and const.NEXT_FRAME_HIDEN<=1:
@@ -286,50 +285,27 @@ def app():
 
         elif getattr(event, "keysym", "").lower() == str(const.HIDE_COMMAND) and const.HIDE_HIDEN<=1:
             if not const.HIDDEN:
-                if is_maximized(draw.root):
+                if is_maximized():
                     maximize_minimize(True)
-                global trans_hiden
-                trans_hiden=True
+                const.TRANS_HIDEN=True
                 const.WIDTH_PARAMS=0
                 const.WIDTH_CONTROLS=0
-                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
+                draw_status(True, True, on_other_key,start_repeat , stop_repeat)
                 generate_points_and_facultative_move(False, True)
-                draw_canvas_hiden(draw.root)
+                draw_canvas_hiden()
                 const.HIDDEN=True
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
+                draw_all(on_other_key,start_repeat , stop_repeat)
             else:
                 const.WIDTH_PARAMS=const.WIDTH_PARAMS_DEFAULT
                 const.WIDTH_CONTROLS=const.WIDTH_CONTROLS_DEFAULT
-                if is_maximized(draw.root):
+                if is_maximized():
                     const.WIDTH=draw.root.winfo_width()-const.WIDTH_PARAMS-const.WIDTH_CONTROLS
-                draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
+                draw_status(True, True, on_other_key,start_repeat , stop_repeat)
                 generate_points_and_facultative_move(False, True)
-                draw_canvas(draw.canvas,draw.root)
+                draw_canvas()
                 const.HIDDEN=False
-                draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
-        draw_status(draw.canvas,False, False, on_other_key,start_repeat , stop_repeat)
-
-    def on_resize(event):
-        global trans_hiden
-        if trans_hiden:
-            const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
-            const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-            generate_points_and_facultative_move(False, False)
-            draw_points()
-            draw_rectangle(draw.canvas, draw.root)
-            draw_fps(draw.canvas)
-            trans_hiden=False
-            return
-        #TODO BUGIFX
-        const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS -2,const.WIDTH_MIN)
-        const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-        #const.WIDTH = max(event.width - const.WIDTH_PARAMS - const.WIDTH_CONTROLS,const.WIDTH_MIN)
-        #const.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT) 
-        generate_points_and_facultative_move(False, False)
-        draw_status(draw.canvas,False, True, on_other_key,start_repeat , stop_repeat)
-        draw_points()
-        draw_rectangle(draw.canvas, draw.root)
-        draw_fps(draw.canvas)
+                draw_all(on_other_key,start_repeat , stop_repeat)
+        draw_status(False, False, on_other_key,start_repeat , stop_repeat)
 
     def on_click(l, sens):
         first_word = l.split()[0] if l.split() else None
@@ -374,8 +350,7 @@ def app():
     draw.root.title(f"pybirdsreynolds")
     draw.root.minsize(const.WIDTH_PARAMS+ const.WIDTH_MIN+const.WIDTH_CONTROLS, max(const.HEIGHT,const.HEIGHT_PARAMS_CONTROLS_DEFAULT))
     draw.canvas = tk.Canvas(draw.root, width=const.WIDTH_PARAMS+const.WIDTH+const.WIDTH_CONTROLS, height=const.HEIGHT, bg=const.CANVAS_BG)
-    draw.canvas.pack(fill="both", expand=True, padx=0, pady=0)
-    
+    draw.canvas.pack(fill="both", expand=True, padx=0, pady=0)   
     default_fonts = [f for f in const.FONT_TYPE_LIST if f in font.families()] 
     available_fonts = font.families()
     global fonts
@@ -383,22 +358,19 @@ def app():
     for f in default_fonts:
         if f not in fonts:
             fonts.append(f)
-
     if const.FONT_TYPE not in fonts:
         const.FONT_TYPE = fonts[0]  
-
     generate_points_and_facultative_move(True, False)
-    draw_all(draw.canvas, draw.root, on_other_key,start_repeat , stop_repeat)
-    draw_status(draw.canvas,True, True, on_other_key,start_repeat , stop_repeat)
-    draw_paused(draw.canvas)
+    draw_all(on_other_key,start_repeat , stop_repeat)
+    draw_status(True, True, on_other_key,start_repeat , stop_repeat)
+    draw_paused()
     draw.root.bind('p', toggle_pause)
     draw.root.bind("<Key>", on_other_key)
     draw.root.bind_all("<Shift_L>", on_shift_press)
     draw.root.bind_all("<Shift_R>", on_shift_press)
     draw.root.bind_all("<KeyRelease-Shift_L>", on_shift_release)
     draw.root.bind_all("<KeyRelease-Shift_R>", on_shift_release)
-
-    draw.canvas.bind("<Configure>", on_resize)
+    draw.canvas.bind("<Configure>", partial(on_resize, on_other_key,start_repeat , stop_repeat))
     
     signal.signal(signal.SIGINT, signal_handler)
     update()
