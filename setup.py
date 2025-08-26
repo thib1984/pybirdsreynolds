@@ -8,7 +8,7 @@ description = (this_directory / "pybirdsreynolds" / "DESCRIPTION.txt").read_text
 
 setup(
     name="pybirdsreynolds",
-    version="1.99.33",
+    version="2.0.0",
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",    
@@ -18,7 +18,7 @@ setup(
     license="MIT",
     license_files=[],
     packages=["pybirdsreynolds"],
-    install_requires=[],
+    install_requires=["scipy"],
     zip_safe=False,
     entry_points={
         "console_scripts": [

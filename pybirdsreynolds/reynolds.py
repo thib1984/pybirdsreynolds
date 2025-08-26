@@ -1,6 +1,7 @@
 import math
 import random
 import pybirdsreynolds.const as const
+from scipy.spatial import cKDTree
 
 birds = []
 velocities = []
@@ -76,8 +77,8 @@ def generate_points_and_facultative_move(with_move, translate):
                 velocities.pop(idx)
 
         if with_move:
+            tree = cKDTree(birds)  
             new_velocities = []
-            # TODO n2 use Grid / Uniform Cell List
             for i, (x, y) in enumerate(birds):
                 move_sep_x, move_sep_y = 0, 0
                 move_align_x, move_align_y, move_align_x_tmp, move_align_y_tmp = (
@@ -94,11 +95,18 @@ def generate_points_and_facultative_move(with_move, translate):
                     and const.ALIGN_WEIGHT == 0
                     and const.COH_WEIGHT == 0
                 ):
-                    for j, (x2, y2) in enumerate(birds):
+                    neighbors_idx = tree.query_ball_point([x, y], const.NEIGHBOR_RADIUS)
+                    for j in neighbors_idx:
                         if i == j:
                             continue
-                        dist = math.sqrt((x2 - x) ** 2 + (y2 - y) ** 2)
-                        if dist < const.NEIGHBOR_RADIUS and dist > 0:
+
+                        x2, y2 = birds[j]
+                        vx2, vy2 = velocities[j]
+                        dx, dy = x - x2, y - y2
+                        radius2 = const.NEIGHBOR_RADIUS ** 2
+                        dist2 = dx * dx + dy * dy
+                        if 0 < dist2 < radius2:
+                            dist = math.sqrt(dist2)                       
                             # SEPARATION
                             # If a neighbor is too close, add a vector to move away from it (opposite direction of the neighbor).
                             move_sep_x += (x - x2) / dist

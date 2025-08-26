@@ -1,11 +1,14 @@
 # 2.0 (one day... perhaps)
 
 - [ ] use an full pip3 library to replace tk
-- [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
 - [ ] bug with h control il windows if resized after
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
+
+# 2.0.0
+
+- [x] use  to optimize time of calcul
 
 # 1.99.33
 
