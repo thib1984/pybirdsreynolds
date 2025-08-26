@@ -15,6 +15,11 @@ tip_window = None
 canvas=None
 point_ids = []
 
+def next_frame():
+    if const.PAUSED:
+        generate_points_and_facultative_move(True, False)
+        draw_points()
+        
 def update():
     global frame_count, last_time, count, fps_value
     if not const.PAUSED:

@@ -9,6 +9,9 @@ FILL_COLOR = None
 OUTLINE_COLOR = None
 SELECTED_INDEX = 0
 TRANS_HIDEN = False
+SHIFT_PRESSED = False
+REPEATING = {"active": False, "job": None}
+
 #PARAMS
 SHORT_DESCRIPTION="pybirdsreynolds is an interactive simulation of the Reynolds Boids model."
 WIDTH_CONTROLS_DEFAULT=70
