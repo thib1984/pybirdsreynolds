@@ -3,13 +3,14 @@
 - [ ] use an full pip3 library to replace tk
 - [ ] optimize code -> use Grid / Uniform Cell List 
 - [ ] optimize code -> remove uncessary deepcopy 
-
-# 1.99.33 (coming soon)
-
-- [ ] fix bug with reset all params
 - [ ] bug with h control il windows if resized after
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
+
+# 1.99.33
+
+- [x] fix bug with reset all params
+- [/] clean code
 
 # 1.99.32
 
