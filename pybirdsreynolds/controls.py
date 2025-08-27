@@ -45,14 +45,17 @@ def on_click(l, sens):
     on_other_key(types.SimpleNamespace(keysym=sens))
 
 
-def start_repeat(ligne, direction):
-    def repeat():
-        on_click(ligne, direction)
-        if variables.REPEATING["active"]:
-            variables.REPEATING["job"] = draw.canvas.after(100, repeat)
+def _repeat(ligne, direction):
+    on_click(ligne, direction)
+    if variables.REPEATING["active"]:
+        variables.REPEATING["job"] = draw.canvas.after(
+            100, lambda: _repeat(ligne, direction)
+        )
 
+
+def start_repeat(ligne, direction):
     variables.REPEATING["active"] = True
-    repeat()
+    _repeat(ligne, direction)
 
 
 def stop_repeat():
