@@ -1,7 +1,10 @@
 import types
 import copy
+import sys
 import tkinter as tk
 import pybirdsreynolds.const as const
+import pybirdsreynolds.params as params
+import pybirdsreynolds.variables as variables
 import pybirdsreynolds.reynolds as reynolds
 import pybirdsreynolds.draw as draw
 from pybirdsreynolds.args import get_help_text
@@ -9,9 +12,9 @@ from pybirdsreynolds.draw import (
     draw_paused,
     draw_fps,
     draw_canvas,
-    draw_canvas_hiden,
+    draw_canvas_hidden,
     draw_points,
-    draw_status,
+    draw_controls_and_params,
     draw_all,
     maximize_minimize,
     is_maximized,
@@ -20,116 +23,128 @@ from pybirdsreynolds.draw import (
 from pybirdsreynolds.reynolds import generate_points_and_facultative_move
 
 
+def signal_handler(sig, frame):
+    print("Interrupted! Closing application...")
+    draw.root.destroy()
+    sys.exit(0)
+
+
 def on_click(l, sens):
     first_word = l.split()[0] if l.split() else None
     lines = [
-        f"{name.removesuffix('_DOC'):15} :    {str(getattr(const, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
-        for name in vars(const)
-        if name.endswith("_DOC") and getattr(const, f"{name[:-4]}_HIDEN", 1) == 0
+        f"{name.removesuffix('_DOC'):15} :    {str(getattr(params, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
+        for name in vars(params)
+        if name.endswith("_DOC") and getattr(params, f"{name[:-4]}_ACTIVATED") == 2
     ] + [
-        f"{name.removesuffix('_TEXT'):15} :    {getattr(const, name)} [{getattr(const, name.replace('_TEXT', '_COMMAND'), '')}]"
-        for name in vars(const)
-        if name.endswith("_TEXT") and getattr(const, f"{name[:-5]}_HIDEN", 1) == 0
+        f"{name.removesuffix('_TEXT'):15} :    {getattr(params, name)} [{getattr(params, name.replace('_TEXT', '_COMMAND'))}]"
+        for name in vars(params)
+        if name.endswith("_TEXT") and getattr(params, f"{name[:-5]}_ACTIVATED") == 2
     ]
-    const.SELECTED_INDEX = next(
+    params.SELECTED_INDEX = next(
         (i for i, line in enumerate(lines) if line.split(":")[0].strip() == first_word),
         0,
     )
     on_other_key(types.SimpleNamespace(keysym=sens))
 
 
-def start_repeat(ligne, direction):
-    def repeat():
-        on_click(ligne, direction)
-        if const.REPEATING["active"]:
-            const.REPEATING["job"] = draw.canvas.after(100, repeat)
+def repeat(ligne, direction):
+    on_click(ligne, direction)
+    if variables.REPEATING["active"]:
+        variables.REPEATING["job"] = draw.canvas.after(100, repeat)
 
-    const.REPEATING["active"] = True
-    repeat()
+
+def start_repeat(ligne, direction):
+    variables.REPEATING["active"] = True
+    repeat(ligne, direction)
 
 
 def stop_repeat():
-    const.REPEATING["active"] = False
-    if const.REPEATING["job"]:
-        draw.canvas.after_cancel(const.REPEATING["job"])
-        const.REPEATING["job"] = None
+    variables.REPEATING["active"] = False
+    if variables.REPEATING["job"]:
+        draw.canvas.after_cancel(variables.REPEATING["job"])
+        variables.REPEATING["job"] = None
 
 
 def on_shift_press(event):
-    const.shift_pressed = True
+    variables.shift_pressed = True
 
 
 def on_shift_release(event):
-    const.shift_pressed = False
+    variables.shift_pressed = False
 
 
 def toggle_pause(event=None):
-    const.BLINK_STATE = True
-    const.PAUSED = not const.PAUSED
-    draw_status(False, False, on_other_key, start_repeat, stop_repeat)
+    variables.BLINK_STATE = True
+    variables.PAUSED = not variables.PAUSED
+    draw_controls_and_params(False, on_other_key, start_repeat, stop_repeat)
     draw_paused()
 
 
 def on_other_key(event):
-    global fonts
     shift = getattr(event, "state", None)
     if shift is not None:
         shift = (shift & 0x1) != 0
     else:
-        shift = const.SHIFT_PRESSED
-    if const.SHIFT_HIDEN == 0:
+        shift = variables.SHIFT_PRESSED
+    if params.SHIFT_ACTIVATED == 2:
         shift = False
     mult = 10 if shift else 1
     val = mult if event.keysym == "Right" else 1 * -mult
-    param = const.PARAM_ORDER[const.SELECTED_INDEX]
+    param = params.PARAM_ORDER_IHM[params.SELECTED_INDEX]
     if (param == "WIDTH" or param == "HEIGHT") and is_maximized():
         val = 0
-    if event.keysym == "Up" and const.ARROWS_HIDEN < 2:
-        const.SELECTED_INDEX = (const.SELECTED_INDEX - 1) % len(const.PARAM_ORDER)
-    elif event.keysym == "Down" and const.ARROWS_HIDEN < 2:
-        const.SELECTED_INDEX = (const.SELECTED_INDEX + 1) % len(const.PARAM_ORDER)
+    if event.keysym == "Up" and params.ARROWS_ACTIVATED > 0:
+        params.SELECTED_INDEX = (params.SELECTED_INDEX - 1) % len(
+            params.PARAM_ORDER_IHM
+        )
+    elif event.keysym == "Down" and params.ARROWS_ACTIVATED > 0:
+        params.SELECTED_INDEX = (params.SELECTED_INDEX + 1) % len(
+            params.PARAM_ORDER_IHM
+        )
     elif (
         event.keysym == "Right" or event.keysym == "Left"
-    ) and const.ARROWS_HIDEN <= 1:
+    ) and params.ARROWS_ACTIVATED >= 1:
         if param == "TRIANGLES":
-            const.TRIANGLES = not const.TRIANGLES
+            params.TRIANGLES = not params.TRIANGLES
             draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "FONT_TYPE":
-            current_index = fonts.index(const.FONT_TYPE)
-            const.FONT_TYPE = fonts[(current_index + val) % len(fonts)]
+            current_index = const.FONT_TYPE_LIST.index(params.FONT_TYPE)
+            params.FONT_TYPE = const.FONT_TYPE_LIST[
+                (current_index + val) % len(const.FONT_TYPE_LIST)
+            ]
             draw_all(on_other_key, start_repeat, stop_repeat)
-            draw_status(True, True, on_other_key, start_repeat, stop_repeat)
+            draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
         elif param == "COLOR":
             COLOR = not COLOR
             if not COLOR:
-                const.CANVAS_BG = "black"
-                const.FILL_COLOR = "white"
-                const.OUTLINE_COLOR = "black"
+                variables.CANVAS_BG = "black"
+                variables.FILL_COLOR = "white"
+                variables.OUTLINE_COLOR = "black"
             else:
-                const.CANVAS_BG = "#87CEEB"
-                const.FILL_COLOR = "black"
-                const.OUTLINE_COLOR = "white"
+                variables.CANVAS_BG = "#87CEEB"
+                variables.FILL_COLOR = "black"
+                variables.OUTLINE_COLOR = "white"
             draw_canvas()
             draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "FREE":
-            const.FREE = not const.FREE
-            for paramm in const.PARAM_ORDER:
+            params.FREE = not params.FREE
+            for paramm in params.PARAM_ORDER_IHM:
                 if paramm not in ["FREE", "COLOR", "TRIANGLES", "FONT_TYPE"]:
-                    setattr(const, paramm, change_value(paramm, 0, const.FREE))
+                    setattr(params, paramm, change_value(paramm, 0, params.FREE))
         else:
-            setattr(const, param, change_value(param, val, const.FREE))
+            setattr(params, param, change_value(param, val, params.FREE))
 
         if param == "NUM_BIRDS":
             generate_points_and_facultative_move(False, False)
             draw_points()
         elif param == "WIDTH":
             generate_points_and_facultative_move(False, False)
-            draw_status(False, True, on_other_key, start_repeat, stop_repeat)
+            draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
             draw_canvas()
             draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "HEIGHT":
             generate_points_and_facultative_move(False, False)
-            draw_status(False, True, on_other_key, start_repeat, stop_repeat)
+            draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
             draw_canvas()
             draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "FREE":
@@ -139,51 +154,51 @@ def on_other_key(event):
             generate_points_and_facultative_move(False, False)
             draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "FONT_SIZE" or param == "FONT_TYPE":
-            draw_status(True, True, on_other_key, start_repeat, stop_repeat)
+            draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
     elif (
-        getattr(event, "keysym", "").lower() == str(const.RESET_COMMAND)
-        and const.RESET_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.RESET_COMMAND)
+        and params.RESET_ACTIVATED >= 1
     ):
         restore_options()
         generate_points_and_facultative_move(False, False)
         draw_all(on_other_key, start_repeat, stop_repeat)
         draw_canvas()
-        draw_status(False, True, on_other_key, start_repeat, stop_repeat)
+        draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
         draw.root.state("normal")
         draw.root.focus_force()
         draw.root.focus_set()
     elif (
-        getattr(event, "keysym", "").lower() == str(const.REGENERATION_COMMAND)
-        and const.REGENERATION_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.REGENERATION_COMMAND)
+        and params.REGENERATION_ACTIVATED >= 1
     ):
         reynolds.velocities = []
         reynolds.birds = []
         generate_points_and_facultative_move(False, False)
         draw_points()
     elif (
-        getattr(event, "keysym", "").lower() == str(const.TOOGLE_FPS_COMMAND)
-        and const.TOOGLE_FPS_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.TOOGLE_FPS_COMMAND)
+        and params.TOOGLE_FPS_ACTIVATED >= 1
     ):
-        const.FPS = not const.FPS
+        variables.FPS = not variables.FPS
         draw_fps()
     elif (
-        getattr(event, "keysym", "").lower() == str(const.TOOGLE_START_PAUSE_COMMAND)
-        and const.TOOGLE_START_PAUSE_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.TOOGLE_START_PAUSE_COMMAND)
+        and params.TOOGLE_START_PAUSE_ACTIVATED >= 1
     ):
         toggle_pause()
     elif (
-        getattr(event, "keysym", "").lower() == str(const.NEXT_FRAME_COMMAND)
-        and const.NEXT_FRAME_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.NEXT_FRAME_COMMAND)
+        and params.NEXT_FRAME_ACTIVATED >= 1
     ):
         next_frame()
     elif (
-        getattr(event, "keysym", "").lower() == str(const.TOOGLE_MAXIMIZE_COMMAND)
-        and const.TOOGLE_MAXIMIZE_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.TOOGLE_MAXIMIZE_COMMAND)
+        and params.TOOGLE_MAXIMIZE_ACTIVATED >= 1
     ):
         maximize_minimize(False)
     elif (
-        getattr(event, "keysym", "").lower() == str(const.DOC_COMMAND)
-        and const.DOC_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.DOC_COMMAND)
+        and params.DOC_ACTIVATED >= 1
     ):
         help = f"pybirdsreynolds {const.VERSION_PROG}\n\n" + get_help_text()
         popin = tk.Toplevel(draw.canvas)
@@ -217,72 +232,73 @@ def on_other_key(event):
         popin.grab_set()
 
     elif (
-        getattr(event, "keysym", "").lower() == str(const.HIDE_COMMAND)
-        and const.HIDE_HIDEN <= 1
+        getattr(event, "keysym", "").lower() == str(params.HIDE_COMMAND)
+        and params.HIDE_ACTIVATED >= 1
     ):
-        if not const.HIDDEN:
+        if not variables.HIDDEN:
             if is_maximized():
                 maximize_minimize(True)
-            const.TRANS_HIDEN = True
-            const.WIDTH_PARAMS = 0
-            const.WIDTH_CONTROLS = 0
-            draw_status(True, True, on_other_key, start_repeat, stop_repeat)
+            variables.TRANS_HIDDEN = True
+            variables.WIDTH_PARAMS = 0
+            variables.WIDTH_CONTROLS = 0
+            draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
             generate_points_and_facultative_move(False, True)
-            draw_canvas_hiden()
-            const.HIDDEN = True
+            draw_canvas_hidden()
+            variables.HIDDEN = True
             draw_all(on_other_key, start_repeat, stop_repeat)
         else:
-            const.WIDTH_PARAMS = const.WIDTH_PARAMS_DEFAULT
-            const.WIDTH_CONTROLS = const.WIDTH_CONTROLS_DEFAULT
+            variables.WIDTH_PARAMS = const.WIDTH_PARAMS_DEFAULT
+            variables.WIDTH_CONTROLS = const.WIDTH_CONTROLS_DEFAULT
             if is_maximized():
-                const.WIDTH = (
-                    draw.root.winfo_width() - const.WIDTH_PARAMS - const.WIDTH_CONTROLS
+                params.WIDTH = (
+                    draw.root.winfo_width()
+                    - variables.WIDTH_PARAMS
+                    - variables.WIDTH_CONTROLS
                 )
-            draw_status(True, True, on_other_key, start_repeat, stop_repeat)
+            draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
             generate_points_and_facultative_move(False, True)
             draw_canvas()
-            const.HIDDEN = False
+            variables.HIDDEN = False
             draw_all(on_other_key, start_repeat, stop_repeat)
-    draw_status(False, False, on_other_key, start_repeat, stop_repeat)
+    draw_controls_and_params(False, on_other_key, start_repeat, stop_repeat)
 
 
 def restore_options():
 
-    const.MAX_SPEED = copy.deepcopy(const.MAX_SPEED_INIT)
-    const.NEIGHBOR_RADIUS = copy.deepcopy(const.NEIGHBOR_RADIUS_INIT)
-    const.NUM_BIRDS = copy.deepcopy(const.NUM_BIRDS_INIT)
-    const.WIDTH = copy.deepcopy(const.WIDTH_INIT)
-    const.HEIGHT = copy.deepcopy(const.HEIGHT_INIT)
-    const.REFRESH_MS = copy.deepcopy(const.REFRESH_MS_INIT)
-    const.RANDOM_SPEED = copy.deepcopy(const.RANDOM_SPEED_INIT)
-    const.RANDOM_ANGLE = copy.deepcopy(const.RANDOM_ANGLE_INIT)
-    const.SEP_WEIGHT = copy.deepcopy(const.SEP_WEIGHT_INIT)
-    const.ALIGN_WEIGHT = copy.deepcopy(const.ALIGN_WEIGHT_INIT)
-    const.COH_WEIGHT = copy.deepcopy(const.COH_WEIGHT_INIT)
-    const.SIZE = copy.deepcopy(const.SIZE_INIT)
-    const.COLOR = copy.deepcopy(const.COLOR_INIT)
-    const.FREE = copy.deepcopy(const.FREE_INIT)
-    const.TRIANGLES = copy.deepcopy(const.TRIANGLES_INIT)
-    const.FONT_TYPE = copy.deepcopy(const.FONT_TYPE_INIT)
+    params.MAX_SPEED = copy.deepcopy(params.MAX_SPEED_INIT)
+    params.NEIGHBOR_RADIUS = copy.deepcopy(params.NEIGHBOR_RADIUS_INIT)
+    params.NUM_BIRDS = copy.deepcopy(params.NUM_BIRDS_INIT)
+    params.WIDTH = copy.deepcopy(params.WIDTH_INIT)
+    params.HEIGHT = copy.deepcopy(params.HEIGHT_INIT)
+    params.REFRESH_MS = copy.deepcopy(params.REFRESH_MS_INIT)
+    params.RANDOM_SPEED = copy.deepcopy(params.RANDOM_SPEED_INIT)
+    params.RANDOM_ANGLE = copy.deepcopy(params.RANDOM_ANGLE_INIT)
+    params.SEP_WEIGHT = copy.deepcopy(params.SEP_WEIGHT_INIT)
+    params.ALIGN_WEIGHT = copy.deepcopy(params.ALIGN_WEIGHT_INIT)
+    params.COH_WEIGHT = copy.deepcopy(params.COH_WEIGHT_INIT)
+    params.SIZE = copy.deepcopy(params.SIZE_INIT)
+    params.COLOR = copy.deepcopy(params.COLOR_INIT)
+    params.FREE = copy.deepcopy(params.FREE_INIT)
+    params.TRIANGLES = copy.deepcopy(params.TRIANGLES_INIT)
+    params.FONT_TYPE = copy.deepcopy(params.FONT_TYPE_INIT)
 
-    if not const.COLOR:
-        const.CANVAS_BG = "black"
-        const.FILL_COLOR = "white"
-        const.OUTLINE_COLOR = "black"
+    if not params.COLOR:
+        variables.CANVAS_BG = "black"
+        variables.FILL_COLOR = "white"
+        variables.OUTLINE_COLOR = "black"
     else:
-        const.CANVAS_BG = "#87CEEB"
-        const.FILL_COLOR = "black"
-        const.OUTLINE_COLOR = "white"
+        variables.CANVAS_BG = "#87CEEB"
+        variables.FILL_COLOR = "black"
+        variables.OUTLINE_COLOR = "white"
 
 
 def change_value(type, val, free):
-    value = getattr(const, type, None)
+    value = getattr(params, type, None)
     prefix = type.upper()
-    default = getattr(const, f"{prefix}_DEFAULT", None)
-    min_value = getattr(const, f"{prefix}_MIN", None)
-    max_value = getattr(const, f"{prefix}_MAX", None)
-    min_free_value = getattr(const, f"{prefix}_FREE_MIN", None)
-    max_free_value = getattr(const, f"{prefix}_FREE_MAX", None)
+    min_value = getattr(params, f"{prefix}_MIN", None)
+    max_value = getattr(params, f"{prefix}_MAX", None)
+    min_free_value = getattr(params, f"{prefix}_FREE_MIN", None)
+    max_free_value = getattr(params, f"{prefix}_FREE_MAX", None)
     value += val
     if not free:
         if max_value is not None:

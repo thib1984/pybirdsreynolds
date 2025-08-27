@@ -1,7 +1,7 @@
 # args.py
 import argparse
 import importlib
-import pybirdsreynolds.const as const
+import pybirdsreynolds.params as params
 
 
 def get_description() -> str:
@@ -23,12 +23,12 @@ def get_epilog() -> str:
 
 
 def display_range(prefix):
-    value_default = getattr(const, f"{prefix}_DEFAULT")
+    value_default = getattr(params, f"{prefix}_DEFAULT")
     if not isinstance(value_default, bool) and isinstance(value_default, int):
-        value_min = getattr(const, f"{prefix}_MIN")
-        value_max = getattr(const, f"{prefix}_MAX")
-        value_free_min = getattr(const, f"{prefix}_FREE_MIN")
-        value_free_max = getattr(const, f"{prefix}_FREE_MAX")
+        value_min = getattr(params, f"{prefix}_MIN")
+        value_max = getattr(params, f"{prefix}_MAX")
+        value_free_min = getattr(params, f"{prefix}_FREE_MIN")
+        value_free_max = getattr(params, f"{prefix}_FREE_MAX")
         parts = []
 
         if value_min is not None and value_max is not None:
@@ -60,10 +60,10 @@ def display_range(prefix):
 
 
 def check_values(prefix, free, value, parser):
-    value_min = getattr(const, f"{prefix}_MIN")
-    value_max = getattr(const, f"{prefix}_MAX")
-    value_free_min = getattr(const, f"{prefix}_FREE_MIN")
-    value_free_max = getattr(const, f"{prefix}_FREE_MAX")
+    value_min = getattr(params, f"{prefix}_MIN")
+    value_max = getattr(params, f"{prefix}_MAX")
+    value_free_min = getattr(params, f"{prefix}_FREE_MIN")
+    value_free_max = getattr(params, f"{prefix}_FREE_MAX")
 
     if not free:
         if (
@@ -103,9 +103,9 @@ def check_values(prefix, free, value, parser):
 
 def create_parser():
     controls_text = "\n".join(
-        f"  [{getattr(const, name.replace('_TEXT', '_COMMAND'))}] : {getattr(const, name)}"
-        for name, value in const.__dict__.items()
-        if name.endswith("_TEXT") and getattr(const, f"{name[:-5]}_HIDEN") < 2
+        f"  [{getattr(params, name.replace('_TEXT', '_COMMAND'))}] : {getattr(params, name)}"
+        for name, value in params.__dict__.items()
+        if name.endswith("_TEXT") and getattr(params, f"{name[:-5]}_ACTIVATED") > 0
     )
 
     parser = argparse.ArgumentParser(
@@ -114,41 +114,41 @@ def create_parser():
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    for name in dir(const):
+    for name in dir(params):
         if not name.endswith("_DOC"):
             continue
 
         prefix = name[:-4]
-        hide = getattr(const, f"{prefix}_HIDEN")
-        if hide == 2:
+        activated = getattr(params, f"{prefix}_ACTIVATED")
+        if activated == 0:
             continue
 
         default_name = f"{prefix}_DEFAULT"
-        if not hasattr(const, default_name):
+        if not hasattr(params, default_name):
             continue
 
-        default_value = getattr(const, default_name)
+        default_value = getattr(params, default_name)
         arg_name = "--" + prefix.lower()
         if isinstance(default_value, bool):
             parser.add_argument(
                 arg_name,
                 action="store_true",
                 default=default_value,
-                help=getattr(const, name) + " (" + display_range(prefix) + ")",
+                help=getattr(params, name) + " (" + display_range(prefix) + ")",
             )
         elif isinstance(default_value, int):
             parser.add_argument(
                 arg_name,
                 type=int,
                 default=default_value,
-                help=getattr(const, name) + " (" + display_range(prefix) + ")",
+                help=getattr(params, name) + " (" + display_range(prefix) + ")",
             )
         elif isinstance(default_value, str):
             parser.add_argument(
                 arg_name,
                 type=str,
                 default=default_value,
-                help=getattr(const, name) + " (" + display_range(prefix) + ")",
+                help=getattr(params, name) + " (" + display_range(prefix) + ")",
             )
     return parser
 
@@ -157,22 +157,20 @@ def compute_args():
     parser = create_parser()
     args = parser.parse_args()
 
-    import pybirdsreynolds.const as const
-
-    for name in dir(const):
+    for name in dir(params):
         if not name.endswith("_DOC"):
             continue
 
         prefix = name[:-4]
-        hide = getattr(const, f"{prefix}_HIDEN")
+        hide = getattr(params, f"{prefix}_ACTIVATED")
         if hide == 2:
             continue
 
         default_name = f"{prefix}_DEFAULT"
-        if not hasattr(const, default_name):
+        if not hasattr(params, default_name):
             continue
 
-        default_value = getattr(const, default_name)
+        default_value = getattr(params, default_name)
         if not isinstance(default_value, int) or isinstance(default_value, bool):
             continue
 

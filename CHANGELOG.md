@@ -1,4 +1,4 @@
-# 2.0 (one day... perhaps)
+# 2.x.x (one day... perhaps)
 
 - [ ] use an full pip3 library to replace tk
 - [ ] optimize code -> remove uncessary deepcopy 
@@ -6,12 +6,14 @@
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
 
+# 2.0.1
+
+- [x] adjust params
+- [ ] separe constant and variables
+
 # 2.0.0
 
 - [x] use  to optimize time of calcul
-
-# 1.99.33
-
 - [x] fix bug with reset all params
 - [/] clean code
 
