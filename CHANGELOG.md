@@ -9,7 +9,8 @@
 # 2.0.1
 
 - [x] adjust params
-- [ ] separe constant and variables
+- [x] separe constant and variables
+- [/] clean code
 
 # 2.0.0
 
