@@ -8,7 +8,7 @@ import pybirdsreynolds.draw as draw
 from tkinter import font
 from functools import partial
 from pybirdsreynolds.args import compute_args
-from pybirdsreynolds.draw import draw_paused, update, on_resize, rustine_1, rustine_2
+from pybirdsreynolds.draw import draw_messages, update, on_resize, rustine_1, rustine_2
 from pybirdsreynolds.controls import (
     on_other_key,
     start_repeat,
@@ -93,7 +93,7 @@ def app():
     if params.FONT_TYPE not in const.FONT_TYPE_LIST:
         params.FONT_TYPE = const.FONT_TYPE_LIST[0]
         params.FONT_TYPE_INIT = copy.deepcopy(params.FONT_TYPE)
-    draw_paused()
+    draw_messages()
 
     update()
 

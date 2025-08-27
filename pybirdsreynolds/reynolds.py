@@ -17,7 +17,7 @@ def limit_speed(vx, vy):
     return vx, vy
 
 
-def generate_points_and_facultative_move(with_move, translate):
+def move_birds(with_move, translate):
     if not birds or birds == []:
         for _ in range(params.NUM_BIRDS):
             px = random.randint(
@@ -213,3 +213,11 @@ def generate_points_and_facultative_move(with_move, translate):
                 velocities[idx] = (vx, vy)
                 new_points.append((nx, ny))
             birds[:] = new_points
+    if birds:
+        variables.AVG_X = sum(x for x, _ in birds) / len(birds)
+        variables.AVG_Y = sum(y for _, y in birds) / len(birds)
+        variables.AVG_SPEED_ABS = sum(
+            math.sqrt(vx**2 + vy**2) for vx, vy in velocities
+        ) / len(velocities)
+        variables.AVG_VX = sum(vx for vx, _ in velocities) / len(velocities)
+        variables.AVG_VY = sum(vy for _, vy in velocities) / len(velocities)

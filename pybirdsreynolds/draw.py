@@ -7,7 +7,7 @@ import pybirdsreynolds.params as params
 import pybirdsreynolds.variables as variables
 import pybirdsreynolds.reynolds as reynolds
 from tkinter import font
-from pybirdsreynolds.reynolds import generate_points_and_facultative_move
+from pybirdsreynolds.reynolds import move_birds
 from pybirdsreynolds.args import display_range
 
 root = None
@@ -30,15 +30,15 @@ def rustine_2():
 
 def next_frame():
     if variables.PAUSED:
-        generate_points_and_facultative_move(True, False)
-        draw_points()
+        move_birds(True, False)
+        draw_birds()
 
 
 def update():
     if not variables.PAUSED:
-        generate_points_and_facultative_move(True, False)
-        draw_points()
-        draw_fps()
+        move_birds(True, False)
+        draw_birds()
+        draw_messages()
         variables.FRAME_COUNT += 1
         now = time.time()
         if not variables.COUNT:
@@ -59,16 +59,13 @@ def update():
 
 
 def draw_all(on_other_key, start_repeat, stop_repeat):
-    draw_controls_and_params(False, on_other_key, start_repeat, stop_repeat)
-    draw_points()
-    draw_rectangle()
-    draw_fps()
-    draw_hidden()
+    draw_panels(False, on_other_key, start_repeat, stop_repeat)
+    draw_birds()
+    draw_box()
+    draw_messages()
 
 
-def draw_controls_and_params(
-    fullRefreshControls, on_other_key, start_repeat, stop_repeat
-):
+def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
 
     normal_font = font.Font(
         family=params.FONT_TYPE, size=params.FONT_SIZE, weight="normal"
@@ -295,24 +292,18 @@ def draw_controls_and_params(
                     )
 
 
-def draw_paused():
+def draw_messages():
     canvas.delete("paused")
     if variables.PAUSED:
-        if variables.BLINK_STATE:
-            canvas.create_text(
-                variables.WIDTH_CONTROLS,
-                max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
-                anchor="sw",
-                fill="red",
-                font=(params.FONT_TYPE, params.FONT_SIZE, "bold"),
-                tags="paused",
-                text=" PAUSED ",
-            )
-        variables.BLINK_STATE = not variables.BLINK_STATE
-        canvas.after(500, lambda: draw_paused)
-
-
-def draw_fps():
+        canvas.create_text(
+            variables.WIDTH_CONTROLS,
+            max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
+            anchor="sw",
+            fill="red",
+            font=(params.FONT_TYPE, params.FONT_SIZE, "bold"),
+            tags="paused",
+            text=" PAUSED ",
+        )
     canvas.delete("fps")
     if variables.FPS:
         if not variables.PAUSED:
@@ -331,9 +322,6 @@ def draw_fps():
             tags="fps",
             text=f" FPS : {value}",
         )
-
-
-def draw_hidden():
     canvas.delete("hidden")
     if variables.HIDDEN:
         canvas.create_text(
@@ -345,9 +333,20 @@ def draw_hidden():
             tags="hidden",
             text="h to restore panels ",
         )
+    canvas.delete("average")
+    if variables.AVERAGE:
+        canvas.create_oval(
+            variables.AVG_X - 2 * params.SIZE,
+            variables.AVG_Y - 2 * params.SIZE,
+            variables.AVG_X + 2 * params.SIZE,
+            variables.AVG_Y + 2 * params.SIZE,
+            fill="red",
+            outline="red",
+            tag="average",
+        )
 
 
-def draw_rectangle():
+def draw_box():
     if not is_maximized():
         const.WIDTH_BEFORE_MAXIMIZED = params.WIDTH
         const.HEIGHT_BEFORE_MAXIMIZED = params.HEIGHT
@@ -363,35 +362,30 @@ def draw_rectangle():
     )
 
 
-def draw_canvas_hidden():
-    # TODO BUG FIX
-    # root.geometry(f"{params.WIDTH+2}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}")
-    # root.minsize(params.WIDTH+2, params.HEIGHT)
-    # root.maxsize(params.WIDTH+2, params.HEIGHT)
-    root.geometry(
-        f"{params.WIDTH}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
-    )
-    root.minsize(params.WIDTH, params.HEIGHT)
-    root.maxsize(params.WIDTH, params.HEIGHT)
-    width_tmp = params.WIDTH
-    height_tmp = params.HEIGHT
-    root.update()
-    root.minsize(params.WIDTH_MIN, params.HEIGHT_MIN)
-    root.maxsize(10000, 10000)
-    root.update()
-    params.WIDTH = width_tmp
-    params.HEIGHT = height_tmp
-
-
 def draw_canvas():
-    root.geometry(
-        f"{variables.WIDTH_PARAMS+params.WIDTH+variables.WIDTH_CONTROLS+2}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
-    )
-    canvas.config(
-        width=variables.WIDTH_PARAMS + params.WIDTH + variables.WIDTH_CONTROLS + 2,
-        height=max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
-        bg=variables.CANVAS_BG,
-    )
+    if not variables.HIDDEN:
+        root.geometry(
+            f"{variables.WIDTH_PARAMS+params.WIDTH+variables.WIDTH_CONTROLS+2}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
+        )
+        canvas.config(
+            width=variables.WIDTH_PARAMS + params.WIDTH + variables.WIDTH_CONTROLS + 2,
+            height=max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
+            bg=variables.CANVAS_BG,
+        )
+    else:
+        root.geometry(
+            f"{params.WIDTH}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
+        )
+        root.minsize(params.WIDTH, params.HEIGHT)
+        root.maxsize(params.WIDTH, params.HEIGHT)
+        width_tmp = params.WIDTH
+        height_tmp = params.HEIGHT
+        root.update()
+        root.minsize(params.WIDTH_MIN, params.HEIGHT_MIN)
+        root.maxsize(10000, 10000)
+        root.update()
+        params.WIDTH = width_tmp
+        params.HEIGHT = height_tmp
 
 
 def is_maximized():
@@ -410,12 +404,12 @@ def is_maximized():
     )
 
 
-def draw_points():
+def draw_birds():
     fill = variables.FILL_COLOR
     outline = variables.OUTLINE_COLOR
     size = params.SIZE
     cos_150 = math.cos(math.radians(150))
-    sin_150 = math.sin(math.radians(150))    
+    sin_150 = math.sin(math.radians(150))
 
     triangle_size = 6 * size
     triangle_width = 4 * size
@@ -424,12 +418,38 @@ def draw_points():
         # Création initiale
         for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
             if not params.TRIANGLES:
-                pid = canvas.create_oval(x - size, y - size, x + size, y + size, fill=fill, outline=outline)
+                pid = canvas.create_oval(
+                    x - size, y - size, x + size, y + size, fill=fill, outline=outline
+                )
             else:
-                pid = canvas.create_polygon(0,0,0,0,0,0, fill=fill, outline=outline)
+                angle = math.atan2(vy, vx)
+                cos_a, sin_a = math.cos(angle), math.sin(angle)
+
+                tip_x = x + cos_a * triangle_size
+                tip_y = y + sin_a * triangle_size
+
+                left_x = x + (cos_a * cos_150 - sin_a * sin_150) * triangle_width
+                left_y = y + (sin_a * cos_150 + cos_a * sin_150) * triangle_width
+
+                right_x = x + (cos_a * cos_150 + sin_a * sin_150) * triangle_width
+                right_y = y + (sin_a * cos_150 - cos_a * sin_150) * triangle_width
+
+                pid = canvas.coords(
+                    pid,
+                    tip_x,
+                    tip_y,
+                    left_x,
+                    left_y,
+                    right_x,
+                    right_y,
+                    fill=fill,
+                    outline=outline,
+                )
             variables.POINTS_ID.append(pid)
 
-    for pid, (x, y), (vx, vy) in zip(variables.POINTS_ID, reynolds.birds, reynolds.velocities):
+    for pid, (x, y), (vx, vy) in zip(
+        variables.POINTS_ID, reynolds.birds, reynolds.velocities
+    ):
         if not params.TRIANGLES:
             canvas.coords(pid, x - size, y - size, x + size, y + size)
         else:
@@ -446,6 +466,41 @@ def draw_points():
             right_y = y + (sin_a * cos_150 - cos_a * sin_150) * triangle_width
 
             canvas.coords(pid, tip_x, tip_y, left_x, left_y, right_x, right_y)
+
+    if len(variables.POINTS_ID) > len(reynolds.birds):
+        for pid in variables.POINTS_ID[len(reynolds.birds) :]:
+            canvas.delete(pid)
+        variables.POINTS_ID = variables.POINTS_ID[: len(reynolds.birds)]
+    elif len(variables.POINTS_ID) < len(reynolds.birds):
+        for x, y in reynolds.birds[len(variables.POINTS_ID) :]:
+            if not params.TRIANGLES:
+                pid = canvas.create_oval(
+                    x - size, y - size, x + size, y + size, fill=fill, outline=outline
+                )
+            else:
+                angle = math.atan2(0, 1)  # orientation par défaut
+                cos_a, sin_a = math.cos(angle), math.sin(angle)
+
+                tip_x = x + cos_a * triangle_size
+                tip_y = y + sin_a * triangle_size
+
+                left_x = x + (cos_a * cos_150 - sin_a * sin_150) * triangle_width
+                left_y = y + (sin_a * cos_150 + cos_a * sin_150) * triangle_width
+
+                right_x = x + (cos_a * cos_150 + sin_a * sin_150) * triangle_width
+                right_y = y + (sin_a * cos_150 - cos_a * sin_150) * triangle_width
+
+                pid = canvas.create_polygon(
+                    tip_x,
+                    tip_y,
+                    left_x,
+                    left_y,
+                    right_x,
+                    right_y,
+                    fill=fill,
+                    outline=outline,
+                )
+            variables.POINTS_ID.append(pid)
 
 
 def maximize_minimize(force):
@@ -478,7 +533,6 @@ def maximize_minimize(force):
 
 def show_tip(widget, text, event=None, dx=10, dy=10, wraplength=200):
 
-    # Si un tooltip est déjà affiché → le détruire
     if variables.TIP_WINDOW is not None:
         try:
             variables.TIP_WINDOW.destroy()
@@ -489,11 +543,10 @@ def show_tip(widget, text, event=None, dx=10, dy=10, wraplength=200):
     if not text:
         return
 
-    # Position du tooltip
-    if event:  # cas des événements <Enter> sur un Canvas
+    if event:
         x = widget.winfo_rootx() + event.x + dx
         y = widget.winfo_rooty() + event.y + dy
-    else:  # cas d’un widget normal
+    else:
         x = widget.winfo_rootx() + dx
         y = widget.winfo_rooty() + widget.winfo_height() + dy
 
@@ -535,10 +588,10 @@ def on_resize(on_other_key, start_repeat, stop_repeat, event):
             params.WIDTH_MIN,
         )
         params.HEIGHT = max(event.height, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)
-        generate_points_and_facultative_move(False, False)
-        draw_points()
-        draw_rectangle()
-        draw_fps()
+        move_birds(False, False)
+        draw_birds()
+        draw_box()
+        draw_messages()
         variables.TRANS_HIDDEN = False
         return
     # TODO BUGIFX
@@ -549,8 +602,8 @@ def on_resize(on_other_key, start_repeat, stop_repeat, event):
     params.HEIGHT = max(event.height, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)
     # params.WIDTH = max(event.width - variables.WIDTH_PARAMS - variables.WIDTH_CONTROLS,params.WIDTH_MIN)
     # params.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT)
-    generate_points_and_facultative_move(False, False)
-    draw_controls_and_params(True, on_other_key, start_repeat, stop_repeat)
-    draw_points()
-    draw_rectangle()
-    draw_fps()
+    move_birds(False, False)
+    draw_panels(True, on_other_key, start_repeat, stop_repeat)
+    draw_birds()
+    draw_box()
+    draw_messages()
