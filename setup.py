@@ -12,7 +12,7 @@ description = (
 
 setup(
     name="pybirdsreynolds",
-    version="2.0.1",
+    version="2.0.2",
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -28,7 +28,6 @@ setup(
         "console_scripts": ["pybirdsreynolds=pybirdsreynolds.__init__:pybirdsreynolds"],
     },
     classifiers=[
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
@@ -38,7 +37,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     include_package_data=True,
     package_data={"pybirdsreynolds": ["DESCRIPTION.txt", "EPILOG.txt"]},
 )

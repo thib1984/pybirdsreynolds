@@ -411,46 +411,41 @@ def is_maximized():
 
 
 def draw_points():
-    for pid in variables.POINTS_ID:
-        canvas.delete(pid)
-    variables.POINTS_ID.clear()
+    fill = variables.FILL_COLOR
+    outline = variables.OUTLINE_COLOR
+    size = params.SIZE
+    cos_150 = math.cos(math.radians(150))
+    sin_150 = math.sin(math.radians(150))    
 
-    triangle_size = 6 * params.SIZE
-    triangle_width = 4 * params.SIZE
-    for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
+    triangle_size = 6 * size
+    triangle_width = 4 * size
+
+    if not variables.POINTS_ID:
+        # Création initiale
+        for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
+            if not params.TRIANGLES:
+                pid = canvas.create_oval(x - size, y - size, x + size, y + size, fill=fill, outline=outline)
+            else:
+                pid = canvas.create_polygon(0,0,0,0,0,0, fill=fill, outline=outline)
+            variables.POINTS_ID.append(pid)
+
+    for pid, (x, y), (vx, vy) in zip(variables.POINTS_ID, reynolds.birds, reynolds.velocities):
         if not params.TRIANGLES:
-            pid = canvas.create_oval(
-                x - params.SIZE,
-                y - params.SIZE,
-                x + params.SIZE,
-                y + params.SIZE,
-                fill=variables.FILL_COLOR,
-                outline=variables.OUTLINE_COLOR,
-            )
+            canvas.coords(pid, x - size, y - size, x + size, y + size)
         else:
             angle = math.atan2(vy, vx)
-            tip_x = x + math.cos(angle) * triangle_size
-            tip_y = y + math.sin(angle) * triangle_size
-            left_angle = angle + math.radians(150)
-            right_angle = angle - math.radians(150)
+            cos_a, sin_a = math.cos(angle), math.sin(angle)
 
-            left_x = x + math.cos(left_angle) * triangle_width
-            left_y = y + math.sin(left_angle) * triangle_width
+            tip_x = x + cos_a * triangle_size
+            tip_y = y + sin_a * triangle_size
 
-            right_x = x + math.cos(right_angle) * triangle_width
-            right_y = y + math.sin(right_angle) * triangle_width
+            left_x = x + (cos_a * cos_150 - sin_a * sin_150) * triangle_width
+            left_y = y + (sin_a * cos_150 + cos_a * sin_150) * triangle_width
 
-            pid = canvas.create_polygon(
-                tip_x,
-                tip_y,
-                left_x,
-                left_y,
-                right_x,
-                right_y,
-                fill=variables.FILL_COLOR,
-                outline=variables.OUTLINE_COLOR,
-            )
-        variables.POINTS_ID.append(pid)
+            right_x = x + (cos_a * cos_150 + sin_a * sin_150) * triangle_width
+            right_y = y + (sin_a * cos_150 - cos_a * sin_150) * triangle_width
+
+            canvas.coords(pid, tip_x, tip_y, left_x, left_y, right_x, right_y)
 
 
 def maximize_minimize(force):
