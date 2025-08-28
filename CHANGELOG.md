@@ -6,6 +6,11 @@
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
 
+# 2.0.4
+
+- [/] clean code + commentary
+- [x] reintegrate all params
+
 # 2.0.3
 
 - [/] clean code
