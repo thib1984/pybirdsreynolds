@@ -9,11 +9,11 @@ import pybirdsreynolds.reynolds as reynolds
 import pybirdsreynolds.draw as draw
 from pybirdsreynolds.args import get_help_text
 from pybirdsreynolds.draw import (
-    draw_canvas,
-    draw_messages,
+    draw_root,
+    draw_status_overlays,
     draw_birds,
     draw_panels,
-    draw_all,
+    draw_box,
     maximize_minimize,
     is_maximized,
     next_frame,
@@ -28,6 +28,18 @@ def signal_handler(sig, frame):
 
 
 def on_click(l, sens):
+    """
+    Select a parameter from a clicked line and trigger navigation.
+
+    - Finds the clicked parameter from `l`.
+    - Builds the list of active params (`*_DOC` / `*_TEXT`).
+    - Updates `params.SELECTED_INDEX`.
+    - Calls `on_other_key` with `sens`.
+
+    Args:
+        l (str): Clicked line.
+        sens (str): Key direction/action.
+    """
     first_word = l.split()[0] if l.split() else None
     lines = [
         f"{name.removesuffix('_DOC'):15} :    {str(getattr(params, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
@@ -77,11 +89,23 @@ def toggle_pause(event=None):
     variables.BLINK_STATE = True
     variables.PAUSED = not variables.PAUSED
     draw_panels(False, on_other_key, start_repeat, stop_repeat)
-    draw_messages()
+    draw_status_overlays()
 
 
 def on_other_key(event):
+    """
+    Handle key events for parameter control and UI actions.
 
+    - Shift modifies step size (×10).
+    - Arrows: navigate or adjust selected param.
+    - Special params: toggle TRIANGLES, COLOR, FREE, FONT_TYPE.
+    - Triggers redraw/update (birds, UI panels, messages).
+    - Supports commands: reset, regenerate, toggle FPS/pause/maximize,
+      next frame, average display, documentation, hide panels.
+
+    Args:
+        event: Key event object with `keysym` and optional `state`.
+    """
     # If SHIFT_ACTIVATED == 0, force Shift to be ignored
     if params.SHIFT_ACTIVATED == 0:
         shift_pressed = False
@@ -90,17 +114,16 @@ def on_other_key(event):
         shift_pressed = getattr(event, "state", None)
         if shift_pressed is not None:
             # bitmask: check Shift key
-            shift_pressed = (shift_pressed & 0x1) != 0  
+            shift_pressed = (shift_pressed & 0x1) != 0
         else:
             # fallback to stored state
-            shift_pressed = variables.SHIFT_PRESSED    
+            shift_pressed = variables.SHIFT_PRESSED
 
     # Multiplier: x10 when Shift is pressed, otherwise x1
     multiplier = 10 if shift_pressed else 1
 
     # Value: positive for "Right" key, negative for others (e.g. "Left")
     val = multiplier if event.keysym == "Right" else -multiplier
-
 
     # Get currently selected parameter from the UI order
     param = params.PARAM_ORDER_IHM[params.SELECTED_INDEX]
@@ -112,77 +135,74 @@ def on_other_key(event):
     # Navigate through parameters using arrow keys if arrows are activated
     if params.ARROWS_ACTIVATED > 0:
         if event.keysym == "Up":
-            params.SELECTED_INDEX = (params.SELECTED_INDEX - 1) % len(params.PARAM_ORDER_IHM)
+            params.SELECTED_INDEX = (params.SELECTED_INDEX - 1) % len(
+                params.PARAM_ORDER_IHM
+            )
         elif event.keysym == "Down":
-            params.SELECTED_INDEX = (params.SELECTED_INDEX + 1) % len(params.PARAM_ORDER_IHM)
-    elif (
+            params.SELECTED_INDEX = (params.SELECTED_INDEX + 1) % len(
+                params.PARAM_ORDER_IHM
+            )
+
+    # Change value with Right and Left
+    if (
         event.keysym == "Right" or event.keysym == "Left"
     ) and params.ARROWS_ACTIVATED >= 1:
-        
-
+        # Specific cases
         if param == "TRIANGLES":
+            variables.POINTS_ID = []
+            draw.canvas.delete("bird")
             params.TRIANGLES = not params.TRIANGLES
-            draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "FONT_TYPE":
             current_index = const.FONT_TYPE_LIST.index(params.FONT_TYPE)
             params.FONT_TYPE = const.FONT_TYPE_LIST[
                 (current_index + val) % len(const.FONT_TYPE_LIST)
             ]
-            draw_all(on_other_key, start_repeat, stop_repeat)
-            draw_panels(True, on_other_key, start_repeat, stop_repeat)
         elif param == "COLOR":
-            COLOR = not COLOR
-            if not COLOR:
+            variables.POINTS_ID = []
+            draw.canvas.delete("bird")            
+            params.COLOR = not params.COLOR
+            if not params.COLOR:
                 variables.CANVAS_BG = "black"
                 variables.FILL_COLOR = "white"
-                variables.OUTLINE_COLOR = "black"
+                variables.OUTLINE_COLOR = "white"
             else:
                 variables.CANVAS_BG = "#87CEEB"
                 variables.FILL_COLOR = "black"
-                variables.OUTLINE_COLOR = "white"
-            draw_canvas()
-            draw_all(on_other_key, start_repeat, stop_repeat)
+                variables.OUTLINE_COLOR = "black"
         elif param == "FREE":
             params.FREE = not params.FREE
-            for paramm in params.PARAM_ORDER_IHM:
-                if paramm not in ["FREE", "COLOR", "TRIANGLES", "FONT_TYPE"]:
-                    setattr(params, paramm, change_value(paramm, 0, params.FREE))
+            # Readjust params one by one if needed (no free)
+            if not params.FREE:
+                for paramm in params.PARAM_ORDER_IHM:
+                    if paramm not in ["FREE", "COLOR", "TRIANGLES", "FONT_TYPE"]:
+                        setattr(params, paramm, change_value(paramm, 0, params.FREE))
         else:
             setattr(params, param, change_value(param, val, params.FREE))
-        if param == "NUM_BIRDS":
-            move_birds(False, False)
-            draw_birds()
-        elif param == "WIDTH":
-            move_birds(False, False)
-            draw_panels(True, on_other_key, start_repeat, stop_repeat)
-            draw_canvas()
-            draw_all(on_other_key, start_repeat, stop_repeat)
-        elif param == "HEIGHT":
-            move_birds(False, False)
-            draw_panels(True, on_other_key, start_repeat, stop_repeat)
-            draw_canvas()
-            draw_all(on_other_key, start_repeat, stop_repeat)
-        elif param == "FREE":
-            move_birds(False, False)
-            draw_all(on_other_key, start_repeat, stop_repeat)
-        elif param == "SIZE":
-            move_birds(False, False)
-            draw_all(on_other_key, start_repeat, stop_repeat)
-        elif param == "FONT_SIZE" or param == "FONT_TYPE":
-            draw_panels(True, on_other_key, start_repeat, stop_repeat)
 
+        # regenerate birds and ihm
+        move_birds(False, False)
+        draw_root()
+        draw_panels(True, on_other_key, start_repeat, stop_repeat)
+        draw_birds()
+        draw_box()
+        draw_status_overlays()
+    # Reset case
     elif (
         getattr(event, "keysym", "").lower() == str(params.RESET_COMMAND)
         and params.RESET_ACTIVATED >= 1
     ):
         restore_options()
         move_birds(False, False)
-        draw_all(on_other_key, start_repeat, stop_repeat)
-        draw_canvas()
+        draw_panels(False, on_other_key, start_repeat, stop_repeat)
+        draw_birds()
+        draw_box()
+        draw_status_overlays()
+        draw_root()
         draw_panels(True, on_other_key, start_repeat, stop_repeat)
         draw.root.state("normal")
         draw.root.focus_force()
         draw.root.focus_set()
+    # Rebirds
     elif (
         getattr(event, "keysym", "").lower() == str(params.REGENERATION_COMMAND)
         and params.REGENERATION_ACTIVATED >= 1
@@ -191,33 +211,39 @@ def on_other_key(event):
         reynolds.birds = []
         move_birds(False, False)
         draw_birds()
+    # Toggle FPS
     elif (
-        getattr(event, "keysym", "").lower() == str(params.TOOGLE_FPS_COMMAND)
-        and params.TOOGLE_FPS_ACTIVATED >= 1
+        getattr(event, "keysym", "").lower() == str(params.TOGGLE_FPS_COMMAND)
+        and params.TOGGLE_FPS_ACTIVATED >= 1
     ):
         variables.FPS = not variables.FPS
-        draw_messages()
+        draw_status_overlays()
+    # Toggle Start Pause
     elif (
-        getattr(event, "keysym", "").lower() == str(params.TOOGLE_START_PAUSE_COMMAND)
-        and params.TOOGLE_START_PAUSE_ACTIVATED >= 1
+        getattr(event, "keysym", "").lower() == str(params.TOGGLE_START_PAUSE_COMMAND)
+        and params.TOGGLE_START_PAUSE_ACTIVATED >= 1
     ):
         toggle_pause()
+    # Next Frame
     elif (
         getattr(event, "keysym", "").lower() == str(params.NEXT_FRAME_COMMAND)
         and params.NEXT_FRAME_ACTIVATED >= 1
     ):
         next_frame()
+    # Toggle Minimimize Maximize
     elif (
-        getattr(event, "keysym", "").lower() == str(params.TOOGLE_MAXIMIZE_COMMAND)
-        and params.TOOGLE_MAXIMIZE_ACTIVATED >= 1
+        getattr(event, "keysym", "").lower() == str(params.TOGGLE_MAXIMIZE_COMMAND)
+        and params.TOGGLE_MAXIMIZE_ACTIVATED >= 1
     ):
         maximize_minimize(False)
+    # Toggle Average Positon
     elif (
         getattr(event, "keysym", "").lower() == str(params.AVERAGE_COMMAND)
         and params.AVERAGE_ACTIVATED >= 1
     ):
         variables.AVERAGE = not variables.AVERAGE
-        draw_messages()
+        draw_status_overlays()
+    # Documentation display
     elif (
         getattr(event, "keysym", "").lower() == str(params.DOC_COMMAND)
         and params.DOC_ACTIVATED >= 1
@@ -252,7 +278,7 @@ def on_other_key(event):
         text_widget.config(yscrollcommand=scrollbar.set)
         popin.wait_visibility()
         popin.grab_set()
-
+    # Toggle Hide Command
     elif (
         getattr(event, "keysym", "").lower() == str(params.HIDE_COMMAND)
         and params.HIDE_ACTIVATED >= 1
@@ -266,8 +292,11 @@ def on_other_key(event):
             variables.WIDTH_CONTROLS = 0
             draw_panels(True, on_other_key, start_repeat, stop_repeat)
             move_birds(False, True)
-            draw_canvas()
-            draw_all(on_other_key, start_repeat, stop_repeat)
+            draw_root()
+            draw_panels(False, on_other_key, start_repeat, stop_repeat)
+            draw_birds()
+            draw_box()
+            draw_status_overlays()
         else:
             variables.HIDDEN = False
             variables.WIDTH_PARAMS = const.WIDTH_PARAMS_DEFAULT
@@ -278,10 +307,12 @@ def on_other_key(event):
                     - variables.WIDTH_PARAMS
                     - variables.WIDTH_CONTROLS
                 )
-            draw_panels(True, on_other_key, start_repeat, stop_repeat)
             move_birds(False, True)
-            draw_canvas()
-            draw_all(on_other_key, start_repeat, stop_repeat)
+            draw_root()
+            draw_panels(False, on_other_key, start_repeat, stop_repeat)
+            draw_birds()
+            draw_box()
+            draw_status_overlays()
     draw_panels(False, on_other_key, start_repeat, stop_repeat)
 
 
@@ -307,14 +338,30 @@ def restore_options():
     if not params.COLOR:
         variables.CANVAS_BG = "black"
         variables.FILL_COLOR = "white"
-        variables.OUTLINE_COLOR = "black"
+        variables.OUTLINE_COLOR = "white"
     else:
         variables.CANVAS_BG = "#87CEEB"
         variables.FILL_COLOR = "black"
-        variables.OUTLINE_COLOR = "white"
-
+        variables.OUTLINE_COLOR = "black"
+    variables.POINTS_ID = []
+    draw.canvas.delete("bird")
 
 def change_value(type, val, free):
+    """
+    Update a parameter value by adding `val` and clamp it within defined bounds.
+
+    Bounds are taken from attributes in `params`:
+      - Normal mode (`free=False`): <TYPE>_MIN / <TYPE>_MAX
+      - Free mode   (`free=True`):  <TYPE>_FREE_MIN / <TYPE>_FREE_MAX
+
+    Args:
+        type (str): Parameter name (e.g., "speed").
+        val (float): Increment to apply.
+        free (bool): Whether to use free-mode bounds.
+
+    Returns:
+        float: The updated, bounded value.
+    """
     value = getattr(params, type, None)
     prefix = type.upper()
     min_value = getattr(params, f"{prefix}_MIN", None)

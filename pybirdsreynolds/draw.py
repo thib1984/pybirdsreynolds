@@ -15,6 +15,7 @@ canvas = None
 
 
 def patch_1():
+    
     # TODO BUGFIX
     root.geometry(
         f"{variables.WIDTH_PARAMS + params.WIDTH +1+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
@@ -35,10 +36,20 @@ def next_frame():
 
 
 def update():
+    """
+    Main loop: update simulation, redraw, and track FPS.
+
+    - If not paused: move birds, redraw, count frames, compute FPS.
+    - If paused: reset FPS counters.
+    - Reschedules itself with `root.after`.
+
+    Returns:
+        None
+    """
     if not variables.PAUSED:
         move_birds(True, False)
         draw_birds()
-        draw_messages()
+        draw_status_overlays()
         variables.FRAME_COUNT += 1
         now = time.time()
         if not variables.COUNT:
@@ -58,32 +69,40 @@ def update():
     root.after(params.REFRESH_MS, update)
 
 
-def draw_all(on_other_key, start_repeat, stop_repeat):
-    draw_panels(False, on_other_key, start_repeat, stop_repeat)
-    draw_birds()
-    draw_box()
-    draw_messages()
-
-
 def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
+    """
+    Draw/update parameter and control panels on the canvas.
 
+    - Build parameter/control lines from `params`.
+    - Highlight selected param and attach tooltips.
+    - If `fullRefreshControls=True`, create or update buttons (params & controls).
+    - Handles button bindings for click/repeat navigation.
+    - Clears everything if panels are hidden.
+    """
     normal_font = font.Font(
         family=params.FONT_TYPE, size=params.FONT_SIZE, weight="normal"
     )
 
+    # Build display lines:
+    # - *_DOC → params with a docstring
+    # - *_TEXT → control buttons with label + command
     lines = [
-        f"{name.removesuffix('_DOC'):15} :    {str(getattr(params, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
+        f"{name.removesuffix('_DOC'):15} :     {str(getattr(params, name.removesuffix('_DOC'))).split(maxsplit=1)[0]}"
         for name in vars(params)
         if name.endswith("_DOC") and getattr(params, f"{name[:-4]}_ACTIVATED") == 2
     ] + [
-        f"{name.removesuffix('_TEXT'):15} :    {getattr(params, name)} [{getattr(params, name.replace('_TEXT', '_COMMAND'))}]"
+        f"{name.removesuffix('_TEXT'):15} : {getattr(params, name)} [{getattr(params, name.replace('_TEXT', '_COMMAND'))}]"
         for name in vars(params)
         if name.endswith("_TEXT") and getattr(params, f"{name[:-5]}_ACTIVATED") == 2
     ]
+    # Initial offsets
     x_text = 10
     y_text = 10
+    # Clear previous drawings
     canvas.delete("controls")
     canvas.delete("params")
+
+    # If panels are hidden → clear buttons and return
     if variables.WIDTH_PARAMS == 0 and variables.WIDTH_CONTROLS == 0:
         canvas.delete("params_button")
         canvas.delete("controls_button")
@@ -95,11 +114,14 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
     i_param = -1
     i_control = -1
     y_pos_control = 0
+
+    # Iterate through each line to draw parameters & controls
     for i, line in enumerate(lines):
         key = line.split()[0]
         font_to_use = normal_font
         fill = variables.FILL_COLOR
 
+        # Highlight selected param if arrows navigation is active
         if i == params.SELECTED_INDEX and params.ARROWS_ACTIVATED > 0:
             i_param = i_param + 1
             fill = "red"
@@ -112,6 +134,7 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                 tags="params",
                 text=line.lower(),
             )
+            # Tooltip: docstring + value range
             add_canvas_tooltip(
                 item,
                 getattr(params, key.upper() + "_DOC")
@@ -119,8 +142,10 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                 + display_range(key.upper())
                 + ")",
             )
+        # If it's a control line ([...]) -tooltip will be made later
         elif "[" in line:
             i_control = i_control + 1
+        # Else → standard param
         elif not "[" in line:
             i_param = i_param + 1
             item = canvas.create_text(
@@ -140,13 +165,17 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                 + ")",
             )
 
+        # Track control & param vertical positions
         y_pos_control = y_text + i_control * 2.1 * 2 * params.FONT_SIZE
-        y_pos_param = y_text + i_param * 2.3 * params.FONT_SIZE
+        y_pos_param = y_text + i_param * 2.3 * params.FONT_SIZE - 5
 
+        # --- Full refresh: create/update buttons ---
         if fullRefreshControls:
             first_colon_index = line.find(":") + 1
             f = font.Font(font=font_to_use)
             x_offset = 0
+
+            # Case: control button (with icon + command)
             if "[" in line:
                 key = line.split()[0]
                 btn_font = (params.FONT_TYPE, params.FONT_SIZE * 2)
@@ -176,12 +205,13 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                 tooltip_text = f"{getattr(params, key.upper() + '_TEXT')} [{getattr(params, key.upper() + '_COMMAND')}]"
                 add_widget_tooltip(lbl_btn_tmp, tooltip_text)
 
+                # Bind button → simulate key event
                 lbl_btn_tmp.bind(
                     "<Button-1>",
                     lambda e, c=cmd: on_other_key(types.SimpleNamespace(keysym=c)),
                 )
 
-                # Création du bouton
+                # Create or reposition control button
                 if getattr(params, name_button, None) is None:
                     setattr(
                         params,
@@ -201,13 +231,14 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                         y_pos_control,
                     )
 
+            # Case: param with +/- buttons (if arrows are active)
             first_colon_index = line.find(":") + 1
             f = font.Font(font=font_to_use)
             x_offset = f.measure(line[:first_colon_index])
             if "[" not in line and params.ARROWS_ACTIVATED > 0:
                 highlight_color = "black"
                 highlight_thickness = 1
-                name_button_up = key + "_BUTTON_UP"
+                # LEFT/DOWN CASE
                 name_button_down = key + "_BUTTON_DOWN"
                 lbl_left = tk.Label(
                     canvas,
@@ -222,6 +253,7 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                     "<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Left")
                 )
                 lbl_left.bind("<ButtonRelease-1>", lambda e: stop_repeat())
+                # create op update button's position
                 if (
                     not hasattr(params, name_button_down)
                     or getattr(params, name_button_down) is None
@@ -241,13 +273,15 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                             tags=("params_button",),
                         ),
                     )
-
                 else:
                     canvas.coords(
                         getattr(params, name_button_down),
                         x_text + x_offset + 1 + variables.WIDTH_CONTROLS + params.WIDTH,
                         y_pos_param,
                     )
+
+                # RIGHT/UP CASE
+                name_button_up = key + "_BUTTON_UP"
                 lbl_right = tk.Label(
                     canvas,
                     text=">",
@@ -261,6 +295,7 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                     "<ButtonPress-1>", lambda e, l=line: start_repeat(l, "Right")
                 )
                 lbl_right.bind("<ButtonRelease-1>", lambda e: stop_repeat())
+                # create op update button's position
                 if (
                     not hasattr(params, name_button_up)
                     or getattr(params, name_button_up) is None
@@ -292,7 +327,15 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                     )
 
 
-def draw_messages():
+def draw_status_overlays():
+    """
+    Draw overlay messages on the canvas (paused, FPS, hidden panels, average point).
+
+    - Shows "PAUSED" when simulation is paused.
+    - Displays FPS value (or "NA/...").
+    - Indicates when panels are hidden.
+    - Marks average position if enabled.
+    """
     canvas.delete("paused")
     if variables.PAUSED:
         canvas.create_text(
@@ -362,7 +405,7 @@ def draw_box():
     )
 
 
-def draw_canvas():
+def draw_root():
     if not variables.HIDDEN:
         root.geometry(
             f"{variables.WIDTH_PARAMS+params.WIDTH+variables.WIDTH_CONTROLS+2}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
@@ -414,12 +457,13 @@ def draw_birds():
     triangle_size = 6 * size
     triangle_width = 4 * size
 
+    # First creation of positions
     if not variables.POINTS_ID:
-        # Création initiale
         for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
             if not params.TRIANGLES:
                 pid = canvas.create_oval(
-                    x - size, y - size, x + size, y + size, fill=fill, outline=outline
+                    x - size, y - size, x + size, y + size, fill=fill, outline=outline,
+                    tag='bird'
                 )
             else:
                 angle = math.atan2(vy, vx)
@@ -434,8 +478,7 @@ def draw_birds():
                 right_x = x + (cos_a * cos_150 + sin_a * sin_150) * triangle_width
                 right_y = y + (sin_a * cos_150 - cos_a * sin_150) * triangle_width
 
-                pid = canvas.coords(
-                    pid,
+                pid = canvas.create_polygon(
                     tip_x,
                     tip_y,
                     left_x,
@@ -444,9 +487,11 @@ def draw_birds():
                     right_y,
                     fill=fill,
                     outline=outline,
+                    tag='bird'
                 )
             variables.POINTS_ID.append(pid)
 
+    # Update positions
     for pid, (x, y), (vx, vy) in zip(
         variables.POINTS_ID, reynolds.birds, reynolds.velocities
     ):
@@ -467,15 +512,18 @@ def draw_birds():
 
             canvas.coords(pid, tip_x, tip_y, left_x, left_y, right_x, right_y)
 
+    # Delete uncesserary points
     if len(variables.POINTS_ID) > len(reynolds.birds):
         for pid in variables.POINTS_ID[len(reynolds.birds) :]:
             canvas.delete(pid)
         variables.POINTS_ID = variables.POINTS_ID[: len(reynolds.birds)]
+    # Create missing points
     elif len(variables.POINTS_ID) < len(reynolds.birds):
         for x, y in reynolds.birds[len(variables.POINTS_ID) :]:
             if not params.TRIANGLES:
                 pid = canvas.create_oval(
-                    x - size, y - size, x + size, y + size, fill=fill, outline=outline
+                    x - size, y - size, x + size, y + size, fill=fill, outline=outline,
+                    tag='bird'
                 )
             else:
                 angle = math.atan2(0, 1)  # orientation par défaut
@@ -499,6 +547,7 @@ def draw_birds():
                     right_y,
                     fill=fill,
                     outline=outline,
+                    tag='bird'
                 )
             variables.POINTS_ID.append(pid)
 
@@ -591,7 +640,7 @@ def on_resize(on_other_key, start_repeat, stop_repeat, event):
         move_birds(False, False)
         draw_birds()
         draw_box()
-        draw_messages()
+        draw_status_overlays()
         variables.TRANS_HIDDEN = False
         return
     # TODO BUGIFX
@@ -606,4 +655,4 @@ def on_resize(on_other_key, start_repeat, stop_repeat, event):
     draw_panels(True, on_other_key, start_repeat, stop_repeat)
     draw_birds()
     draw_box()
-    draw_messages()
+    draw_status_overlays()

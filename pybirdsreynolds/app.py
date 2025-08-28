@@ -8,7 +8,13 @@ import pybirdsreynolds.draw as draw
 from tkinter import font
 from functools import partial
 from pybirdsreynolds.args import compute_args
-from pybirdsreynolds.draw import draw_messages, update, on_resize, patch_1, patch_2
+from pybirdsreynolds.draw import (
+    draw_status_overlays,
+    update,
+    on_resize,
+    patch_1,
+    patch_2,
+)
 from pybirdsreynolds.controls import (
     on_other_key,
     start_repeat,
@@ -17,6 +23,7 @@ from pybirdsreynolds.controls import (
     on_shift_press,
     on_shift_release,
     signal_handler,
+    restore_options
 )
 
 
@@ -34,11 +41,11 @@ def app():
     if not params.COLOR:
         variables.CANVAS_BG = "black"
         variables.FILL_COLOR = "white"
-        variables.OUTLINE_COLOR = "black"
+        variables.OUTLINE_COLOR = "white"
     else:
         variables.CANVAS_BG = "#87CEEB"
         variables.FILL_COLOR = "black"
-        variables.OUTLINE_COLOR = "white"
+        variables.OUTLINE_COLOR = "black"
 
     # Save initial default values to allow restoring params later if needed.
     params.MAX_SPEED_INIT = copy.deepcopy(params.MAX_SPEED)
@@ -87,7 +94,7 @@ def app():
     if params.FONT_TYPE not in const.FONT_TYPE_LIST:
         params.FONT_TYPE = const.FONT_TYPE_LIST[0]
         params.FONT_TYPE_INIT = copy.deepcopy(params.FONT_TYPE)
-    draw_messages()
+    draw_status_overlays()
     update()
 
     # Handle bindings
@@ -105,5 +112,6 @@ def app():
     # lauch tk app
     draw.root.after(100, patch_1)
     draw.root.after(200, patch_2)
+    restore_options()
     draw.root.update()
     draw.root.mainloop()
