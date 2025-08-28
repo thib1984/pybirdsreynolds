@@ -81,29 +81,45 @@ def toggle_pause(event=None):
 
 
 def on_other_key(event):
-    shift = getattr(event, "state", None)
-    if shift is not None:
-        shift = (shift & 0x1) != 0
+
+    # If SHIFT_ACTIVATED == 0, force Shift to be ignored
+    if params.SHIFT_ACTIVATED == 0:
+        shift_pressed = False
     else:
-        shift = variables.SHIFT_PRESSED
-    if params.SHIFT_ACTIVATED == 2:
-        shift = False
-    mult = 10 if shift else 1
-    val = mult if event.keysym == "Right" else 1 * -mult
+        # Detect if Shift is pressed
+        shift_pressed = getattr(event, "state", None)
+        if shift_pressed is not None:
+            # bitmask: check Shift key
+            shift_pressed = (shift_pressed & 0x1) != 0  
+        else:
+            # fallback to stored state
+            shift_pressed = variables.SHIFT_PRESSED    
+
+    # Multiplier: x10 when Shift is pressed, otherwise x1
+    multiplier = 10 if shift_pressed else 1
+
+    # Value: positive for "Right" key, negative for others (e.g. "Left")
+    val = multiplier if event.keysym == "Right" else -multiplier
+
+
+    # Get currently selected parameter from the UI order
     param = params.PARAM_ORDER_IHM[params.SELECTED_INDEX]
-    if (param == "WIDTH" or param == "HEIGHT") and is_maximized():
+
+    # If the window is maximized, prevent changes for WIDTH or HEIGHT
+    if param in ("WIDTH", "HEIGHT") and is_maximized():
         val = 0
-    if event.keysym == "Up" and params.ARROWS_ACTIVATED > 0:
-        params.SELECTED_INDEX = (params.SELECTED_INDEX - 1) % len(
-            params.PARAM_ORDER_IHM
-        )
-    elif event.keysym == "Down" and params.ARROWS_ACTIVATED > 0:
-        params.SELECTED_INDEX = (params.SELECTED_INDEX + 1) % len(
-            params.PARAM_ORDER_IHM
-        )
+
+    # Navigate through parameters using arrow keys if arrows are activated
+    if params.ARROWS_ACTIVATED > 0:
+        if event.keysym == "Up":
+            params.SELECTED_INDEX = (params.SELECTED_INDEX - 1) % len(params.PARAM_ORDER_IHM)
+        elif event.keysym == "Down":
+            params.SELECTED_INDEX = (params.SELECTED_INDEX + 1) % len(params.PARAM_ORDER_IHM)
     elif (
         event.keysym == "Right" or event.keysym == "Left"
     ) and params.ARROWS_ACTIVATED >= 1:
+        
+
         if param == "TRIANGLES":
             params.TRIANGLES = not params.TRIANGLES
             draw_all(on_other_key, start_repeat, stop_repeat)
@@ -133,7 +149,6 @@ def on_other_key(event):
                     setattr(params, paramm, change_value(paramm, 0, params.FREE))
         else:
             setattr(params, param, change_value(param, val, params.FREE))
-
         if param == "NUM_BIRDS":
             move_birds(False, False)
             draw_birds()
@@ -155,6 +170,7 @@ def on_other_key(event):
             draw_all(on_other_key, start_repeat, stop_repeat)
         elif param == "FONT_SIZE" or param == "FONT_TYPE":
             draw_panels(True, on_other_key, start_repeat, stop_repeat)
+
     elif (
         getattr(event, "keysym", "").lower() == str(params.RESET_COMMAND)
         and params.RESET_ACTIVATED >= 1

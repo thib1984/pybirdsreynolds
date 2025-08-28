@@ -8,7 +8,7 @@ import pybirdsreynolds.draw as draw
 from tkinter import font
 from functools import partial
 from pybirdsreynolds.args import compute_args
-from pybirdsreynolds.draw import draw_messages, update, on_resize, rustine_1, rustine_2
+from pybirdsreynolds.draw import draw_messages, update, on_resize, patch_1, patch_2
 from pybirdsreynolds.controls import (
     on_other_key,
     start_repeat,
@@ -22,6 +22,8 @@ from pybirdsreynolds.controls import (
 
 def app():
 
+    # Set params values: use user-provided options if available,
+    # otherwise fall back to *_DEFAULT values.
     options = compute_args()
     for var_name in dir(params):
         if var_name.endswith("_DEFAULT"):
@@ -29,7 +31,6 @@ def app():
             default_value = getattr(params, var_name)
             value = getattr(options, option_name.lower(), default_value)
             setattr(params, option_name, value)
-
     if not params.COLOR:
         variables.CANVAS_BG = "black"
         variables.FILL_COLOR = "white"
@@ -39,6 +40,7 @@ def app():
         variables.FILL_COLOR = "black"
         variables.OUTLINE_COLOR = "white"
 
+    # Save initial default values to allow restoring params later if needed.
     params.MAX_SPEED_INIT = copy.deepcopy(params.MAX_SPEED)
     params.NEIGHBOR_RADIUS_INIT = copy.deepcopy(params.NEIGHBOR_RADIUS)
     params.NUM_BIRDS_INIT = copy.deepcopy(params.NUM_BIRDS)
@@ -57,6 +59,7 @@ def app():
     params.FREE_INIT = copy.deepcopy(params.FREE)
     params.COLOR_INIT = copy.deepcopy(params.COLOR)
 
+    # Save and set the parameters displayed in the UI
     param_docs_ihm = {
         name.removesuffix("_DOC"): value
         for name, value in vars(params).items()
@@ -64,6 +67,7 @@ def app():
     }
     params.PARAM_ORDER_IHM = list(param_docs_ihm.keys())
 
+    # set tk app
     draw.root = tk.Tk()
     draw.root.title(f"pybirdsreynolds 🐦")
     draw.root.minsize(
@@ -78,6 +82,15 @@ def app():
     )
     draw.canvas.pack(fill="both", expand=True, padx=0, pady=0)
 
+    # Handle fonts (must be done after creating the Tk root window).
+    const.FONT_TYPE_LIST = [f for f in const.FONT_TYPE_LIST if f in font.families()]
+    if params.FONT_TYPE not in const.FONT_TYPE_LIST:
+        params.FONT_TYPE = const.FONT_TYPE_LIST[0]
+        params.FONT_TYPE_INIT = copy.deepcopy(params.FONT_TYPE)
+    draw_messages()
+    update()
+
+    # Handle bindings
     draw.root.bind("p", toggle_pause)
     draw.root.bind("<Key>", on_other_key)
     draw.root.bind_all("<Shift_L>", on_shift_press)
@@ -89,15 +102,8 @@ def app():
     )
     signal.signal(signal.SIGINT, signal_handler)
 
-    const.FONT_TYPE_LIST = [f for f in const.FONT_TYPE_LIST if f in font.families()]
-    if params.FONT_TYPE not in const.FONT_TYPE_LIST:
-        params.FONT_TYPE = const.FONT_TYPE_LIST[0]
-        params.FONT_TYPE_INIT = copy.deepcopy(params.FONT_TYPE)
-    draw_messages()
-
-    update()
-
-    draw.root.after(100, rustine_1)
-    draw.root.after(200, rustine_2)
+    # lauch tk app
+    draw.root.after(100, patch_1)
+    draw.root.after(200, patch_2)
     draw.root.update()
     draw.root.mainloop()

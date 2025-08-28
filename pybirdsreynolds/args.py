@@ -23,7 +23,13 @@ def get_epilog() -> str:
 
 
 def display_range(prefix):
+    """
+    Return a readable description of valid values for a parameter,
+    including ranges, free-mode limits, and default value.
+    """
     value_default = getattr(params, f"{prefix}_DEFAULT")
+
+    # Case: integer parameter with range constraints
     if not isinstance(value_default, bool) and isinstance(value_default, int):
         value_min = getattr(params, f"{prefix}_MIN")
         value_max = getattr(params, f"{prefix}_MAX")
@@ -53,18 +59,27 @@ def display_range(prefix):
             parts.append(f"default: {value_default}")
 
         return f"{' , '.join(parts)}" if parts else ""
+
+    # Case: boolean parameter
     elif isinstance(value_default, bool):
         return f"boolean value, default: {value_default}"
+
+    # Case: string (or other types)
     else:
         return f"string value, default: {value_default}"
 
 
 def check_values(prefix, free, value, parser):
+    """
+    Validate a parameter value against defined min/max ranges,
+    using free-mode limits if `free` is True.
+    """
     value_min = getattr(params, f"{prefix}_MIN")
     value_max = getattr(params, f"{prefix}_MAX")
     value_free_min = getattr(params, f"{prefix}_FREE_MIN")
     value_free_max = getattr(params, f"{prefix}_FREE_MAX")
 
+    # Case: no free
     if not free:
         if (
             value_min is not None
@@ -78,6 +93,7 @@ def check_values(prefix, free, value, parser):
             parser.error(f"{prefix.lower()} must <= {value_max}")
         elif value_min is not None and value_max is None and value < value_min:
             parser.error(f"{prefix.lower()} must >= {value_min}")
+    # Case: free
     else:
         if (
             value_free_min is not None

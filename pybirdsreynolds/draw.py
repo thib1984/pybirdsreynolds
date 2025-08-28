@@ -14,14 +14,14 @@ root = None
 canvas = None
 
 
-def rustine_1():
+def patch_1():
     # TODO BUGFIX
     root.geometry(
         f"{variables.WIDTH_PARAMS + params.WIDTH +1+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
     )
 
 
-def rustine_2():
+def patch_2():
     # TODO BUGFIX
     root.geometry(
         f"{variables.WIDTH_PARAMS + params.WIDTH +3+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
