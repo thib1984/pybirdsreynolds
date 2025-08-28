@@ -15,7 +15,7 @@ canvas = None
 
 
 def patch_1():
-    
+
     # TODO BUGFIX
     root.geometry(
         f"{variables.WIDTH_PARAMS + params.WIDTH +1+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
@@ -462,8 +462,13 @@ def draw_birds():
         for (x, y), (vx, vy) in zip(reynolds.birds, reynolds.velocities):
             if not params.TRIANGLES:
                 pid = canvas.create_oval(
-                    x - size, y - size, x + size, y + size, fill=fill, outline=outline,
-                    tag='bird'
+                    x - size,
+                    y - size,
+                    x + size,
+                    y + size,
+                    fill=fill,
+                    outline=outline,
+                    tag="bird",
                 )
             else:
                 angle = math.atan2(vy, vx)
@@ -487,7 +492,7 @@ def draw_birds():
                     right_y,
                     fill=fill,
                     outline=outline,
-                    tag='bird'
+                    tag="bird",
                 )
             variables.POINTS_ID.append(pid)
 
@@ -522,8 +527,13 @@ def draw_birds():
         for x, y in reynolds.birds[len(variables.POINTS_ID) :]:
             if not params.TRIANGLES:
                 pid = canvas.create_oval(
-                    x - size, y - size, x + size, y + size, fill=fill, outline=outline,
-                    tag='bird'
+                    x - size,
+                    y - size,
+                    x + size,
+                    y + size,
+                    fill=fill,
+                    outline=outline,
+                    tag="bird",
                 )
             else:
                 angle = math.atan2(0, 1)  # orientation par défaut
@@ -547,7 +557,7 @@ def draw_birds():
                     right_y,
                     fill=fill,
                     outline=outline,
-                    tag='bird'
+                    tag="bird",
                 )
             variables.POINTS_ID.append(pid)
 

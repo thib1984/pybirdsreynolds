@@ -159,7 +159,7 @@ def on_other_key(event):
             ]
         elif param == "COLOR":
             variables.POINTS_ID = []
-            draw.canvas.delete("bird")            
+            draw.canvas.delete("bird")
             params.COLOR = not params.COLOR
             if not params.COLOR:
                 variables.CANVAS_BG = "black"
@@ -345,6 +345,7 @@ def restore_options():
         variables.OUTLINE_COLOR = "black"
     variables.POINTS_ID = []
     draw.canvas.delete("bird")
+
 
 def change_value(type, val, free):
     """

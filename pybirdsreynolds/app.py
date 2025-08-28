@@ -23,7 +23,7 @@ from pybirdsreynolds.controls import (
     on_shift_press,
     on_shift_release,
     signal_handler,
-    restore_options
+    restore_options,
 )
 
 
