@@ -42,10 +42,12 @@ def app():
         variables.CANVAS_BG = "black"
         variables.FILL_COLOR = "white"
         variables.OUTLINE_COLOR = "white"
+        variables.INFO_COLOR = "yellow"
     else:
         variables.CANVAS_BG = "#87CEEB"
         variables.FILL_COLOR = "black"
         variables.OUTLINE_COLOR = "black"
+        variables.INFO_COLOR = "orange"
 
     # Save initial default values to allow restoring params later if needed.
     params.MAX_SPEED_INIT = copy.deepcopy(params.MAX_SPEED)

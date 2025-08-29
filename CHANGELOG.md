@@ -6,6 +6,12 @@
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
 
+# 2.0.5
+
+- [x] fix bug who can modifiy param when hidden
+- [x] font size and buttons size
+- [x] collections of color for --color
+
 # 2.0.4
 
 - [/] clean code + commentary

@@ -166,7 +166,7 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
             )
 
         # Track control & param vertical positions
-        y_pos_control = y_text + i_control * 2.1 * 2 * params.FONT_SIZE
+        y_pos_control = y_text + i_control * 2.3 * 2 * params.FONT_SIZE
         y_pos_param = y_text + i_param * 2.3 * params.FONT_SIZE - 5
 
         # --- Full refresh: create/update buttons ---
@@ -360,7 +360,7 @@ def draw_status_overlays():
             variables.WIDTH_CONTROLS,
             0,
             anchor="nw",
-            fill="yellow",
+            fill="gray",
             font=(params.FONT_TYPE, params.FONT_SIZE, "bold"),
             tags="fps",
             text=f" FPS : {value}",
@@ -615,7 +615,7 @@ def show_tip(widget, text, event=None, dx=10, dy=10, wraplength=200):
     label = tk.Label(
         tw,
         text=text,
-        background="yellow",
+        background=variables.INFO_COLOR,
         relief="solid",
         borderwidth=1,
         font=(params.FONT_TYPE, params.FONT_SIZE),

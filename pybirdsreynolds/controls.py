@@ -133,7 +133,7 @@ def on_other_key(event):
         val = 0
 
     # Navigate through parameters using arrow keys if arrows are activated
-    if params.ARROWS_ACTIVATED > 0:
+    if params.ARROWS_ACTIVATED > 0 and not variables.HIDDEN:
         if event.keysym == "Up":
             params.SELECTED_INDEX = (params.SELECTED_INDEX - 1) % len(
                 params.PARAM_ORDER_IHM
@@ -146,7 +146,7 @@ def on_other_key(event):
     # Change value with Right and Left
     if (
         event.keysym == "Right" or event.keysym == "Left"
-    ) and params.ARROWS_ACTIVATED >= 1:
+    ) and params.ARROWS_ACTIVATED >= 1 and not variables.HIDDEN:
         # Specific cases
         if param == "TRIANGLES":
             variables.POINTS_ID = []
@@ -165,10 +165,12 @@ def on_other_key(event):
                 variables.CANVAS_BG = "black"
                 variables.FILL_COLOR = "white"
                 variables.OUTLINE_COLOR = "white"
+                variables.INFO_COLOR = "yellow"
             else:
                 variables.CANVAS_BG = "#87CEEB"
                 variables.FILL_COLOR = "black"
                 variables.OUTLINE_COLOR = "black"
+                variables.INFO_COLOR = "orange"
         elif param == "FREE":
             params.FREE = not params.FREE
             # Readjust params one by one if needed (no free)
@@ -250,12 +252,12 @@ def on_other_key(event):
     ):
         help = f"pybirdsreynolds {const.VERSION_PROG}\n\n" + get_help_text()
         popin = tk.Toplevel(draw.canvas)
-        popin.title("Documentation - pybirdreynolds")
+        popin.title("Documentation - pybirdreynolds 🐦")
         popin.transient(draw.canvas.winfo_toplevel())
         popin.geometry("+200+200")
-        popin.configure(bg="gray")
+        popin.configure(bg=variables.CANVAS_BG)
 
-        frame = tk.Frame(popin, bg="gray")
+        frame = tk.Frame(popin, bg=variables.CANVAS_BG)
         frame.pack(padx=10, pady=10)
 
         text_widget = tk.Text(
@@ -263,9 +265,9 @@ def on_other_key(event):
             wrap="word",
             width=80,
             height=20,
-            bg="gray",
-            fg="black",
-            insertbackground="black",
+            bg=variables.CANVAS_BG,
+            fg=variables.FILL_COLOR,
+            insertbackground=variables.CANVAS_BG,
             highlightthickness=0,
             bd=0,
         )
@@ -339,10 +341,12 @@ def restore_options():
         variables.CANVAS_BG = "black"
         variables.FILL_COLOR = "white"
         variables.OUTLINE_COLOR = "white"
+        variables.INFO_COLOR = "yellow"
     else:
         variables.CANVAS_BG = "#87CEEB"
         variables.FILL_COLOR = "black"
         variables.OUTLINE_COLOR = "black"
+        variables.INFO_COLOR = "orange"
     variables.POINTS_ID = []
     draw.canvas.delete("bird")
 
