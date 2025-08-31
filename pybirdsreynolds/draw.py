@@ -18,14 +18,14 @@ def patch_1():
 
     # TODO BUGFIX
     root.geometry(
-        f"{variables.WIDTH_PARAMS + params.WIDTH +1+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -1, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
+        f"{variables.WIDTH_PARAMS + params.WIDTH +1+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -1, variables.HEIGHT_PARAMS_CONTROLS)}"
     )
 
 
 def patch_2():
     # TODO BUGFIX
     root.geometry(
-        f"{variables.WIDTH_PARAMS + params.WIDTH +3+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -3, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
+        f"{variables.WIDTH_PARAMS + params.WIDTH +3+ variables.WIDTH_CONTROLS}x{max(params.HEIGHT -3, variables.HEIGHT_PARAMS_CONTROLS)}"
     )
 
 
@@ -340,7 +340,7 @@ def draw_status_overlays():
     if variables.PAUSED:
         canvas.create_text(
             variables.WIDTH_CONTROLS,
-            max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
+            max(params.HEIGHT, variables.HEIGHT_PARAMS_CONTROLS),
             anchor="sw",
             fill="red",
             font=(params.FONT_TYPE, params.FONT_SIZE, "bold"),
@@ -369,7 +369,7 @@ def draw_status_overlays():
     if variables.HIDDEN:
         canvas.create_text(
             variables.WIDTH_CONTROLS + params.WIDTH,
-            max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
+            max(params.HEIGHT, variables.HEIGHT_PARAMS_CONTROLS),
             anchor="se",
             fill="gray",
             font=(params.FONT_TYPE, params.FONT_SIZE),
@@ -408,16 +408,16 @@ def draw_box():
 def draw_root():
     if not variables.HIDDEN:
         root.geometry(
-            f"{variables.WIDTH_PARAMS+params.WIDTH+variables.WIDTH_CONTROLS+2}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
+            f"{variables.WIDTH_PARAMS+params.WIDTH+variables.WIDTH_CONTROLS+2}x{max(params.HEIGHT, variables.HEIGHT_PARAMS_CONTROLS)}"
         )
         canvas.config(
             width=variables.WIDTH_PARAMS + params.WIDTH + variables.WIDTH_CONTROLS + 2,
-            height=max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
+            height=max(params.HEIGHT, variables.HEIGHT_PARAMS_CONTROLS),
             bg=variables.CANVAS_BG,
         )
     else:
         root.geometry(
-            f"{params.WIDTH}x{max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)}"
+            f"{params.WIDTH}x{max(params.HEIGHT, variables.HEIGHT_PARAMS_CONTROLS)}"
         )
         root.minsize(params.WIDTH, params.HEIGHT)
         root.maxsize(params.WIDTH, params.HEIGHT)
@@ -646,7 +646,7 @@ def on_resize(on_other_key, start_repeat, stop_repeat, event):
             event.width - variables.WIDTH_PARAMS - variables.WIDTH_CONTROLS,
             params.WIDTH_MIN,
         )
-        params.HEIGHT = max(event.height, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)
+        params.HEIGHT = max(event.height, variables.HEIGHT_PARAMS_CONTROLS)
         move_birds(False, False)
         draw_birds()
         draw_box()
@@ -658,7 +658,7 @@ def on_resize(on_other_key, start_repeat, stop_repeat, event):
         event.width - variables.WIDTH_PARAMS - variables.WIDTH_CONTROLS - 2,
         params.WIDTH_MIN,
     )
-    params.HEIGHT = max(event.height, const.HEIGHT_PARAMS_CONTROLS_DEFAULT)
+    params.HEIGHT = max(event.height, variables.HEIGHT_PARAMS_CONTROLS)
     # params.WIDTH = max(event.width - variables.WIDTH_PARAMS - variables.WIDTH_CONTROLS,params.WIDTH_MIN)
     # params.HEIGHT = max(event.height,const.HEIGHT_PARAMS_CONTROLS_DEFAULT)
     move_birds(False, False)

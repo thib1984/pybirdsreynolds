@@ -36,9 +36,9 @@ def move_birds(with_move, translate):
             for i in range(len(birds)):
                 x, y = birds[i]
                 if variables.HIDDEN:
-                    birds[i] = (x + const.WIDTH_CONTROLS_DEFAULT, y)
-                else:
                     birds[i] = (x - const.WIDTH_CONTROLS_DEFAULT, y)
+                else:
+                    birds[i] = (x + const.WIDTH_CONTROLS_DEFAULT, y)
         # Keep birds only if inside
         inside_points = []
         inside_velocities = []

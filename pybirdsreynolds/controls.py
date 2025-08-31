@@ -292,29 +292,45 @@ def on_other_key(event):
             variables.TRANS_HIDDEN = True
             variables.WIDTH_PARAMS = 0
             variables.WIDTH_CONTROLS = 0
+            variables.HEIGHT_PARAMS_CONTROLS = 0
+            params.HEIGHT_MIN=50
+            params.HEIGHT_FREE_MIN=50
+            params.WIDTH_MIN=50
+            params.WIDTH_FREE_MIN=50
             draw_panels(True, on_other_key, start_repeat, stop_repeat)
-            move_birds(False, True)
             draw_root()
             draw_panels(False, on_other_key, start_repeat, stop_repeat)
-            draw_birds()
             draw_box()
             draw_status_overlays()
+            move_birds(False, True)
+            draw_birds()
         else:
             variables.HIDDEN = False
             variables.WIDTH_PARAMS = const.WIDTH_PARAMS_DEFAULT
             variables.WIDTH_CONTROLS = const.WIDTH_CONTROLS_DEFAULT
+            variables.HEIGHT_PARAMS_CONTROLS = const.HEIGHT_PARAMS_CONTROLS_DEFAULT
             if is_maximized():
                 params.WIDTH = (
                     draw.root.winfo_width()
                     - variables.WIDTH_PARAMS
                     - variables.WIDTH_CONTROLS
                 )
-            move_birds(False, True)
+            params.HEIGHT_MIN=500
+            params.HEIGHT_FREE_MIN=500
+            params.WIDTH_MIN=500
+            params.WIDTH_FREE_MIN=500    
+            if params.HEIGHT<params.HEIGHT_MIN:
+                params.HEIGHT=params.HEIGHT_MIN
+            if params.WIDTH<params.WIDTH_MIN:
+                params.WIDTH=params.WIDTH_MIN                
             draw_root()
-            draw_panels(False, on_other_key, start_repeat, stop_repeat)
+            move_birds(False, True)
             draw_birds()
-            draw_box()
             draw_status_overlays()
+            draw_panels(True, on_other_key, start_repeat, stop_repeat)
+            draw_box()
+            draw_root()
+            draw_box()
     draw_panels(False, on_other_key, start_repeat, stop_repeat)
 
 

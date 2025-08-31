@@ -6,6 +6,11 @@
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
 
+# 2.0.6
+
+- [x] fix bug with postions of birds hidden/unhidden
+- [x] keep free width/height if hidden
+
 # 2.0.5
 
 - [x] fix bug who can modifiy param when hidden

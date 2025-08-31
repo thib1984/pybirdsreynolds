@@ -81,7 +81,7 @@ def app():
     draw.root.title(f"pybirdsreynolds 🐦")
     draw.root.minsize(
         variables.WIDTH_PARAMS + params.WIDTH_MIN + variables.WIDTH_CONTROLS,
-        max(params.HEIGHT, const.HEIGHT_PARAMS_CONTROLS_DEFAULT),
+        max(params.HEIGHT, variables.HEIGHT_PARAMS_CONTROLS),
     )
     draw.canvas = tk.Canvas(
         draw.root,
