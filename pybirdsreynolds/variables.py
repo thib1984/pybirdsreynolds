@@ -26,3 +26,4 @@ AVG_SPEED_ABS = 0
 AVG_VX = 0
 AVG_VY = 0
 AVERAGE = False
+HUNTER = False

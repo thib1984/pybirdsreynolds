@@ -1,4 +1,4 @@
-# 2.x.x (one day... perhaps)
+# x.x.x (one day... perhaps)
 
 - [ ] use an full pip3 library to replace tk
 - [ ] optimize code -> remove uncessary deepcopy 
@@ -6,10 +6,13 @@
 - [ ] bug with height parmaeter and height who dont work together if height_controls < min_width
 - [ ] edges with random shapes for the square
 
-# 2.0.6
 
+# 3.0.0
+
+- [x] add hunter mode
 - [x] fix bug with postions of birds hidden/unhidden
 - [x] keep free width/height if hidden
+
 
 # 2.0.5
 

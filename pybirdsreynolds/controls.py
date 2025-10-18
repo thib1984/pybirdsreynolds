@@ -245,6 +245,17 @@ def on_other_key(event):
     ):
         variables.AVERAGE = not variables.AVERAGE
         draw_status_overlays()
+    # Killer mode
+    elif (
+        getattr(event, "keysym", "").lower() == str(params.HUNTER_COMMAND)
+        and params.HUNTER_ACTIVATED >= 1
+    ):
+        variables.HUNTER = not variables.HUNTER
+        draw_status_overlays()
+        if variables.HUNTER == True:
+            draw.root.bind("<Button-1>", on_left_click)
+        else:
+            draw.root.unbind("<Button-1>")
     # Documentation display
     elif (
         getattr(event, "keysym", "").lower() == str(params.DOC_COMMAND)
@@ -333,6 +344,36 @@ def on_other_key(event):
             draw_box()
     draw_panels(False, on_other_key, start_repeat, stop_repeat)
 
+def on_left_click(event):
+    change=False
+    if not variables.HUNTER:
+        return  # si le mode chasseur n'est pas actif, on ne fait rien
+
+    # Distance maximum du clic pour "tuer" un oiseau
+    kill_radius = params.HUNTER_SIZE
+
+    # On crée une nouvelle liste d'oiseaux et d'IDs conservés
+    new_birds = []
+    new_velocities = []
+    new_points_id = []
+
+    for pid, (x, y), vel in zip(variables.POINTS_ID, reynolds.birds, reynolds.velocities):
+        dist = ((event.x - x) ** 2 + (event.y - y) ** 2) ** 0.5
+
+        if dist <= kill_radius:
+            change=True
+            draw.canvas.delete(pid)
+            params.NUM_BIRDS=params.NUM_BIRDS-1
+        else:
+            new_birds.append((x, y))
+            new_velocities.append(vel)
+            new_points_id.append(pid)
+
+    reynolds.birds = new_birds
+    reynolds.velocities = new_velocities
+    variables.POINTS_ID = new_points_id    
+    if change:
+        draw_panels(False, on_other_key, start_repeat, stop_repeat)
 
 def restore_options():
 

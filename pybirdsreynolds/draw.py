@@ -325,7 +325,52 @@ def draw_panels(fullRefreshControls, on_other_key, start_repeat, stop_repeat):
                         + params.WIDTH,
                         y_pos_param,
                     )
+    if variables.HUNTER == True:
+        root.config(cursor="pirate")
+        if hasattr(variables, "CURSOR_CIRCLE_ID"):
+            canvas.delete(variables.CURSOR_CIRCLE_ID)
+            del variables.CURSOR_CIRCLE_ID
+        if hasattr(variables, "MOVE_CIRCLE_FUNC"):
+            canvas.unbind("<Motion>")
+            del variables.MOVE_CIRCLE_FUNC          
+        r = params.HUNTER_SIZE
+        cursor_circle = canvas.create_oval(
+            0, 0, r * 2, r * 2,
+            outline="red", width=2,
+            tags="cursor_circle"
+        )
+        mouse_x = canvas.winfo_pointerx() - canvas.winfo_rootx()
+        mouse_y = canvas.winfo_pointery() - canvas.winfo_rooty()
+        x1, y1, x2, y2 = canvas.coords("boundary")
+        if x1 <= mouse_x <= x2 and y1 <= mouse_y <= y2:
+            canvas.coords(cursor_circle, mouse_x - r, mouse_y - r, mouse_x + r, mouse_y + r)
+            canvas.tag_raise(cursor_circle)
+            canvas.itemconfigure(cursor_circle, state="normal")
+        else:
+            canvas.itemconfigure(cursor_circle, state="hidden")
+        def move_circle(event):
+            x, y = event.x, event.y
+            x1, y1, x2, y2 = canvas.coords("boundary")
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                canvas.coords(cursor_circle, x - r, y - r, x + r, y + r)
+                canvas.tag_raise(cursor_circle)
+                canvas.itemconfigure(cursor_circle, state="normal")
+            else:
+                canvas.itemconfigure(cursor_circle, state="hidden")                
 
+        variables.CURSOR_CIRCLE_ID = cursor_circle
+        variables.MOVE_CIRCLE_FUNC = move_circle
+        canvas.bind("<Motion>", move_circle)
+
+    else:
+        root.config(cursor="arrow")
+        if hasattr(variables, "CURSOR_CIRCLE_ID"):
+            canvas.delete(variables.CURSOR_CIRCLE_ID)
+            del variables.CURSOR_CIRCLE_ID
+
+        if hasattr(variables, "MOVE_CIRCLE_FUNC"):
+            canvas.unbind("<Motion>")
+            del variables.MOVE_CIRCLE_FUNC  
 
 def draw_status_overlays():
     """
@@ -387,6 +432,17 @@ def draw_status_overlays():
             outline="red",
             tag="average",
         )
+    canvas.delete("hunter")
+    if variables.HUNTER:
+        canvas.create_text(
+            variables.WIDTH_CONTROLS + params.WIDTH,
+            0,
+            anchor="ne",
+            fill="red",
+            font=(params.FONT_TYPE, params.FONT_SIZE),
+            tags="hunter",
+            text="Hunter mode ",
+        )
 
 
 def draw_box():
@@ -403,7 +459,6 @@ def draw_box():
         width=const.MARGIN,
         tags="boundary",
     )
-
 
 def draw_root():
     if not variables.HIDDEN:
@@ -429,7 +484,6 @@ def draw_root():
         root.update()
         params.WIDTH = width_tmp
         params.HEIGHT = height_tmp
-
 
 def is_maximized():
     if root.tk.call("tk", "windowingsystem") == "aqua":
