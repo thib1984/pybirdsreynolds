@@ -12,7 +12,7 @@ description = (
 
 setup(
     name="pybirdsreynolds",
-    version="3.0.0",
+    version="3.0.5",
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -20,7 +20,7 @@ setup(
     author="thib1984",
     author_email="thibault.garcon@gmail.com",
     license="MIT",
-    license_files=[],
+    license_files="LICENSE.txt",
     packages=["pybirdsreynolds"],
     install_requires=["scipy"],
     zip_safe=False,
@@ -28,16 +28,11 @@ setup(
         "console_scripts": ["pybirdsreynolds=pybirdsreynolds.__init__:pybirdsreynolds"],
     },
     classifiers=[
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     include_package_data=True,
     package_data={"pybirdsreynolds": ["DESCRIPTION.txt", "EPILOG.txt"]},
 )

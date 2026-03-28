@@ -1,12 +1,12 @@
 # args.py
 import argparse
-import importlib
+from importlib import resources  # standard Python 3.10+
 import pybirdsreynolds.params as params
 
 
 def get_description() -> str:
     return (
-        importlib.resources.files("pybirdsreynolds")
+        resources.files("pybirdsreynolds")
         .joinpath("DESCRIPTION.txt")
         .read_text(encoding="utf-8")
         .strip()
@@ -15,7 +15,7 @@ def get_description() -> str:
 
 def get_epilog() -> str:
     return (
-        importlib.resources.files("pybirdsreynolds")
+        resources.files("pybirdsreynolds")
         .joinpath("EPILOG.txt")
         .read_text(encoding="utf-8")
         .strip()
