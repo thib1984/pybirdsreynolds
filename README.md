@@ -43,6 +43,12 @@ pipx upgrade pybirdsreynolds --include-deps
 
 This command upgrades the application to the latest version and also updates all its dependencies.
 
+## Uninstall
+
+```
+pipx uninstall pybirdsreynolds
+```
+
 ## Use
 
 ```pybirdsreynolds```
