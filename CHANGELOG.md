@@ -8,6 +8,10 @@
 
 # 3.0.5
 
+- [x] clean docs
+
+# 3.0.5
+
 - [x] clean doc
 
 # 3.0.0

@@ -1,3 +1,14 @@
+To upgrade, run:
+    pipx upgrade pybirdsreynolds --include-deps
+To install, run:
+    pipx install pybirdsreynolds
+To force reinstall, run:
+    pipx install pybirdsreynolds --force
+To uninstall, run:
+    pipx uninstall pybirdsreynolds
+To force uninstall (if needed), run:
+    pipx uninstall pybirdsreynolds --force
+
 full documentation:  https://github.com/thib1984/pybirdsreynolds
 report bugs:         https://github.com/thib1984/pybirdsreynolds/issues
 

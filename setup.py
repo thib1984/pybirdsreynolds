@@ -12,7 +12,7 @@ description = (
 
 setup(
     name="pybirdsreynolds",
-    version="3.0.5",
+    version="3.0.6",
     description=description,
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -2,7 +2,18 @@
 import argparse
 from importlib import resources  # standard Python 3.10+
 import pybirdsreynolds.params as params
+import importlib.metadata
 
+def get_env_report():
+    lines = []
+
+    lines.append("\nInstalled packages:")
+    for dist in sorted(importlib.metadata.distributions(), key=lambda d: d.metadata["Name"].lower()):
+        name = dist.metadata["Name"]
+        version = dist.version
+        lines.append(f"  - {name}=={version}")
+
+    return "\n".join(lines)
 
 def get_description() -> str:
     return (
@@ -126,7 +137,7 @@ def create_parser():
 
     parser = argparse.ArgumentParser(
         description=get_description() + "\n\n" + f"controls:\n{controls_text}",
-        epilog=get_epilog(),
+        epilog=get_epilog()  + "\n\n" + f"\n{get_env_report()}",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
